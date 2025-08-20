@@ -14,14 +14,16 @@ public class Veiculo {
     private LocalDate DATA_CADASTRO; 
     private String MEDIDA_PNEU;
     private String STATUS_VEICULO;
+    private Integer posicaoCarreta;
 
-    
+
+
     public Veiculo() {
       
     }
 
     
-    public Veiculo(String FROTA, String PLACA, Integer ID_CONFIG_FK, Integer QTD_PNEUS, LocalDate DATA_CADASTRO, String MEDIDA_PNEU, String STATUS_VEICULO) {
+    public Veiculo(String FROTA, String PLACA, Integer ID_CONFIG_FK, Integer QTD_PNEUS, LocalDate DATA_CADASTRO, String MEDIDA_PNEU, String STATUS_VEICULO, Integer posicaoCarreta) {
         this.FROTA = FROTA;
         this.PLACA = PLACA;
         this.ID_CONFIG_FK = ID_CONFIG_FK;
@@ -29,6 +31,7 @@ public class Veiculo {
         this.DATA_CADASTRO = DATA_CADASTRO;
         this.MEDIDA_PNEU = MEDIDA_PNEU;
         this.STATUS_VEICULO = STATUS_VEICULO;
+        this.posicaoCarreta = posicaoCarreta;
     }
 
 
@@ -97,6 +100,14 @@ public class Veiculo {
 
     public void setSTATUS_VEICULO(String STATUS_VEICULO) {
         this.STATUS_VEICULO = STATUS_VEICULO;
+    }
+
+    public Integer getPosicaoCarreta() {
+        return posicaoCarreta;
+    }
+
+    public void setPosicaoCarreta(Integer posicaoCarreta) {
+        this.posicaoCarreta = posicaoCarreta;
     }
 
    

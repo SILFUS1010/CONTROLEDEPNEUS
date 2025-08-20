@@ -1853,6 +1853,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
         // Define o modelo na JTable
         Tabela_Exibicao_veiculos.setModel(model);
+        formatarTabelaVeiculos();
     }
 
     private void atualizarContagemTotalPneus() {
@@ -1877,6 +1878,79 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         int totalVeiculos = (veiculos != null) ? veiculos.size() : 0;
         Veiculos_Cadastrados.setText(String.valueOf(totalVeiculos));
     }
+
+    private void formatarTabelaVeiculos() {
+    // Cores para as linhas (efeito zebra)
+    final java.awt.Color ZEBRA_COLOR_1 = java.awt.Color.WHITE;
+    final java.awt.Color ZEBRA_COLOR_2 = new java.awt.Color(240, 240, 240);
+
+    // 1. Criar um TableCellRenderer customizado para o efeito Zebra e centralização
+    class ZebraTableCellRenderer extends javax.swing.table.DefaultTableCellRenderer {
+        @Override
+        public java.awt.Component getTableCellRendererComponent(javax.swing.JTable table, Object value,
+                                                                 boolean isSelected, boolean hasFocus, int row, int column) {
+            // Chama a implementação padrão para obter o componente base
+            java.awt.Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            // Lógica de cores alternadas para as linhas
+            if (!isSelected) {
+                if (row % 2 == 0) {
+                    cell.setBackground(ZEBRA_COLOR_1);
+                } else {
+                    cell.setBackground(ZEBRA_COLOR_2);
+                }
+            }
+
+            // Centraliza o texto em todas as células
+            setHorizontalAlignment(javax.swing.JLabel.CENTER);
+
+            return cell;
+        }
+    }
+
+    // 2. Configurar o cabeçalho da tabela com texto em maiúsculo, negrito e centralizado
+    javax.swing.table.JTableHeader header = Tabela_Exibicao_veiculos.getTableHeader();
+    header.setDefaultRenderer(new javax.swing.table.DefaultTableCellRenderer() {
+        @Override
+        public java.awt.Component getTableCellRendererComponent(javax.swing.JTable table, Object value,
+                                                                 boolean isSelected, boolean hasFocus, int row, int column) {
+            // Chama o método da superclasse para obter o componente padrão
+            javax.swing.JLabel label = (javax.swing.JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            // Converte o texto do cabeçalho para maiúsculas
+            if (value != null) {
+                label.setText(value.toString().toUpperCase());
+            }
+
+            // Define a fonte como negrito
+            label.setFont(label.getFont().deriveFont(java.awt.Font.BOLD));
+
+            // Centraliza o texto
+            label.setHorizontalAlignment(javax.swing.JLabel.CENTER);
+
+            // Garante que o fundo seja o padrão do Look and Feel
+            label.setBackground(javax.swing.UIManager.getColor("TableHeader.background"));
+            label.setForeground(javax.swing.UIManager.getColor("TableHeader.foreground"));
+            label.setBorder(javax.swing.UIManager.getBorder("TableHeader.cellBorder"));
+
+            return label;
+        }
+    });
+
+    // 3. Aplicar o novo renderizador e ajustar as larguras
+    ZebraTableCellRenderer zebraRenderer = new ZebraTableCellRenderer();
+    for (int i = 0; i < Tabela_Exibicao_veiculos.getColumnCount(); i++) {
+        Tabela_Exibicao_veiculos.getColumnModel().getColumn(i).setCellRenderer(zebraRenderer);
+    }
+
+    // 4. Ajustar Largura preferencial das Colunas
+    Tabela_Exibicao_veiculos.getColumnModel().getColumn(0).setPreferredWidth(40);  // ID
+    Tabela_Exibicao_veiculos.getColumnModel().getColumn(1).setPreferredWidth(70);  // Frota
+    Tabela_Exibicao_veiculos.getColumnModel().getColumn(2).setPreferredWidth(100); // Placa
+    Tabela_Exibicao_veiculos.getColumnModel().getColumn(3).setPreferredWidth(150); // Tipo de Veículo
+    Tabela_Exibicao_veiculos.getColumnModel().getColumn(4).setPreferredWidth(80);  // Qtd Pneus
+    Tabela_Exibicao_veiculos.getColumnModel().getColumn(5).setPreferredWidth(80);  // Status
+}
 
     // Enumeração para tipo de eixo
     public enum TipoEixo {

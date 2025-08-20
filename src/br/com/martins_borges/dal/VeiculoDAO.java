@@ -43,7 +43,7 @@ public class VeiculoDAO {
     }
 
     public boolean salvarVeiculoCompleto(Veiculo veiculo) {
-        String sql = "INSERT INTO CAD_VEICULOS (FROTA, PLACA, ID_CONFIG_FK, QTD_PNEUS, DATA_CADASTRO, MEDIDA_PNEU, STATUS_VEICULO) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO CAD_VEICULOS (FROTA, PLACA, ID_CONFIG_FK, QTD_PNEUS, DATA_CADASTRO, MEDIDA_PNEU, STATUS_VEICULO, posicao_carreta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         PreparedStatement pstmt = null;
         try {
@@ -60,6 +60,7 @@ public class VeiculoDAO {
             pstmt.setDate(5, java.sql.Date.valueOf(veiculo.getDATA_CADASTRO()));
             pstmt.setString(6, veiculo.getMEDIDA_PNEU());
             pstmt.setString(7, veiculo.getSTATUS_VEICULO());
+            pstmt.setObject(8, veiculo.getPosicaoCarreta());
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
@@ -96,6 +97,7 @@ public class VeiculoDAO {
                 veiculo.setDATA_CADASTRO(rs.getDate("DATA_CADASTRO").toLocalDate());
                 veiculo.setMEDIDA_PNEU(rs.getString("MEDIDA_PNEU"));
                 veiculo.setSTATUS_VEICULO(rs.getString("STATUS_VEICULO"));
+                veiculo.setPosicaoCarreta((Integer) rs.getObject("posicao_carreta"));
             }
         } catch (SQLException e) {
             System.err.println("DAO SQL Error: Erro ao buscar veículo por placa - " + e.getMessage());
@@ -131,6 +133,7 @@ public class VeiculoDAO {
                 veiculo.setDATA_CADASTRO(rs.getDate("DATA_CADASTRO").toLocalDate());
                 veiculo.setMEDIDA_PNEU(rs.getString("MEDIDA_PNEU"));
                 veiculo.setSTATUS_VEICULO(rs.getString("STATUS_VEICULO"));
+                veiculo.setPosicaoCarreta((Integer) rs.getObject("posicao_carreta"));
                 veiculos.add(veiculo);
             }
         } catch (SQLException e) {
@@ -144,7 +147,7 @@ public class VeiculoDAO {
     }
 
     public boolean atualizarVeiculo(Veiculo veiculo) {
-        String sql = "UPDATE CAD_VEICULOS SET FROTA = ?, PLACA = ?, ID_CONFIG_FK = ?, QTD_PNEUS = ?, DATA_CADASTRO = ?, MEDIDA_PNEU = ?, STATUS_VEICULO = ? WHERE ID = ?";
+        String sql = "UPDATE CAD_VEICULOS SET FROTA = ?, PLACA = ?, ID_CONFIG_FK = ?, QTD_PNEUS = ?, DATA_CADASTRO = ?, MEDIDA_PNEU = ?, STATUS_VEICULO = ?, posicao_carreta = ? WHERE ID = ?";
         Connection conn = null;
         PreparedStatement pstmt = null;
         try {
@@ -161,7 +164,8 @@ public class VeiculoDAO {
             pstmt.setDate(5, java.sql.Date.valueOf(veiculo.getDATA_CADASTRO()));
             pstmt.setString(6, veiculo.getMEDIDA_PNEU());
             pstmt.setString(7, veiculo.getSTATUS_VEICULO());
-            pstmt.setInt(8, veiculo.getID());
+            pstmt.setObject(8, veiculo.getPosicaoCarreta());
+            pstmt.setInt(9, veiculo.getID());
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
