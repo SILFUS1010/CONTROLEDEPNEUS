@@ -1,0 +1,5 @@
+{
+  "commentTranslate.hover.enabled": false,
+  "commentTranslate.targetLanguage": "pt",
+  "java.debug.settings.onBuildFailureProceed": true
+}
