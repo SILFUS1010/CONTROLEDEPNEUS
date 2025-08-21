@@ -8,6 +8,7 @@ import br.com.martins_borges.model.TipoConfiguracao;
 import br.com.martins_borges.model.Veiculo;
 import java.awt.CardLayout;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -16,6 +17,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 public class TelaCadastroVeiculos extends javax.swing.JDialog {
+
+    private List<Veiculo> listaDeVeiculos; // Para armazenar a lista completa de veículos
+    private final List<Integer> carretaIds = Arrays.asList(4, 7, 8, 12, 14, 15, 17, 18); // IDs que precisam de posição
+    private Veiculo veiculoSelecionado = null; // Para rastrear o veículo em modo de edição
 
     private javax.swing.JLabel[][] slotsDePneus;
     private final VeiculoDAO veiculoDAO;
@@ -52,7 +57,11 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
         try {
             initComponents();
-
+                
+             javax.swing.ListCellRenderer renderer = cbposicao_carreta.getRenderer();
+    if (renderer instanceof javax.swing.JLabel) {
+        ((javax.swing.JLabel) renderer).setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+    }
             Exclui_veiculos.addMouseListener(new java.awt.event.MouseAdapter() {
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
                     if (evt.getClickCount() == 2) {
@@ -100,6 +109,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             });
 
             // Listeners dos campos
+            cmbTipoVeiculo.addActionListener(e -> gerenciarVisibilidadePosicao());
             txtFrota.addFocusListener(new java.awt.event.FocusAdapter() {
                 public void focusLost(java.awt.event.FocusEvent evt) {
                     txtFrotaFocusLost(evt);
@@ -120,6 +130,8 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             atualizarTabelaVeiculos();
             atualizarContagemDeVeiculos();
             definirTamanhoEPosicao();
+
+            gerenciarVisibilidadePosicao(); // Define o estado inicial
 
         } catch (Exception e) {
             System.err.println("ERRO CRÍTICO no construtor: " + e.getMessage());
@@ -702,10 +714,13 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         lb_carreta.setText("QUAL É A POSIÇÃO DESSA CARRETA??");
 
         lbPosicao.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        lbPosicao.setText("jLabel1");
+        lbPosicao.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lbPosicao.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        lbPosicao.setEnabled(false);
 
-        cbposicao_carreta.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        cbposicao_carreta.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2" }));
+        cbposicao_carreta.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        cbposicao_carreta.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { " ", "1", "2" }));
+        cbposicao_carreta.setToolTipText("");
 
         btAdd_Pneu.setBackground(new java.awt.Color(0, 204, 0));
         btAdd_Pneu.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -751,63 +766,66 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
-                .add(40, 40, 40)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
                     .add(layout.createSequentialGroup()
-                        .add(14, 14, 14)
+                        .addContainerGap()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(Frota)
-                            .add(txtFrota, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 90, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                            .add(layout.createSequentialGroup()
-                                .add(5, 5, 5)
-                                .add(tipo_equipamento)))
-                        .add(18, 18, 18)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(placa, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                            .add(txtPlaca, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 90, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                        .add(176, 176, 176)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(numero_pneus, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                            .add(Qtd_numeroPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                    .add(layout.createSequentialGroup()
-                        .add(13, 13, 13)
-                        .add(cmbTipoVeiculo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 300, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                    .add(layout.createSequentialGroup()
-                        .add(29, 29, 29)
-                        .add(Cadastrar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 121, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .add(76, 76, 76)
-                        .add(cmbMedidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                    .add(layout.createSequentialGroup()
-                        .add(226, 226, 226)
-                        .add(lbMedidaPneu))
-                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                            .add(layout.createSequentialGroup()
-                                .add(173, 173, 173)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                                .add(lbPosicao, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 57, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                .add(104, 104, 104))
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                                 .add(lb_carreta)
-                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                .add(cbposicao_carreta, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 57, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                            .add(org.jdesktop.layout.GroupLayout.LEADING, Exclui_veiculos))
-                        .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
-                                .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-                                    .add(qtd_veiculos)
-                                    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .add(Veiculos_Cadastrados, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 49, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                                .add(qtd_pneus))
-                            .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                            .add(Pneus_necessarios, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .add(44, 44, 44)))
+                        .add(cbposicao_carreta, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 55, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                        .add(layout.createSequentialGroup()
+                            .add(54, 54, 54)
+                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                                .add(Frota)
+                                .add(txtFrota, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 90, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                .add(layout.createSequentialGroup()
+                                    .add(5, 5, 5)
+                                    .add(tipo_equipamento)))
+                            .add(18, 18, 18)
+                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                                .add(placa, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                .add(txtPlaca, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 90, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                            .add(176, 176, 176)
+                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                                .add(numero_pneus, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                .add(Qtd_numeroPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                        .add(layout.createSequentialGroup()
+                            .add(53, 53, 53)
+                            .add(cmbTipoVeiculo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 300, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                        .add(layout.createSequentialGroup()
+                            .add(69, 69, 69)
+                            .add(Cadastrar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 121, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                            .add(76, 76, 76)
+                            .add(cmbMedidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                        .add(layout.createSequentialGroup()
+                            .add(266, 266, 266)
+                            .add(lbMedidaPneu))
+                        .add(layout.createSequentialGroup()
+                            .add(40, 40, 40)
                             .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                                .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                                    .add(lbPosicao, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 57, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                    .add(107, 107, 107))
-                                .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                                .add(layout.createSequentialGroup()
+                                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                                        .add(layout.createSequentialGroup()
+                                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
+                                                .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
+                                                    .add(qtd_veiculos)
+                                                    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                    .add(Veiculos_Cadastrados, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 49, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                                .add(qtd_pneus))
+                                            .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                                            .add(Pneus_necessarios, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                        .add(Exclui_veiculos))
+                                    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 87, Short.MAX_VALUE)
+                                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
                                         .add(btAdd_Pneu, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .add(medidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                                    .add(60, 60, 60)))))
-                    .add(Tabela_Caminhoes, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                                    .add(60, 60, 60))
+                                .add(Tabela_Caminhoes, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))))
                 .add(18, 18, 18)
                 .add(BUTTON_BOX, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 59, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .add(4, 4, 4)
@@ -822,7 +840,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(layout.createSequentialGroup()
                         .addContainerGap()
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(EscolhaModelo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 668, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                             .add(layout.createSequentialGroup()
                                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -856,13 +874,14 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                                                 .add(cmbMedidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                                         .add(16, 16, 16)
                                         .add(Tabela_Caminhoes, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 170, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                                            .add(lb_carreta)
-                                            .add(cbposicao_carreta, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                        .add(lbPosicao, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 34, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                        .add(12, 12, 12)
+                                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                                            .add(cbposicao_carreta, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                            .add(layout.createSequentialGroup()
+                                                .add(lb_carreta)
+                                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                                                .add(lbPosicao, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                                        .add(37, 37, 37)
                                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                                             .add(layout.createSequentialGroup()
                                                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
@@ -871,21 +890,20 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                                                 .add(14, 14, 14)
                                                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                                                     .add(qtd_pneus)
-                                                    .add(Pneus_necessarios, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                                                    .add(Pneus_necessarios, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                                .add(44, 44, 44)
+                                                .add(Exclui_veiculos))
                                             .add(medidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 146, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                                     .add(BUTTON_BOX, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 560, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                .add(btAdd_Pneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 35, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .add(Exclui_veiculos)
-                                .add(31, 31, 31))))
+                                .add(btAdd_Pneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 35, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
                     .add(fechar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 24, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         getAccessibleContext().setAccessibleName("TelaCadastroVeiculos");
 
-        setSize(new java.awt.Dimension(1110, 662));
+        setSize(new java.awt.Dimension(1110, 679));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -1410,32 +1428,76 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_txtPlacaKeyTyped
 
     private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculosMouseClicked
-        
-    if (evt.getClickCount() == 1) { // Single click
-        int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
-        if (selectedRow != -1) {
 
-            // LIMPEZA: Garante que a mensagem antiga seja sempre removida primeiro.
+        if (evt.getClickCount() == 1) { // Single click
+            int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
+            if (selectedRow == -1) {
+                return;
+            }
+
+            // 1. Entrar em modo de edição
+            int modelRow = Tabela_Exibicao_veiculos.convertRowIndexToModel(selectedRow);
+            this.veiculoSelecionado = this.listaDeVeiculos.get(modelRow);
+            Cadastrar.setText("ATUALIZAR");
+            txtFrota.setEditable(false); // Impede a edição da frota, que é um identificador
+
+            // 2. Popular o formulário com os dados do veículo selecionado
+            txtFrota.setText(veiculoSelecionado.getFROTA());
+            txtPlaca.setText(veiculoSelecionado.getPLACA());
+            Qtd_numeroPneu.setText(String.valueOf(veiculoSelecionado.getQTD_PNEUS()));
+
+            // Seleciona o item correto nos ComboBoxes
+            // Para Tipo de Veículo
+            String tipoVeiculoItem = veiculoSelecionado.getID_CONFIG_FK() + " - ";
+            for (int i = 0; i < cmbTipoVeiculo.getItemCount(); i++) {
+                if (cmbTipoVeiculo.getItemAt(i).startsWith(tipoVeiculoItem)) {
+                    cmbTipoVeiculo.setSelectedIndex(i);
+                    break;
+                }
+            }
+            // Para Medida de Pneu
+            cmbMedidaPneu.setSelectedItem(veiculoSelecionado.getMEDIDA_PNEU());
+
+            // 3. Gerenciar a visibilidade e o estado dos campos de posição da carreta
+            int idConfig = veiculoSelecionado.getID_CONFIG_FK();
+            Integer posicao = veiculoSelecionado.getPosicaoCarreta();
+
+            // Primeiro, esconde tudo para garantir um estado limpo
+            lb_carreta.setVisible(false);
+            cbposicao_carreta.setVisible(false);
+            lbPosicao.setVisible(false);
+
+            if (carretaIds.contains(idConfig)) {
+                lb_carreta.setVisible(true);
+                if (posicao != null && posicao > 0) {
+                    // Se já tem posição, mostra o label APENAS COM O NÚMERO e fonte grande
+                    lbPosicao.setText(String.valueOf(posicao));
+                    lbPosicao.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
+                    lbPosicao.setVisible(true);
+                } else {
+                    // Se não tem, mostra o ComboBox para o usuário escolher
+                    cbposicao_carreta.setVisible(true);
+                }
+            }
+
+            // 4. Lógica existente para desenhar o chassi e mostrar mensagens
             labelMensagem.setVisible(false);
             TELA_ZERO.remove(labelMensagem);
             TELA_ZERO.repaint();
 
-            // LÓGICA ORIGINAL: Mostra o painel e prepara para desenhar.
             CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
             layout.show(EscolhaModelo, "TELA_ZERO");
 
-            int modelRow = Tabela_Exibicao_veiculos.convertRowIndexToModel(selectedRow);
-            int idConfig = (int) Tabela_Exibicao_veiculos.getModel().getValueAt(modelRow, 3);
-
             VehicleConfig config = vehicleConfigs.get(idConfig);
             if (config != null) {
-                // LÓGICA ORIGINAL: Desenha o chassi.
+                // A lógica de alinhamento dinâmico foi removida.
+                // O desenho usará a configuração padrão do veículo.
                 desenharChassi(config.tipos, config.visibilidade, config.espacamento,
-                               config.alinhamento, config.deslocamentos,
-                               config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
+                        config.alinhamento, 
+                        config.deslocamentos,
+                        config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
                 atualizarNumeroModelo(idConfig);
 
-                // LÓGICA ADICIONADA: Decide se uma nova mensagem deve ser mostrada.
                 switch (idConfig) {
                     case 0:
                         mostrarMensagem("<html>MODELO PARA ENGATE E DESENGATE<br>DE CARRETAS, PARA OUTROS UTILIZE<br>O MODELO 16</html>", 550, 70);
@@ -1451,30 +1513,27 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                         break;
                 }
             } else {
-                // LÓGICA ORIGINAL: Lida com casos onde a configuração não é encontrada.
                 desenharChassi(new TipoEixo[]{}, new boolean[]{}, 0, AlinhamentoVertical.CENTRO, new int[]{}, new int[]{}, new int[]{}, null);
                 atualizarNumeroModelo(0);
             }
         }
-    }
-
     }//GEN-LAST:event_Tabela_Exibicao_veiculosMouseClicked
 
     private void fecharMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fecharMouseClicked
         dispose();
     }//GEN-LAST:event_fecharMouseClicked
 
-    private void CadastrarActionPerformed(java.awt.event.ActionEvent evt) {
+    private void CadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CadastrarActionPerformed
         // --- 1. Coletar Dados da Tela ---
         String frota = txtFrota.getText().trim();
         String placa = txtPlaca.getText().trim().toUpperCase();
         String medidaPneu = "";
-        if (cmbMedidaPneu.getSelectedIndex() > 0 && cmbMedidaPneu.getSelectedItem() != null) {
+        if (cmbMedidaPneu.getSelectedIndex() >= 0 && cmbMedidaPneu.getSelectedItem() != null) {
             medidaPneu = cmbMedidaPneu.getSelectedItem().toString();
         }
 
         // --- 2. Validar Campos Obrigatórios ---
-        if (frota.isEmpty()) {
+        if (this.veiculoSelecionado == null && frota.isEmpty()) { // Valida frota apenas para novos
             JOptionPane.showMessageDialog(this, "O campo 'Frota' é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
             txtFrota.requestFocusInWindow();
             return;
@@ -1489,13 +1548,13 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             cmbTipoVeiculo.requestFocusInWindow();
             return;
         }
-        if (medidaPneu.isEmpty()) {
+        if (medidaPneu.isEmpty() || cmbMedidaPneu.getSelectedIndex() <= 0) {
             JOptionPane.showMessageDialog(this, "Selecione uma Medida de Pneu.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
             cmbMedidaPneu.requestFocusInWindow();
             return;
         }
 
-        // --- 3. Processar Tipo de Veículo e Quantidade de Pneus ---
+        // --- 3. Processar Tipo de Veículo e Posição ---
         int idConfigSelecionado = -1;
         try {
             String itemSelecionado = cmbTipoVeiculo.getSelectedItem().toString();
@@ -1504,40 +1563,58 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             JOptionPane.showMessageDialog(this, "Erro ao processar Tipo de Equipamento selecionado.", "Erro Interno", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        // =========================================================================
-        // A CORREÇÃO ESTÁ AQUI: Pegamos o valor direto da label da tela.
-        // =========================================================================
-        int qtdPneusCorreta = 0;
-        try {
-            qtdPneusCorreta = Integer.parseInt(Qtd_numeroPneu.getText());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Não foi possível determinar a quantidade de pneus. Verifique o modelo selecionado.", "Erro de Contagem", JOptionPane.ERROR_MESSAGE);
-            return; // Para a execução se a contagem for inválida (ex: label vazia)
+        
+        Integer posicaoCarreta = null;
+        if (cbposicao_carreta.isVisible()) {
+            posicaoCarreta = Integer.parseInt(cbposicao_carreta.getSelectedItem().toString());
+        } else if (this.veiculoSelecionado != null) {
+            posicaoCarreta = this.veiculoSelecionado.getPosicaoCarreta();
         }
-        // =========================================================================
 
-        // --- 4. Criar Objeto Veiculo ---
-        Veiculo novoVeiculo = new Veiculo();
-        novoVeiculo.setFROTA(frota);
-        novoVeiculo.setPLACA(placa);
-        novoVeiculo.setID_CONFIG_FK(idConfigSelecionado);
-        novoVeiculo.setQTD_PNEUS(qtdPneusCorreta); // <-- USA O VALOR CORRETO DA TELA
-        novoVeiculo.setDATA_CADASTRO(LocalDate.now());
-        novoVeiculo.setMEDIDA_PNEU(medidaPneu);
-        novoVeiculo.setSTATUS_VEICULO("ATIVO");
 
-        // --- 5. Salvar no Banco ---
-        if (veiculoDAO.salvarVeiculoCompleto(novoVeiculo)) {
-            JOptionPane.showMessageDialog(this, "Veículo cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            limparCampos();
-            atualizarTabelaVeiculos();
-            atualizarContagemTotalPneus();
-            atualizarContagemDeVeiculos();
+        // --- LÓGICA DE DECISÃO: CADASTRAR OU ATUALIZAR ---
+        if (this.veiculoSelecionado == null) {
+            // --- MODO CADASTRO ---
+            int qtdPneusCorreta = Integer.parseInt(Qtd_numeroPneu.getText());
+
+            Veiculo novoVeiculo = new Veiculo();
+            novoVeiculo.setFROTA(frota);
+            novoVeiculo.setPLACA(placa);
+            novoVeiculo.setID_CONFIG_FK(idConfigSelecionado);
+            novoVeiculo.setQTD_PNEUS(qtdPneusCorreta);
+            novoVeiculo.setDATA_CADASTRO(LocalDate.now());
+            novoVeiculo.setMEDIDA_PNEU(medidaPneu);
+            novoVeiculo.setSTATUS_VEICULO("ATIVO");
+            novoVeiculo.setPosicaoCarreta(posicaoCarreta);
+
+            if (veiculoDAO.salvarVeiculoCompleto(novoVeiculo)) {
+                JOptionPane.showMessageDialog(this, "Veículo cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                limparCampos();
+            } else {
+                JOptionPane.showMessageDialog(this, "Erro ao cadastrar o veículo.", "Erro de Cadastro", JOptionPane.ERROR_MESSAGE);
+            }
+
         } else {
-            JOptionPane.showMessageDialog(this, "Erro ao cadastrar o veículo.", "Erro de Cadastro", JOptionPane.ERROR_MESSAGE);
+            // --- MODO ATUALIZAÇÃO ---
+            this.veiculoSelecionado.setPLACA(placa);
+            this.veiculoSelecionado.setID_CONFIG_FK(idConfigSelecionado);
+            this.veiculoSelecionado.setMEDIDA_PNEU(medidaPneu);
+            this.veiculoSelecionado.setPosicaoCarreta(posicaoCarreta);
+            // Outros campos que podem ser atualizados podem ser adicionados aqui
+
+            if (veiculoDAO.atualizarVeiculo(this.veiculoSelecionado)) {
+                JOptionPane.showMessageDialog(this, "Veículo atualizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                limparCampos();
+            } else {
+                JOptionPane.showMessageDialog(this, "Erro ao atualizar o veículo.", "Erro de Atualização", JOptionPane.ERROR_MESSAGE);
+            }
         }
-    }
+
+        // --- ATUALIZA A TELA INDEPENDENTEMENTE DO MODO ---
+        atualizarTabelaVeiculos();
+        atualizarContagemTotalPneus();
+        atualizarContagemDeVeiculos();
+    }//GEN-LAST:event_CadastrarActionPerformed
 
     private void txtFrotaFocusLost(java.awt.event.FocusEvent evt) {
         String frota = txtFrota.getText().trim();
@@ -1574,6 +1651,15 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         cmbTipoVeiculo.setSelectedIndex(0);
         cmbMedidaPneu.setSelectedIndex(-1); // Limpa a seleção
         Qtd_numeroPneu.setText("0");
+
+        // Reseta o modo de edição
+        this.veiculoSelecionado = null;
+        Cadastrar.setText("CADASTRAR");
+        txtFrota.setEditable(true); // Garante que a frota seja editável para novos cadastros
+
+        // Esconde e reseta os campos de posição da carreta
+        gerenciarVisibilidadePosicao();
+        cbposicao_carreta.setSelectedIndex(0);
     }
 
     private void carregarTiposVeiculo() {
@@ -1602,7 +1688,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                 120, // espacamento
                 AlinhamentoVertical.TOPO,
                 new int[]{-30, -10, -10}, // deslocamentos
-                new int[]{0, 0, 100}, // ajustesVerticais
+                new int[]{100, 0, 100}, // ajustesVerticais
                 new int[]{140, 280, 280}, // largurasEixos
                 null // posicoesEixos
         ));
@@ -1822,7 +1908,6 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                 new int[]{210, 210}, // largurasEixos
                 null // posicoesEixos
         ));
-        System.out.println("loadVehicleConfigs: Map populated. Size: " + vehicleConfigs.size());
     }
 
     private void atualizarTabelaVeiculos() {
@@ -1836,11 +1921,11 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             }
         };
 
-        // Busca os dados do banco
-        List<Veiculo> veiculos = veiculoDAO.listarTodos();
+        // Busca os dados do banco e armazena na lista da classe
+        this.listaDeVeiculos = veiculoDAO.listarTodos();
 
         // Popula o modelo com os dados dos veículos
-        for (Veiculo veiculo : veiculos) {
+        for (Veiculo veiculo : this.listaDeVeiculos) {
             model.addRow(new Object[]{
                 veiculo.getID(),
                 veiculo.getFROTA(),
@@ -1877,6 +1962,31 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         List<Veiculo> veiculos = veiculoDAO.listarTodos();
         int totalVeiculos = (veiculos != null) ? veiculos.size() : 0;
         Veiculos_Cadastrados.setText(String.valueOf(totalVeiculos));
+    }
+
+    private void gerenciarVisibilidadePosicao() {
+        // Esconde tudo por padrão
+        lb_carreta.setVisible(false);
+        cbposicao_carreta.setVisible(false);
+        lbPosicao.setVisible(false);
+
+        int selectedIndex = cmbTipoVeiculo.getSelectedIndex();
+        if (selectedIndex <= 0) {
+            return; // Nada selecionado, então não mostra nada
+        }
+
+        try {
+            String itemSelecionado = cmbTipoVeiculo.getSelectedItem().toString();
+            int idConfig = Integer.parseInt(itemSelecionado.split(" - ")[0]);
+
+            // Se o ID selecionado estiver na lista de carretas, mostra os campos de cadastro
+            if (carretaIds.contains(idConfig)) {
+                lb_carreta.setVisible(true);
+                cbposicao_carreta.setVisible(true);
+            }
+        } catch (Exception e) {
+            // Ignora erros de parsing, apenas não mostra os campos
+        }
     }
 
     private void formatarTabelaVeiculos() {

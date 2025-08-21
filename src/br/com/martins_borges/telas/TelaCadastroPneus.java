@@ -279,7 +279,11 @@ public class TelaCadastroPneus extends javax.swing.JDialog {
 
         java.awt.event.ActionListener empresaListener = evt -> {
             atualizarOpcoesMedida();
-            aplicarFiltroPneus();
+            if (Novo.isSelected()) {
+                sugerirProximoFogo();
+            } else {
+                aplicarFiltroPneus();
+            }
         };
 
         MARTINS_BORGES.setActionCommand("MARTINS_BORGES");
@@ -391,17 +395,16 @@ public class TelaCadastroPneus extends javax.swing.JDialog {
     }
 
     private void configuracoesIniciais() {
-        // Adiciona listener para desmarcar checkboxes ao clicar fora
         adicionarListenerClickFora();
 
         popularComboBoxFornecedor();
         popularComboBoxFabricante();
         popularComboBoxModelo();
-       configurarCampoNumerico(txtFogo);
-       configurarCampoNumerico(TxtDot);
-       configurarCampoNumerico(TxtProfud);
-       configurarCampoNumerico(TxtProjecao);
-       configurarCampoNumerico(TxtRecap);
+        configurarCampoNumerico(txtFogo);
+        configurarCampoNumerico(TxtDot);
+        configurarCampoNumerico(TxtProfud);
+        configurarCampoNumerico(TxtProjecao);
+        configurarCampoNumerico(TxtRecap);
         popularComboBoxTipoPneu();
 
         try {
@@ -414,7 +417,6 @@ public class TelaCadastroPneus extends javax.swing.JDialog {
             System.err.println("AVISO: Biblioteca SwingX (AutoCompleteDecorator) não encontrada.");
         } catch (Exception e) {
             System.err.println("Erro ao aplicar AutoCompleteDecorator: " + e.getMessage());
-
         }
 
         DefaultTableModel tableModel = new DefaultTableModel(
@@ -430,15 +432,6 @@ public class TelaCadastroPneus extends javax.swing.JDialog {
         };
         Tabela_Exibicao.setModel(tableModel);
 
-        for (java.awt.event.MouseListener ml : Tabela_Exibicao.getMouseListeners()) {
-
-            if (ml instanceof java.awt.event.MouseAdapter && ml.getClass().isAnonymousClass()) {
-                try {
-                    Tabela_Exibicao.removeMouseListener(ml);
-                } catch (Exception ex) {
-                }
-            }
-        }
         Tabela_Exibicao.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -460,35 +453,37 @@ public class TelaCadastroPneus extends javax.swing.JDialog {
             System.err.println("Erro ao configurar Key Bindings dos ComboBoxes: " + e.getMessage());
         }
 
-        configurarTabela();
-
         Tabela_Exibicao.setShowGrid(true);
         Tabela_Exibicao.setGridColor(java.awt.Color.LIGHT_GRAY);
         Tabela_Exibicao.setAutoCreateRowSorter(true);
 
-        if (txtFogo != null) {
-            txtFogo.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    aplicarFiltroPneus();
-                }
+        txtFogo.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) {
+                if (!Novo.isSelected()) aplicarFiltroPneus();
+            }
+            public void removeUpdate(DocumentEvent e) {
+                if (!Novo.isSelected()) aplicarFiltroPneus();
+            }
+            public void changedUpdate(DocumentEvent e) {
+                // Não é necessário para JTextField simples
+            }
+        });
 
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    aplicarFiltroPneus();
-                }
-
-                @Override
-                public void changedUpdate(DocumentEvent e) {
-                    aplicarFiltroPneus();
-                }
-            });
-        }
+        Novo.addActionListener(evt -> {
+            if (Novo.isSelected()) {
+                limparCamposParaNovoCadastro();
+                sugerirProximoFogo();
+                txtFogo.setEditable(true);
+                aplicarFiltroPneus(); // Limpa a tabela
+            } else {
+                txtFogo.setText("");
+                txtFogo.setEditable(true);
+                aplicarFiltroPneus();
+            }
+        });
 
         aplicarFiltroPneus();
-
         btnExcluir.setEnabled(false);
-        //CbMedida.setSelectedIndex(0);
         CbMedida.setEnabled(false);
     }
 
@@ -684,7 +679,7 @@ private void popularComboBoxFabricante() {
             @Override
             public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
                     throws BadLocationException {
-                if (string.matches("\\d*")) {
+                if (string.matches("d*")) {
                     super.insertString(fb, offset, string, attr);
                 }
             }
@@ -692,7 +687,7 @@ private void popularComboBoxFabricante() {
             @Override
             public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
                     throws BadLocationException {
-                if (text.matches("\\d*")) {
+                if (text.matches("d*")) {
                     super.replace(fb, offset, length, text, attrs);
                 }
             }
@@ -700,9 +695,18 @@ private void popularComboBoxFabricante() {
     }
 }
    
-  private void configurarTabela() {
-        Tabela_Exibicao.setShowGrid(true);
-        Tabela_Exibicao.setGridColor(java.awt.Color.LIGHT_GRAY);
+  private void formatarTabela() {
+        // --- 1. CONFIGURAÇÃO DO CABEÇALHO ---
+        javax.swing.table.JTableHeader header = Tabela_Exibicao.getTableHeader();
+        header.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        header.setOpaque(false);
+        header.setBackground(new java.awt.Color(0, 102, 102)); // Cor de destaque
+        header.setForeground(java.awt.Color.WHITE); // Texto branco
+
+        if (header.getDefaultRenderer() instanceof javax.swing.JLabel) {
+            ((javax.swing.JLabel) header.getDefaultRenderer()).setHorizontalAlignment(javax.swing.JLabel.CENTER);
+        }
+        
         Tabela_Exibicao.setShowGrid(true);
         Tabela_Exibicao.setGridColor(new java.awt.Color(200, 200, 200));
         Tabela_Exibicao.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -715,36 +719,27 @@ private void popularComboBoxFabricante() {
 
         TableColumnModel columnModel = Tabela_Exibicao.getColumnModel();
         try {
-
             TableColumn idCol = columnModel.getColumn(0);
             idCol.setPreferredWidth(45);
-            idCol.setMaxWidth(60);
             idCol.setCellRenderer(centerRenderer);
 
             TableColumn empresaCol = columnModel.getColumn(1);
             empresaCol.setPreferredWidth(60);
-            empresaCol.setMaxWidth(80);
             empresaCol.setCellRenderer(centerRenderer);
 
             TableColumn fogoCol = columnModel.getColumn(2);
             fogoCol.setPreferredWidth(70);
             fogoCol.setCellRenderer(centerRenderer);
 
-            TableColumn fornecedorCol = columnModel.getColumn(3);
-            fornecedorCol.setPreferredWidth(150);
+            columnModel.getColumn(3).setPreferredWidth(150); // Fornecedor
 
             TableColumn valorCol = columnModel.getColumn(4);
             valorCol.setPreferredWidth(110);
             valorCol.setCellRenderer(currencyRenderer);
 
-            TableColumn fabCol = columnModel.getColumn(5);
-            fabCol.setPreferredWidth(120);
-
-            TableColumn tipoCol = columnModel.getColumn(6);
-            tipoCol.setPreferredWidth(90);
-
-            TableColumn modeloCol = columnModel.getColumn(7);
-            modeloCol.setPreferredWidth(100);
+            columnModel.getColumn(5).setPreferredWidth(120); // Fabricante
+            columnModel.getColumn(6).setPreferredWidth(90);  // Tipo
+            columnModel.getColumn(7).setPreferredWidth(100); // Modelo
 
             TableColumn dotCol = columnModel.getColumn(8);
             dotCol.setPreferredWidth(70);
@@ -770,56 +765,43 @@ private void popularComboBoxFabricante() {
             projCol.setPreferredWidth(90);
             projCol.setCellRenderer(centerRenderer);
 
-            TableColumn obsCol = columnModel.getColumn(14);
-            obsCol.setPreferredWidth(250);
+            columnModel.getColumn(14).setPreferredWidth(250); // OBS
 
         } catch (ArrayIndexOutOfBoundsException e) {
-            System.err.println("Erro ao configurar colunas da tabela: Índice fora dos limites.");
-            JOptionPane.showMessageDialog(this, "Erro ao configurar colunas da tabela.", "Erro", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro ao configurar colunas da tabela: " + e.getMessage());
         }
     }
 
     private void aplicarFiltroPneus() {
-        pneusExibidosNoFiltro.clear();
+        if (Novo.isSelected()) {
+            DefaultTableModel modeloTabela = (DefaultTableModel) Tabela_Exibicao.getModel();
+            modeloTabela.setNumRows(0);
+            return;
+        }
 
         DefaultTableModel modeloTabela = (DefaultTableModel) Tabela_Exibicao.getModel();
         modeloTabela.setNumRows(0);
 
         List<Integer> idsEmpresasSelecionadas = new ArrayList<>();
-        if (MARTINS_BORGES.isSelected()) {
-            idsEmpresasSelecionadas.add(ID_EMPRESA_MARTINS_BORGES);
-        }
-        if (ALB.isSelected()) {
-            idsEmpresasSelecionadas.add(ID_EMPRESA_ALB);
-        }
-        if (ENGEUDI.isSelected()) {
-            idsEmpresasSelecionadas.add(ID_EMPRESA_ENGEUDI);
-        }
+        if (MARTINS_BORGES.isSelected()) idsEmpresasSelecionadas.add(ID_EMPRESA_MARTINS_BORGES);
+        if (ALB.isSelected()) idsEmpresasSelecionadas.add(ID_EMPRESA_ALB);
+        if (ENGEUDI.isSelected()) idsEmpresasSelecionadas.add(ID_EMPRESA_ENGEUDI);
 
-        String fogoDigitado = "";
-        if (txtFogo != null) {
-            fogoDigitado = txtFogo.getText().trim();
-        }
+        String fogoDigitado = txtFogo.getText().trim();
 
-        List<Pneu> pneusFiltradosDoBanco;
+        List<Pneu> pneusFiltradosDoBanco = new ArrayList<>();
         if (idsEmpresasSelecionadas.isEmpty() && fogoDigitado.isEmpty()) {
-            pneusFiltradosDoBanco = pneuDAO.buscarPneusPorFiltro(0, "");
+             pneusFiltradosDoBanco = pneuDAO.listarTodosPneus();
+        } else if (idsEmpresasSelecionadas.isEmpty()) {
+            pneusFiltradosDoBanco.addAll(pneuDAO.buscarPneusPorFiltro(0, fogoDigitado));
         } else {
-            pneusFiltradosDoBanco = new ArrayList<>();
-            if (idsEmpresasSelecionadas.isEmpty()) {
-
-                pneusFiltradosDoBanco.addAll(pneuDAO.buscarPneusPorFiltro(0, fogoDigitado));
-            } else {
-                for (int idEmpresa : idsEmpresasSelecionadas) {
-                    pneusFiltradosDoBanco.addAll(pneuDAO.buscarPneusPorFiltro(idEmpresa, fogoDigitado));
-                }
+            for (int idEmpresa : idsEmpresasSelecionadas) {
+                pneusFiltradosDoBanco.addAll(pneuDAO.buscarPneusPorFiltro(idEmpresa, fogoDigitado));
             }
         }
 
         if (pneusFiltradosDoBanco != null) {
             for (Pneu p : pneusFiltradosDoBanco) {
-                pneusExibidosNoFiltro.add(p);
-
                 modeloTabela.addRow(new Object[]{
                     p.getId(),
                     p.getIdEmpresaProprietaria(),
@@ -840,11 +822,7 @@ private void popularComboBoxFabricante() {
             }
         }
 
-        TamanhoTabela.configurar(Tabela_Exibicao, null);
-
-        int[] larguras = {40, 60, 70, 150, 110, 120, 90, 100, 70, 110, 80, 90, 70, 90, 250};
-        TamanhoTabela.configurar(Tabela_Exibicao, larguras);
-
+        formatarTabela();
         Tabela_Exibicao.clearSelection();
     }
 
@@ -860,17 +838,37 @@ private void popularComboBoxFabricante() {
         TxtObs.setText("");
         TxtValor.setText("");
 
-        CbFornecedor.setSelectedIndex(0);
-        CbFabricante.setSelectedIndex(0);
-        CbTipoPneu.setSelectedIndex(0);
-        CbModelo.setSelectedIndex(0);
-        CbMedida.setSelectedIndex(0);
+        CbFornecedor.setSelectedIndex(-1);
+        CbFabricante.setSelectedIndex(-1);
+        CbTipoPneu.setSelectedIndex(-1);
+        CbModelo.setSelectedIndex(-1);
+        CbMedida.setSelectedIndex(-1);
 
         modoEdicao = false;
         idPneuEmEdicao = -1;
         atualizarEstadoBotoes();
         Tabela_Exibicao.clearSelection();
+    }
+    
+    private void limparCamposParaNovoCadastro() {
+        txtFogo.setText("");
+        TxtDot.setText("");
+        TxtProfud.setText("");
+        TxtRecap.setText("");
+        TxtProjecao.setText("");
+        TxtObs.setText("");
+        TxtValor.setText("");
 
+        CbFornecedor.setSelectedIndex(-1);
+        CbFabricante.setSelectedIndex(-1);
+        CbTipoPneu.setSelectedIndex(-1);
+        CbModelo.setSelectedIndex(-1);
+        CbMedida.setSelectedIndex(-1);
+
+        modoEdicao = false;
+        idPneuEmEdicao = -1;
+        atualizarEstadoBotoes();
+        Tabela_Exibicao.clearSelection();
     }
 
     private void carregarDadosParaEdicao(int linhaSelecionadaNaView) {
@@ -978,10 +976,10 @@ private void popularComboBoxFabricante() {
             atualizarEstadoBotoes();
 
         } catch (ClassCastException cce) {
-            JOptionPane.showMessageDialog(this, "Erro ao converter tipo de dado da tabela para edição.\nVerifique se os dados na tabela estão corretos.\n" + cce.getMessage(), "Erro de Tipo", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro ao converter tipo de dado da tabela para edição.nVerifique se os dados na tabela estão corretos.n" + cce.getMessage(), "Erro de Tipo", JOptionPane.ERROR_MESSAGE);
             cancelarEdicao();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro inesperado ao carregar dados para edição:\n" + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro inesperado ao carregar dados para edição:n" + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
             cancelarEdicao();
         }
@@ -989,7 +987,7 @@ private void popularComboBoxFabricante() {
 
     private void selecionarItemComboBox(JComboBox<String> comboBox, String itemParaSelecionar) {
         if (itemParaSelecionar == null) {
-            comboBox.setSelectedIndex(0);
+            comboBox.setSelectedIndex(-1);
             return;
         }
         DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) comboBox.getModel();
@@ -1005,7 +1003,7 @@ private void popularComboBoxFabricante() {
         if (!encontrado && comboBox.isEditable()) {
             comboBox.setSelectedItem(itemParaSelecionar);
         } else if (!encontrado) {
-
+            comboBox.setSelectedIndex(-1);
         }
 
     }
@@ -1033,7 +1031,37 @@ private void popularComboBoxFabricante() {
         aplicarFiltroPneus();
     }
 
-    
+    private void prepararParaDuplicacao() {
+        this.modoEdicao = false;
+        this.idPneuEmEdicao = -1;
+        
+        txtFogo.setText(""); 
+        atualizarEstadoBotoes(); 
+        Tabela_Exibicao.clearSelection(); 
+        txtFogo.requestFocusInWindow(); 
+    }
+
+    private void sugerirProximoFogo() {
+        if (!Novo.isSelected()) {
+            return;
+        }
+
+        int idEmpresa = 0;
+        if (MARTINS_BORGES.isSelected()) {
+            idEmpresa = ID_EMPRESA_MARTINS_BORGES;
+        } else if (ALB.isSelected()) {
+            idEmpresa = ID_EMPRESA_ALB;
+        } else if (ENGEUDI.isSelected()) {
+            idEmpresa = ID_EMPRESA_ENGEUDI;
+        }
+
+        if (idEmpresa > 0) {
+            int ultimoFogo = pneuDAO.obterUltimoFogoPorEmpresa(idEmpresa);
+            txtFogo.setText(String.valueOf(ultimoFogo + 1));
+        } else {
+            txtFogo.setText("");
+        }
+    }
 
     private void atualizarTabelaDados() {
         aplicarFiltroPneus();
@@ -1074,7 +1102,7 @@ private void popularComboBoxFabricante() {
     }
     
   @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
@@ -1122,6 +1150,7 @@ private void popularComboBoxFabricante() {
         ENGEUDI = new javax.swing.JCheckBox();
         txtFogo = new javax.swing.JTextField();
         lbFogo = new javax.swing.JLabel();
+        Novo = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(1250, 670));
@@ -1470,12 +1499,7 @@ private void popularComboBoxFabricante() {
                 return canEdit [columnIndex];
             }
         });
-        // SOLUÇÃO DEFINITIVA: Remove todas as restrições de tamanho da tabela
-        Tabela_Exibicao.setMinimumSize(null);
-        Tabela_Exibicao.setPreferredSize(null);
-        Tabela_Exibicao.setMaximumSize(null);
-        // Força a tabela a ocupar todo o espaço disponível no jScrollPane
-        Tabela_Exibicao.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        Tabela_Exibicao.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         Tabela_Exibicao.setShowVerticalLines(true);
         Tabela_Exibicao.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -1539,6 +1563,8 @@ private void popularComboBoxFabricante() {
         gridBagConstraints.insets = new java.awt.Insets(2, 0, 0, 0);
         Empresas.add(lbFogo, gridBagConstraints);
 
+        Novo.setText("Novo Cadastro");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -1549,8 +1575,13 @@ private void popularComboBoxFabricante() {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(Empresas, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(Empresas, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(15, 15, 15)
+                                        .addComponent(Novo)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jCadastro2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -1572,7 +1603,10 @@ private void popularComboBoxFabricante() {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jCadastro2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jCadastro1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Empresas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(Empresas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(32, 32, 32)
+                        .addComponent(Novo)))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 222, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -1586,13 +1620,13 @@ private void popularComboBoxFabricante() {
 
         setSize(new java.awt.Dimension(1110, 662));
         setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>                        
 
-    private void MARTINSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MARTINSActionPerformed
+    private void MARTINSActionPerformed(java.awt.event.ActionEvent evt) {                                        
 
-    }//GEN-LAST:event_MARTINSActionPerformed
+    }                                       
 
-    private void btnCadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadastrarActionPerformed
+    private void btnCadastrarActionPerformed(java.awt.event.ActionEvent evt) {                                             
 
 
     int idEmpresa = 0;
@@ -1605,12 +1639,12 @@ private void popularComboBoxFabricante() {
     }
 
     String fogoSequencial = txtFogo.getText().trim();
-    String fornecedor = (CbFornecedor.getSelectedIndex() > 0) ? CbFornecedor.getSelectedItem().toString().toUpperCase() : "";
-    String fabricante = (CbFabricante.getSelectedIndex() > 0) ? CbFabricante.getSelectedItem().toString().toUpperCase() : "";
-    String tipoPneu = (CbTipoPneu.getSelectedIndex() > 0) ? CbTipoPneu.getSelectedItem().toString().toUpperCase() : "";
-    String modelo = (CbModelo.getSelectedIndex() > 0) ? CbModelo.getSelectedItem().toString().toUpperCase() : "";
+    String fornecedor = (CbFornecedor.getSelectedIndex() != -1) ? CbFornecedor.getSelectedItem().toString().toUpperCase() : "";
+    String fabricante = (CbFabricante.getSelectedIndex() != -1) ? CbFabricante.getSelectedItem().toString().toUpperCase() : "";
+    String tipoPneu = (CbTipoPneu.getSelectedIndex() != -1) ? CbTipoPneu.getSelectedItem().toString().toUpperCase() : "";
+    String modelo = (CbModelo.getSelectedIndex() != -1) ? CbModelo.getSelectedItem().toString().toUpperCase() : "";
     String dot = TxtDot.getText().trim().toUpperCase();
-    String medida = (CbMedida.getSelectedIndex() > 0) ? CbMedida.getSelectedItem().toString() : "";
+    String medida = (CbMedida.getSelectedIndex() != -1) ? CbMedida.getSelectedItem().toString() : "";
     String profundidadeStr = TxtProfud.getText().trim().replace(",", ".");
     String nRecapStr = TxtRecap.getText().trim();
     String projecaoKmStr = TxtProjecao.getText().trim();
@@ -1620,7 +1654,7 @@ private void popularComboBoxFabricante() {
     
     if (idEmpresa == 0) { JOptionPane.showMessageDialog(this, "Selecione a Empresa Proprietária.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE); MARTINS_BORGES.requestFocusInWindow(); return; }
     if (fogoSequencial.isEmpty()) { JOptionPane.showMessageDialog(this, "O campo 'N° Fogo' é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE); txtFogo.requestFocusInWindow(); return; }
-    if (!fogoSequencial.matches("\\d+")) { JOptionPane.showMessageDialog(this, "O campo 'N° Fogo' deve conter apenas números.", "Formato Inválido", JOptionPane.WARNING_MESSAGE); txtFogo.requestFocusInWindow(); return; }
+    if (!fogoSequencial.matches("d+")) { JOptionPane.showMessageDialog(this, "O campo 'N° Fogo' deve conter apenas números.", "Formato Inválido", JOptionPane.WARNING_MESSAGE); txtFogo.requestFocusInWindow(); return; }
     if (fogoSequencial.length() > 1 && fogoSequencial.startsWith("0")) { JOptionPane.showMessageDialog(this, "O Nº de Fogo não pode começar com zero (se > 1 dígito).", "Formato Inválido", JOptionPane.WARNING_MESSAGE); txtFogo.requestFocusInWindow(); return; }
     if (fornecedor.isEmpty()) { JOptionPane.showMessageDialog(this, "Selecione o Fornecedor.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE); CbFornecedor.requestFocusInWindow(); return; }
     if (fabricante.isEmpty()) { JOptionPane.showMessageDialog(this, "Selecione o Fabricante.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE); CbFabricante.requestFocusInWindow(); return; }
@@ -1647,7 +1681,7 @@ private void popularComboBoxFabricante() {
         if (nRecapStr.isEmpty()) { throw new NumberFormatException("N° Recapagens é obrigatório."); }
         nRecapagens = Integer.parseInt(nRecapStr); if (nRecapagens < 0) { throw new NumberFormatException("N° Recap. negativo."); }
         if (!projecaoKmStr.isEmpty()) { projecaoKm = Integer.parseInt(projecaoKmStr); if (projecaoKm < 0) { throw new NumberFormatException("Projeção Km negativa."); } }
-    } catch (NumberFormatException e) { JOptionPane.showMessageDialog(this, "Erro em Campo Numérico:\n" + e.getMessage(), "Inválido", JOptionPane.ERROR_MESSAGE); return; } 
+    } catch (NumberFormatException e) { JOptionPane.showMessageDialog(this, "Erro em Campo Numérico:n" + e.getMessage(), "Inválido", JOptionPane.ERROR_MESSAGE); return; } 
 
     Pneu pneu = new Pneu();
     pneu.setIdEmpresaProprietaria(idEmpresa);
@@ -1693,9 +1727,9 @@ private void popularComboBoxFabricante() {
 
 
 
-    }//GEN-LAST:event_btnCadastrarActionPerformed
+    }                                            
 
-    private void btnNovoFornecedorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovoFornecedorActionPerformed
+    private void btnNovoFornecedorActionPerformed(java.awt.event.ActionEvent evt) {                                                  
 
        String nomeNovoFornecedor = Utilitarios.mostrarDialogoComCampoMaiusculo(
             this,
@@ -1713,9 +1747,9 @@ private void popularComboBoxFabricante() {
         }
     }
 
-    }//GEN-LAST:event_btnNovoFornecedorActionPerformed
+    }                                                 
 
-    private void btnNovoFabricanteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovoFabricanteActionPerformed
+    private void btnNovoFabricanteActionPerformed(java.awt.event.ActionEvent evt) {                                                  
          
                                                    
    
@@ -1792,9 +1826,9 @@ private void popularComboBoxFabricante() {
         }
     }
 
-    }//GEN-LAST:event_btnNovoFabricanteActionPerformed
+    }                                                 
 
-    private void btnNovoModeloActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovoModeloActionPerformed
+    private void btnNovoModeloActionPerformed(java.awt.event.ActionEvent evt) {                                              
         String nomeNovoModelo = Utilitarios.mostrarDialogoComCampoMaiusculo(
         this,
         "Digite o nome do novo Modelo:",
@@ -1810,9 +1844,9 @@ private void popularComboBoxFabricante() {
         }
     }
 
-    }//GEN-LAST:event_btnNovoModeloActionPerformed
+    }                                             
 
-    private void btnNovoMedidaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovoMedidaActionPerformed
+    private void btnNovoMedidaActionPerformed(java.awt.event.ActionEvent evt) {                                              
         String novaDescricaoMedida = Utilitarios.mostrarDialogoComCampoMaiusculo(
         this,
         "Digite a nova Medida (Ex: 295/80R22.5):",
@@ -1827,9 +1861,9 @@ private void popularComboBoxFabricante() {
             JOptionPane.showMessageDialog(this, "Medida '" + medidaCriada.getDescricaoMedida() + "' cadastrada!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
         }
     }
-    }//GEN-LAST:event_btnNovoMedidaActionPerformed
+    }                                             
 
-    private void btnNovoTipoPneuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovoTipoPneuActionPerformed
+    private void btnNovoTipoPneuActionPerformed(java.awt.event.ActionEvent evt) {                                                
 if (tipoPneuDAO == null) {
         System.err.println("ERRO: tipoPneuDAO não inicializado em btnNovoTipoPneuActionPerformed!");
         return;
@@ -1855,9 +1889,9 @@ if (tipoPneuDAO == null) {
         }
     }
     
-    }//GEN-LAST:event_btnNovoTipoPneuActionPerformed
+    }                                               
 
-    private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirActionPerformed
+    private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {                                           
         int linhaSelecionada = Tabela_Exibicao.getSelectedRow();
 
         if (linhaSelecionada == -1) {
@@ -1892,7 +1926,7 @@ if (tipoPneuDAO == null) {
         }
 
         int resposta = JOptionPane.showConfirmDialog(this,
-                "Tem certeza que deseja excluir o Pneu (ID: " + idParaExcluir + ", Fogo: " + fogoParaConfirmar + ")?\nEsta ação não pode ser desfeita.",
+                "Tem certeza que deseja excluir o Pneu (ID: " + idParaExcluir + ", Fogo: " + fogoParaConfirmar + ")?nEsta ação não pode ser desfeita.",
                 "Confirmar Exclusão",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
@@ -1911,33 +1945,50 @@ if (tipoPneuDAO == null) {
             }
         }
 
-    }//GEN-LAST:event_btnExcluirActionPerformed
+    }                                          
 
-    private void jScrollPaneMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jScrollPaneMouseClicked
+    private void jScrollPaneMouseClicked(java.awt.event.MouseEvent evt) {                                         
 
-    }//GEN-LAST:event_jScrollPaneMouseClicked
+    }                                        
 
-    private void Tabela_ExibicaoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_ExibicaoMouseClicked
+    private void Tabela_ExibicaoMouseClicked(java.awt.event.MouseEvent evt) {                                             
         int linhaSelecionada = Tabela_Exibicao.getSelectedRow();
         if (linhaSelecionada != -1) {
             btnExcluir.setEnabled(true);
 
             if (evt.getClickCount() == 2) {
-
                 carregarDadosParaEdicao(linhaSelecionada);
 
-                modoEdicao = true;
+                Object[] options = {"EDITAR Pneu Existente", "DUPLICAR para Novo Cadastro"};
+                int escolha = JOptionPane.showOptionDialog(this,
+                        "Você deseja editar o pneu selecionado ou duplicá-lo para um novo cadastro?",
+                        "Escolha uma Ação",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null, 
+                        options, 
+                        options[0]); 
 
-                atualizarEstadoBotoes();
-
+                switch (escolha) {
+                    case JOptionPane.YES_OPTION: 
+                        modoEdicao = true;
+                        atualizarEstadoBotoes();
+                        break;
+                    case JOptionPane.NO_OPTION: 
+                        prepararParaDuplicacao();
+                        break;
+                    default: 
+                        cancelarEdicao();
+                        break;
+                }
             }
         } else {
 
             cancelarEdicao();
         }
-    }//GEN-LAST:event_Tabela_ExibicaoMouseClicked
+    }                                            
 
-    private void btnEditarFornecedorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarFornecedorActionPerformed
+    private void btnEditarFornecedorActionPerformed(java.awt.event.ActionEvent evt) {                                                    
                                                           
 
     Object itemSelecionadoObj = CbFornecedor.getSelectedItem();
@@ -2011,9 +2062,9 @@ if (tipoPneuDAO == null) {
   
 
 
-    }//GEN-LAST:event_btnEditarFornecedorActionPerformed
+    }                                                   
 
-    private void btnEditarFabricanteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarFabricanteActionPerformed
+    private void btnEditarFabricanteActionPerformed(java.awt.event.ActionEvent evt) {                                                    
                                                        
     Object itemSelecionadoObj = CbFabricante.getSelectedItem();
     if (itemSelecionadoObj == null || itemSelecionadoObj.toString().isEmpty() || CbFabricante.getSelectedIndex() <= 0) {
@@ -2087,9 +2138,9 @@ if (tipoPneuDAO == null) {
     
  
      
-    }//GEN-LAST:event_btnEditarFabricanteActionPerformed
+    }                                                   
 
-    private void btnEditarModeloActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarModeloActionPerformed
+    private void btnEditarModeloActionPerformed(java.awt.event.ActionEvent evt) {                                                
                                                      
     Object itemSelecionadoObj = CbModelo.getSelectedItem();
     if (itemSelecionadoObj == null || itemSelecionadoObj.toString().isEmpty() || CbModelo.getSelectedIndex() <= 0) {
@@ -2136,9 +2187,9 @@ if (tipoPneuDAO == null) {
 
     
 
-    }//GEN-LAST:event_btnEditarModeloActionPerformed
+    }                                               
 
-    private void btnEditarMedidaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarMedidaActionPerformed
+    private void btnEditarMedidaActionPerformed(java.awt.event.ActionEvent evt) {                                                
     
                                                       
     Object itemSelecionadoObj = CbMedida.getSelectedItem();
@@ -2215,9 +2266,9 @@ if (tipoPneuDAO == null) {
 
 
 
-    }//GEN-LAST:event_btnEditarMedidaActionPerformed
+    }                                               
 
-    private void btnEditarTipoPneuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarTipoPneuActionPerformed
+    private void btnEditarTipoPneuActionPerformed(java.awt.event.ActionEvent evt) {                                                  
         
                                                         
         
@@ -2294,7 +2345,7 @@ if (tipoPneuDAO == null) {
 
    
 
-    }//GEN-LAST:event_btnEditarTipoPneuActionPerformed
+    }                                                 
 
     public static void main(String args[]) {
 
@@ -2324,7 +2375,7 @@ if (tipoPneuDAO == null) {
     
     
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify                     
     private javax.swing.JCheckBox ALB;
     private javax.swing.JComboBox<String> CbFabricante;
     private javax.swing.JComboBox<String> CbFornecedor;
@@ -2334,6 +2385,7 @@ if (tipoPneuDAO == null) {
     private javax.swing.JCheckBox ENGEUDI;
     private javax.swing.JPanel Empresas;
     private javax.swing.JCheckBox MARTINS_BORGES;
+    private javax.swing.JCheckBox Novo;
     private javax.swing.JTable Tabela_Exibicao;
     private javax.swing.JTextField TxtDot;
     private javax.swing.JTextField TxtObs;
@@ -2369,6 +2421,6 @@ if (tipoPneuDAO == null) {
     private javax.swing.JLabel lbValor;
     private javax.swing.JLabel lb_Fornecedor;
     private javax.swing.JTextField txtFogo;
-    // End of variables declaration//GEN-END:variables
+    // End of variables declaration                   
 // </editor-fold>  
 }

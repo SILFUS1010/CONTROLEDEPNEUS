@@ -316,30 +316,12 @@ import util.PosicaoFormulario;
 
     public static void main(String args[]) {
         try {
-            System.out.println("--- DIAGNOSTICO: Tentando localizar a classe Veiculo ---");
-            java.net.URL location = br.com.martins_borges.model.Veiculo.class.getProtectionDomain().getCodeSource().getLocation();
-            System.out.println("A classe 'Veiculo' esta sendo carregada de: " + location.toExternalForm());
-            System.out.println("----------------------------------------------------");
-        } catch (Exception e) {
-            System.err.println("Erro ao executar o código de diagnóstico: " + e);
-        }
-
-        try {
         javax.swing.UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
         java.util.logging.Logger.getLogger(TelaPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, "Erro ao definir Look and Feel Metal.", ex);
     }
 
     java.awt.EventQueue.invokeLater(() -> {
-        
-        try {
-            System.out.println("O arquivo da classe Veiculo está sendo lido de: " + br.com.martins_borges.model.Veiculo.class.getProtectionDomain().getCodeSource().getLocation());
-        } catch (Exception e) {
-            System.out.println("Não foi possível determinar a localização da classe Veiculo.");
-            e.printStackTrace();
-        }
-       
-        
         new TelaPrincipal().setVisible(true);
     });
 }

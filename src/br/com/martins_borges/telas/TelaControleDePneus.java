@@ -1,14 +1,75 @@
 package br.com.martins_borges.telas;
 
+import br.com.martins_borges.dal.PneuDAO;
+import br.com.martins_borges.dal.VeiculoDAO;
+import br.com.martins_borges.model.Pneu;
+import br.com.martins_borges.model.Veiculo;
+import java.util.List;
+import javax.swing.table.DefaultTableModel;
 
 public class TelaControleDePneus extends javax.swing.JDialog {
 
+    private final VeiculoDAO veiculoDAO;
+    private final PneuDAO pneuDAO;
+    private List<Veiculo> listaDeVeiculos; // Para ter acesso ao objeto completo ao clicar
+
     public TelaControleDePneus(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
+        this.veiculoDAO = new VeiculoDAO();
+        this.pneuDAO = new PneuDAO();
         initComponents();
 
         // Define um tamanho preferencial e centraliza a janela.
         definirTamanhoEPosicao();
+        
+        // Carrega os dados na tabela de veículos. A tabela de pneus começa vazia.
+        atualizarTabelaVeiculos();
+    }
+
+    // Este método agora apenas POPULA a tabela com uma lista de pneus fornecida
+    private void popularTabelaPneusEstoque(List<Pneu> pneus) {
+        String[] colunas = {"EMPRESA", "N° FOGO", "TIPO DE PNEU", "MODELO", "MEDIDA"};
+        DefaultTableModel model = new DefaultTableModel(colunas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        if (pneus != null) {
+            for (Pneu pneu : pneus) {
+                model.addRow(new Object[]{
+                    pneu.getIdEmpresaProprietaria(),
+                    pneu.getFogo(),
+                    pneu.getTipoPneu(),
+                    pneu.getModelo(),
+                    pneu.getMedida()
+                });
+            }
+        }
+        
+        Tabela_Exibicao_pneus_em_estoque.setModel(model);
+    }
+
+    private void atualizarTabelaVeiculos() {
+        // Armazena a lista de veículos para uso posterior no clique da tabela
+        this.listaDeVeiculos = veiculoDAO.listarTodos();
+        
+        DefaultTableModel model = new DefaultTableModel(new Object[]{"FROTA", "TIPO DE VEICULO"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        for (Veiculo veiculo : this.listaDeVeiculos) {
+            model.addRow(new Object[]{
+                veiculo.getFROTA(),
+                veiculo.getID_CONFIG_FK()
+            });
+        }
+        
+        Tabela_Exibicao_veiculos2.setModel(model);
     }
 
     private void definirTamanhoEPosicao() {
@@ -259,7 +320,33 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     }//GEN-LAST:event_Tabela_Exibicao_veiculos1MouseClicked
 
     private void Tabela_Exibicao_veiculos2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculos2MouseClicked
-        // TODO add your handling code here:
+        int selectedRow = Tabela_Exibicao_veiculos2.getSelectedRow();
+        if (selectedRow == -1) {
+            return;
+        }
+
+        // Pega o veículo selecionado da lista que já carregamos
+        Veiculo veiculoSelecionado = this.listaDeVeiculos.get(selectedRow);
+        String medidaNecessaria = veiculoSelecionado.getMEDIDA_PNEU();
+
+        // Se o veículo não tiver uma medida de pneu definida, não faz nada
+        if (medidaNecessaria == null || medidaNecessaria.trim().isEmpty()) {
+            // Limpa a tabela de pneus se o veículo não tiver medida
+            popularTabelaPneusEstoque(new java.util.ArrayList<>());
+            return;
+        }
+
+        // Busca no banco os pneus em estoque que tenham a medida necessária
+        List<Pneu> pneusCompativeis = pneuDAO.listarPneusPorStatusEMedida("ESTOQUE", medidaNecessaria);
+
+        // Popula a tabela de pneus com os resultados
+        popularTabelaPneusEstoque(pneusCompativeis);
+
+        // Limpa a outra tabela de pneus (detalhes) pois um novo veículo foi selecionado
+        Tabela_Exibicao_veiculos1.setModel(new DefaultTableModel(
+            new Object [][] {},
+            new String [] {"N° FOGO", "FABRICANTE", "PROFUNDIDADE"}
+        ));
     }//GEN-LAST:event_Tabela_Exibicao_veiculos2MouseClicked
 
     /**
