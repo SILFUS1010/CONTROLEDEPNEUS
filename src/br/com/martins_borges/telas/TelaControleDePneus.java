@@ -120,10 +120,14 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         Tabela_Exibicao_veiculos1 = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
         Tabela_Exibicao_veiculos2 = new javax.swing.JTable();
+        PaneldoControle = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setName("TelaControleDePneus"); // NOI18N
         setPreferredSize(new java.awt.Dimension(1000, 690));
+        getContentPane().setLayout(null);
+        getContentPane().add(Tipo_pneu);
+        Tipo_pneu.setBounds(593, 61, 202, 22);
 
         PNEUS_ESTOQUE.setPreferredSize(new java.awt.Dimension(900, 402));
 
@@ -155,6 +159,9 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             }
         });
         PNEUS_ESTOQUE.setViewportView(Tabela_Exibicao_pneus_em_estoque);
+
+        getContentPane().add(PNEUS_ESTOQUE);
+        PNEUS_ESTOQUE.setBounds(643, 18, 330, 175);
 
         Painel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         Painel.setLayout(null);
@@ -209,6 +216,9 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         Painel.add(sucata);
         sucata.setBounds(35, 460, 50, 16);
 
+        getContentPane().add(Painel);
+        Painel.setBounds(433, 18, 128, 505);
+
         jScrollPane1.setPreferredSize(new java.awt.Dimension(900, 402));
 
         Tabela_Exibicao_veiculos1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -238,6 +248,9 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             }
         });
         jScrollPane1.setViewportView(Tabela_Exibicao_veiculos1);
+
+        getContentPane().add(jScrollPane1);
+        jScrollPane1.setBounds(640, 560, 340, 134);
 
         jScrollPane2.setPreferredSize(new java.awt.Dimension(900, 402));
 
@@ -269,41 +282,22 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         });
         jScrollPane2.setViewportView(Tabela_Exibicao_veiculos2);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 340, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(87, 87, 87)
-                .addComponent(Painel, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(Tipo_pneu, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(PNEUS_ESTOQUE, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(27, 27, 27))
+        getContentPane().add(jScrollPane2);
+        jScrollPane2.setBounds(643, 205, 330, 348);
+
+        javax.swing.GroupLayout PaneldoControleLayout = new javax.swing.GroupLayout(PaneldoControle);
+        PaneldoControle.setLayout(PaneldoControleLayout);
+        PaneldoControleLayout.setHorizontalGroup(
+            PaneldoControleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 310, Short.MAX_VALUE)
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(43, 43, 43)
-                                .addComponent(Tipo_pneu, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(PNEUS_ESTOQUE, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 348, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(Painel, javax.swing.GroupLayout.PREFERRED_SIZE, 505, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        PaneldoControleLayout.setVerticalGroup(
+            PaneldoControleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 670, Short.MAX_VALUE)
         );
+
+        getContentPane().add(PaneldoControle);
+        PaneldoControle.setBounds(30, 20, 310, 670);
 
         getAccessibleContext().setAccessibleName("TelaControleDePneus");
 
@@ -407,6 +401,7 @@ private void configuraPneu(javax.swing.JLabel labelDoPneu, javax.swing.ImageIcon
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane PNEUS_ESTOQUE;
     private javax.swing.JPanel Painel;
+    private javax.swing.JPanel PaneldoControle;
     private javax.swing.JTable Tabela_Exibicao_pneus_em_estoque;
     private javax.swing.JTable Tabela_Exibicao_veiculos1;
     private javax.swing.JTable Tabela_Exibicao_veiculos2;

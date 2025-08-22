@@ -19,7 +19,7 @@ import javax.swing.table.DefaultTableModel;
 public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
     private List<Veiculo> listaDeVeiculos; // Para armazenar a lista completa de veículos
-    private final List<Integer> carretaIds = Arrays.asList(4, 7, 8, 12, 14, 15, 17, 18); // IDs que precisam de posição
+    private final List<Integer> carretaIds = Arrays.asList(4, 7, 8); // IDs que precisam de posição
     private Veiculo veiculoSelecionado = null; // Para rastrear o veículo em modo de edição
 
     private javax.swing.JLabel[][] slotsDePneus;
@@ -1524,96 +1524,102 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_fecharMouseClicked
 
     private void CadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CadastrarActionPerformed
-        // --- 1. Coletar Dados da Tela ---
-        String frota = txtFrota.getText().trim();
-        String placa = txtPlaca.getText().trim().toUpperCase();
-        String medidaPneu = "";
-        if (cmbMedidaPneu.getSelectedIndex() >= 0 && cmbMedidaPneu.getSelectedItem() != null) {
-            medidaPneu = cmbMedidaPneu.getSelectedItem().toString();
-        }
+     
+    // --- ETAPA 1: VALIDAÇÕES PRIMÁRIAS ---
+    if (this.veiculoSelecionado == null && txtFrota.getText().trim().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "O campo 'Frota' é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+        txtFrota.requestFocusInWindow();
+        return;
+    }
+    if (txtPlaca.getText().trim().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "O campo 'Placa' é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+        txtPlaca.requestFocusInWindow();
+        return;
+    }
+    if (cmbTipoVeiculo.getSelectedIndex() <= 0) {
+        JOptionPane.showMessageDialog(this, "Selecione um Tipo de Equipamento.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+        cmbTipoVeiculo.requestFocusInWindow();
+        return;
+    }
+    if (cmbMedidaPneu.getSelectedIndex() <= 0) {
+        JOptionPane.showMessageDialog(this, "Selecione uma Medida de Pneu.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+        cmbMedidaPneu.requestFocusInWindow();
+        return;
+    }
 
-        // --- 2. Validar Campos Obrigatórios ---
-        if (this.veiculoSelecionado == null && frota.isEmpty()) { // Valida frota apenas para novos
-            JOptionPane.showMessageDialog(this, "O campo 'Frota' é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
-            txtFrota.requestFocusInWindow();
-            return;
-        }
-        if (placa.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "O campo 'Placa' é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
-            txtPlaca.requestFocusInWindow();
-            return;
-        }
-        if (cmbTipoVeiculo.getSelectedIndex() <= 0) {
-            JOptionPane.showMessageDialog(this, "Selecione um Tipo de Equipamento.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
-            cmbTipoVeiculo.requestFocusInWindow();
-            return;
-        }
-        if (medidaPneu.isEmpty() || cmbMedidaPneu.getSelectedIndex() <= 0) {
-            JOptionPane.showMessageDialog(this, "Selecione uma Medida de Pneu.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
-            cmbMedidaPneu.requestFocusInWindow();
-            return;
-        }
+    // --- ETAPA 2: COLETA E CONVERSÃO SEGURA DOS DADOS ---
+    String frota = txtFrota.getText().trim();
+    String placa = txtPlaca.getText().trim().toUpperCase();
+    String medidaPneu = cmbMedidaPneu.getSelectedItem().toString();
+    int idConfigSelecionado = Integer.parseInt(cmbTipoVeiculo.getSelectedItem().toString().split(" - ")[0]);
 
-        // --- 3. Processar Tipo de Veículo e Posição ---
-        int idConfigSelecionado = -1;
+    Integer posicaoCarreta = null;
+    if (cbposicao_carreta.isVisible()) {
         try {
-            String itemSelecionado = cmbTipoVeiculo.getSelectedItem().toString();
-            idConfigSelecionado = Integer.parseInt(itemSelecionado.split(" - ")[0]);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao processar Tipo de Equipamento selecionado.", "Erro Interno", JOptionPane.ERROR_MESSAGE);
+            posicaoCarreta = Integer.parseInt(cbposicao_carreta.getSelectedItem().toString().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Por favor, selecione uma posição válida para a carreta.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+            cbposicao_carreta.requestFocusInWindow();
             return;
         }
+    }
+
+    // --- LÓGICA DE DECISÃO: CADASTRAR OU ATUALIZAR ---
+    if (this.veiculoSelecionado == null) {
+        // --- MODO CADASTRO ---
         
-        Integer posicaoCarreta = null;
-        if (cbposicao_carreta.isVisible()) {
-            posicaoCarreta = Integer.parseInt(cbposicao_carreta.getSelectedItem().toString());
-        } else if (this.veiculoSelecionado != null) {
-            posicaoCarreta = this.veiculoSelecionado.getPosicaoCarreta();
+        // Validação da Quantidade de Pneus
+        int qtdPneusCorreta;
+        String textoQtdPneus = Qtd_numeroPneu.getText().trim();
+        if (textoQtdPneus.isEmpty() || !textoQtdPneus.matches("\\d+") || Integer.parseInt(textoQtdPneus) == 0) {
+            JOptionPane.showMessageDialog(this, "Quantidade de pneus inválida. Selecione um modelo de veículo.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+        qtdPneusCorreta = Integer.parseInt(textoQtdPneus);
 
+        Veiculo novoVeiculo = new Veiculo();
+        novoVeiculo.setFROTA(frota);
+        novoVeiculo.setPLACA(placa);
+        novoVeiculo.setID_CONFIG_FK(idConfigSelecionado);
+        novoVeiculo.setQTD_PNEUS(qtdPneusCorreta);
+        novoVeiculo.setDATA_CADASTRO(LocalDate.now());
+        novoVeiculo.setMEDIDA_PNEU(medidaPneu);
+        novoVeiculo.setSTATUS_VEICULO("ATIVO");
+        novoVeiculo.setPosicaoCarreta(posicaoCarreta);
 
-        // --- LÓGICA DE DECISÃO: CADASTRAR OU ATUALIZAR ---
-        if (this.veiculoSelecionado == null) {
-            // --- MODO CADASTRO ---
-            int qtdPneusCorreta = Integer.parseInt(Qtd_numeroPneu.getText());
-
-            Veiculo novoVeiculo = new Veiculo();
-            novoVeiculo.setFROTA(frota);
-            novoVeiculo.setPLACA(placa);
-            novoVeiculo.setID_CONFIG_FK(idConfigSelecionado);
-            novoVeiculo.setQTD_PNEUS(qtdPneusCorreta);
-            novoVeiculo.setDATA_CADASTRO(LocalDate.now());
-            novoVeiculo.setMEDIDA_PNEU(medidaPneu);
-            novoVeiculo.setSTATUS_VEICULO("ATIVO");
-            novoVeiculo.setPosicaoCarreta(posicaoCarreta);
-
-            if (veiculoDAO.salvarVeiculoCompleto(novoVeiculo)) {
-                JOptionPane.showMessageDialog(this, "Veículo cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                limparCampos();
-            } else {
-                JOptionPane.showMessageDialog(this, "Erro ao cadastrar o veículo.", "Erro de Cadastro", JOptionPane.ERROR_MESSAGE);
-            }
-
+        if (veiculoDAO.salvarVeiculoCompleto(novoVeiculo)) {
+            JOptionPane.showMessageDialog(this, "Veículo cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            limparCampos();
         } else {
-            // --- MODO ATUALIZAÇÃO ---
-            this.veiculoSelecionado.setPLACA(placa);
-            this.veiculoSelecionado.setID_CONFIG_FK(idConfigSelecionado);
-            this.veiculoSelecionado.setMEDIDA_PNEU(medidaPneu);
-            this.veiculoSelecionado.setPosicaoCarreta(posicaoCarreta);
-            // Outros campos que podem ser atualizados podem ser adicionados aqui
-
-            if (veiculoDAO.atualizarVeiculo(this.veiculoSelecionado)) {
-                JOptionPane.showMessageDialog(this, "Veículo atualizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                limparCampos();
-            } else {
-                JOptionPane.showMessageDialog(this, "Erro ao atualizar o veículo.", "Erro de Atualização", JOptionPane.ERROR_MESSAGE);
-            }
+            JOptionPane.showMessageDialog(this, "Erro ao cadastrar o veículo.", "Erro de Cadastro", JOptionPane.ERROR_MESSAGE);
         }
 
-        // --- ATUALIZA A TELA INDEPENDENTEMENTE DO MODO ---
-        atualizarTabelaVeiculos();
-        atualizarContagemTotalPneus();
-        atualizarContagemDeVeiculos();
+    } else {
+        // --- MODO ATUALIZAÇÃO ---
+        this.veiculoSelecionado.setPLACA(placa);
+        this.veiculoSelecionado.setID_CONFIG_FK(idConfigSelecionado);
+        this.veiculoSelecionado.setMEDIDA_PNEU(medidaPneu);
+        // Atualiza a posição apenas se o combo box estiver visível, senão mantém a antiga
+        if (cbposicao_carreta.isVisible()) {
+             this.veiculoSelecionado.setPosicaoCarreta(posicaoCarreta);
+        }
+       
+        if (veiculoDAO.atualizarVeiculo(this.veiculoSelecionado)) {
+            JOptionPane.showMessageDialog(this, "Veículo atualizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            limparCampos();
+        } else {
+            JOptionPane.showMessageDialog(this, "Erro ao atualizar o veículo.", "Erro de Atualização", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // --- ATUALIZA A TELA INDEPENDENTEMENTE DO MODO ---
+    atualizarTabelaVeiculos();
+    atualizarContagemTotalPneus();
+    atualizarContagemDeVeiculos();
+
+      
+   
+
     }//GEN-LAST:event_CadastrarActionPerformed
 
     private void txtFrotaFocusLost(java.awt.event.FocusEvent evt) {

@@ -776,7 +776,7 @@ public boolean existeOrdemServicoComOrcamento(String numOrcamento) {
 
 public List<Pneu> listarPneusPorStatusEMedida(String status, String medida) {
     // Comando SQL para selecionar pneus com um status específico E uma medida específica
-    String sql = "SELECT * FROM t_pneu WHERE status_pneu = ? AND medida = ?";
+    String sql = "SELECT * FROM cad_pneus WHERE status_pneu = ? AND medida = ?";
     
     List<Pneu> pneus = new ArrayList<>();
     Connection conn = null;
