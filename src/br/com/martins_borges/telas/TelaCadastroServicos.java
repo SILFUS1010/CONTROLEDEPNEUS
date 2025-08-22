@@ -9,6 +9,7 @@ import br.com.martins_borges.model.Pneu;
 import br.com.martins_borges.model.OrdemServicoPneu;
 import br.com.martins_borges.model.Parceiro;
 import br.com.martins_borges.model.TipoServico;
+import br.com.martins_borges.utilitarios.TamanhoTabela;
 import br.com.martins_borges.utilitarios.Utilitarios;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -33,19 +34,17 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import javax.swing.ButtonGroup;
 import javax.swing.SwingConstants;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.text.ParseException;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.AttributeSet;
 
-import java.awt.Component; 
+import java.awt.Component;
 import javax.swing.JTextField;
-import util.TamanhoTabela;
 
 public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold defaultstate="collapsed" desc="">
-   
+
     private DefaultTableModel modelPneusFiltros;
     private DefaultTableModel modelListaOS;
     private CardLayout cardLayout;
@@ -61,23 +60,9 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
     private static final int ID_EMPRESA_ENGEUDI = 3;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
     private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+
     // </editor-fold>
-    private class CurrencyRenderer extends DefaultTableCellRenderer {
-
-        public CurrencyRenderer() {
-            super();
-            setHorizontalAlignment(SwingConstants.RIGHT);
-        }
-
-        @Override
-        public void setValue(Object value) {
-            if (value instanceof Number) {
-                setText(currencyFormatter.format(value));
-            } else {
-                setText((value == null) ? "" : value.toString());
-            }
-        }
-    }
+    
 
     public TelaCadastroServicos(java.awt.Frame parent, boolean modal) {
 
@@ -85,14 +70,14 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
         initComponents();
 
         dataRetornoChooser.setDateFormatString("dd/MM/yyyy");
-        
+
         Utilitarios.aplicarFormatacaoCampos(this.getContentPane());
         pneuDAO = new PneuDAO();
         osPneuDAO = new OrdemServicoPneuDAO();
         parceiroDAO = new ParceiroDAO();
         tipoServicoDAO = new TipoServicoDAO();
         tipoPneuDAO = new TipoPneuDAO();
-         
+
         adicionarListenersValor();
         pneusExibidosNoFiltro = new ArrayList<>();
 
@@ -111,20 +96,28 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
                     "Status Pneu OS", "Observações"
                 }
         ) {
-            @Override public boolean isCellEditable(int row, int columnIndex) { return false; }
-            @Override public Class<?> getColumnClass(int columnIndex) {
-                 if (columnIndex == 0 || columnIndex == 1) return Integer.class;
-                 if (columnIndex == 7) return Double.class;
+            @Override
+            public boolean isCellEditable(int row, int columnIndex) {
+                return false;
+            }
+
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 0 || columnIndex == 1) {
+                    return Integer.class;
+                }
+                if (columnIndex == 7) {
+                    return Double.class;
+                }
                 return Object.class;
             }
         };
         tbltabelaServicos.setModel(modelListaOS);
-          TableColumnModel tcm = tbltabelaServicos.getColumnModel();
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        tbltabelaServicos.setBackground(Color.CYAN);
-        if (scrollPaneListaOS.getViewport() != null) scrollPaneListaOS.getViewport().setBackground(Color.CYAN);
-        TamanhoTabela.configurar(tbltabelaServicos, new int[]{80, 80, 80, 80, 80, 320, 120, 80, 100, 80,300, 700});
+        TableColumnModel tcm = tbltabelaServicos.getColumnModel();
+        // The background colors are now handled by TamanhoTabela.configurar
+        TamanhoTabela.configurar(tbltabelaServicos, new int[]{80, 80, 80, 80, 80, 320, 120, 80, 100, 80, 300, 700});
+        // Apply specific renderers that TamanhoTabela.configurar doesn't handle by default
+        tcm.getColumn(7).setCellRenderer(new TamanhoTabela.CurrencyRenderer()); // Valor column
 
         if (Panel_Tabelas.getLayout() instanceof CardLayout) {
             cardLayout = (CardLayout) Panel_Tabelas.getLayout();
@@ -145,31 +138,41 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
         ENGEUDI.addActionListener(e -> aplicarFiltroPneus());
 
         txtFogo.getDocument().addDocumentListener(new DocumentListener() {
-            @Override public void insertUpdate(DocumentEvent e) { aplicarFiltroPneus(); }
-            @Override public void removeUpdate(DocumentEvent e) { aplicarFiltroPneus(); }
-            @Override public void changedUpdate(DocumentEvent e) { aplicarFiltroPneus(); }
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                aplicarFiltroPneus();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                aplicarFiltroPneus();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                aplicarFiltroPneus();
+            }
         });
 
         this.getContentPane().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                 Component source = (Component) e.getSource();
-                 if (source != MARTINS_BORGES && source != ALB && source != ENGEUDI &&
-                     source != txtFogo &&
-                     !(source instanceof javax.swing.JTable) &&
-                     !(source instanceof javax.swing.JTextField || source instanceof javax.swing.JTextArea || source instanceof javax.swing.JComboBox || source instanceof javax.swing.JButton || source instanceof com.toedter.calendar.JDateChooser)
-                 ) {
+                Component source = (Component) e.getSource();
+                if (source != MARTINS_BORGES && source != ALB && source != ENGEUDI
+                        && source != txtFogo
+                        && !(source instanceof javax.swing.JTable)
+                        && !(source instanceof javax.swing.JTextField || source instanceof javax.swing.JTextArea || source instanceof javax.swing.JComboBox || source instanceof javax.swing.JButton || source instanceof com.toedter.calendar.JDateChooser)) {
                     if (scrollPaneFiltroPneus.isVisible() && !Cadastros.isVisible()) {
                         if (grupoEmpresas != null && grupoEmpresas.getSelection() != null) {
                             grupoEmpresas.clearSelection();
                             aplicarFiltroPneus();
                         }
-                         if (txtFogo != null && !txtFogo.getText().isEmpty()) {
-                             txtFogo.setText("");
-                             aplicarFiltroPneus(); // Aplica após limpar o fogo também
-                         }
+                        if (txtFogo != null && !txtFogo.getText().isEmpty()) {
+                            txtFogo.setText("");
+                            aplicarFiltroPneus(); // Aplica após limpar o fogo também
+                        }
                     }
-                 }
+                }
             }
         });
 
@@ -211,12 +214,15 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
                                             "Pneu em Serviço",
                                             JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
                                     String novoStatusParaPneu = null;
-                                    if (escolha == 0) novoStatusParaPneu = "ESTOQUE";
-                                    else if (escolha == 1) {
+                                    if (escolha == 0) {
+                                        novoStatusParaPneu = "ESTOQUE";
+                                    } else if (escolha == 1) {
                                         int confirmDescarte = JOptionPane.showConfirmDialog(TelaCadastroServicos.this,
                                                 "ATENÇÃO: Esta ação marcará o pneu (Fogo: " + pneuSelecionadoParaOS.getFogo() + ") como DESCARTADO e não poderá ser desfeita.\nTem certeza que deseja descartar este pneu?",
                                                 "Confirmar Descarte de Pneu", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                                        if (confirmDescarte == JOptionPane.YES_OPTION) novoStatusParaPneu = "DESCARTADO";
+                                        if (confirmDescarte == JOptionPane.YES_OPTION) {
+                                            novoStatusParaPneu = "DESCARTADO";
+                                        }
                                     }
                                     if (novoStatusParaPneu != null) {
                                         boolean sucessoPneu = pneuDAO.atualizarStatusERetorno(pneuSelecionadoParaOS.getId(), novoStatusParaPneu, new Date());
@@ -230,7 +236,7 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
                                                 osPneuDAO.atualizarOrdemServico(osAberta);
                                                 JOptionPane.showMessageDialog(TelaCadastroServicos.this, "Pneu (Fogo: " + pneuSelecionadoParaOS.getFogo() + ") atualizado para " + novoStatusParaPneu + " e OS associada finalizada.", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                                             } else {
-                                                 JOptionPane.showMessageDialog(TelaCadastroServicos.this, "Aviso: Pneu (Fogo: " + pneuSelecionadoParaOS.getFogo() + ") atualizado para " + novoStatusParaPneu + ", mas não foi encontrada OS aberta para finalizar.", "Sucesso com Aviso", JOptionPane.WARNING_MESSAGE);
+                                                JOptionPane.showMessageDialog(TelaCadastroServicos.this, "Aviso: Pneu (Fogo: " + pneuSelecionadoParaOS.getFogo() + ") atualizado para " + novoStatusParaPneu + ", mas não foi encontrada OS aberta para finalizar.", "Sucesso com Aviso", JOptionPane.WARNING_MESSAGE);
                                             }
                                             aplicarFiltroPneus();
                                         } else {
@@ -266,9 +272,8 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
                 }
             }
         });
-        
+
         btnCadastrar.addActionListener(e -> cadastrarNovaOS());
-       
 
         popularComboBoxesServico();
 
@@ -301,46 +306,73 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
             }
         });
     }
-    
+
     private void adicionarListenersValor() {
-        if (TxtValor == null) return;
+        if (TxtValor == null) {
+            return;
+        }
         TxtValor.setHorizontalAlignment(SwingConstants.RIGHT);
         TxtValor.setText("");
         TxtValor.addFocusListener(new FocusAdapter() {
-            @Override public void focusLost(FocusEvent e) { formatarValorAoSair(); }
-            @Override public void focusGained(FocusEvent e) {
+            @Override
+            public void focusLost(FocusEvent e) {
+                formatarValorAoSair();
+            }
+
+            @Override
+            public void focusGained(FocusEvent e) {
                 String texto = TxtValor.getText().trim();
-                if (texto.startsWith("R$")) texto = texto.replace("R$", "").replace(".", "").trim();
-                if (texto.endsWith(",00")) texto = texto.substring(0, texto.length() - 3);
+                if (texto.startsWith("R$")) {
+                    texto = texto.replace("R$", "").replace(".", "").trim();
+                }
+                if (texto.endsWith(",00")) {
+                    texto = texto.substring(0, texto.length() - 3);
+                }
                 TxtValor.setText(texto);
-                if (!texto.isEmpty()) TxtValor.setCaretPosition(TxtValor.getText().length());
+                if (!texto.isEmpty()) {
+                    TxtValor.setCaretPosition(TxtValor.getText().length());
+                }
             }
         });
         TxtValor.addKeyListener(new KeyAdapter() {
-            @Override public void keyTyped(KeyEvent evt) {
-                char c = evt.getKeyChar(); String textoAtual = TxtValor.getText();
-                if (!Character.isDigit(c) && c != ',' && c != KeyEvent.VK_BACK_SPACE && c != KeyEvent.VK_DELETE && !Character.isISOControl(c)) evt.consume();
-                if (c == ',' && textoAtual.contains(",")) evt.consume();
+            @Override
+            public void keyTyped(KeyEvent evt) {
+                char c = evt.getKeyChar();
+                String textoAtual = TxtValor.getText();
+                if (!Character.isDigit(c) && c != ',' && c != KeyEvent.VK_BACK_SPACE && c != KeyEvent.VK_DELETE && !Character.isISOControl(c)) {
+                    evt.consume();
+                }
+                if (c == ',' && textoAtual.contains(",")) {
+                    evt.consume();
+                }
             }
         });
     }
 
     private void formatarValorAoSair() {
-        if (TxtValor == null) return;
+        if (TxtValor == null) {
+            return;
+        }
         String texto = TxtValor.getText().trim();
-        if (texto.isEmpty()) { TxtValor.setText(""); return; }
+        if (texto.isEmpty()) {
+            TxtValor.setText("");
+            return;
+        }
         try {
             texto = texto.replace("R$", "").replace(" ", "").trim();
             String textoParaParseSimples = texto.replace(",", ".");
             textoParaParseSimples = textoParaParseSimples.replaceAll("[^\\d.]", "");
-            if (textoParaParseSimples.isEmpty() || ".".equals(textoParaParseSimples)) { TxtValor.setText(""); return; }
+            if (textoParaParseSimples.isEmpty() || ".".equals(textoParaParseSimples)) {
+                TxtValor.setText("");
+                return;
+            }
             double valor = Double.parseDouble(textoParaParseSimples);
             TxtValor.setText(currencyFormat.format(valor));
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Valor inválido. Use vírgula como decimal (Ex: 123,45).", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
             TxtValor.setText("");
         } catch (Exception ex) {
-            
+
             JOptionPane.showMessageDialog(this, "Erro inesperado ao formatar valor.", "Erro", JOptionPane.ERROR_MESSAGE);
             TxtValor.setText("");
         }
@@ -348,24 +380,40 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
 
     private String getNomeEmpresaPorId(int id) {
         switch (id) {
-            case ID_EMPRESA_MARTINS_BORGES: return "Martins Borges";
-            case ID_EMPRESA_ALB: return "ALB";
-            case ID_EMPRESA_ENGEUDI: return "Engeudi";
-            default: return "";
+            case ID_EMPRESA_MARTINS_BORGES:
+                return "Martins Borges";
+            case ID_EMPRESA_ALB:
+                return "ALB";
+            case ID_EMPRESA_ENGEUDI:
+                return "Engeudi";
+            default:
+                return "";
         }
     }
 
     private void configurarTabelaFiltroPneus() {
         modelPneusFiltros = new DefaultTableModel(new Object[][]{}, new String[]{"ID", "Empresa", "Nº Fogo", "Tipo Pneu", "Medida", "Status"}) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
         tblPneusFiltros.setModel(modelPneusFiltros);
         TableColumnModel tcm = tblPneusFiltros.getColumnModel();
-        tblPneusFiltros.setBackground(Color.YELLOW);
-        if (scrollPaneFiltroPneus.getViewport() != null) scrollPaneFiltroPneus.getViewport().setBackground(Color.YELLOW);
-        TamanhoTabela.configurar(tblPneusFiltros, new int[]{150, 300, 150, 200, 300, 250});
+        
+        // Define as cores de fundo para cada coluna da tblPneusFiltros
+        Color[] pneusFiltrosTableColors = {
+            TamanhoTabela.HEADER_COLORS[0], // ID - Rosa
+            TamanhoTabela.HEADER_COLORS[1], // Empresa - Azul claro
+            TamanhoTabela.HEADER_COLORS[2], // Nº Fogo - Cáqui
+            TamanhoTabela.HEADER_COLORS[3], // Tipo Pneu - Verde-claro
+            TamanhoTabela.HEADER_COLORS[4], // Medida - Pêssego
+            TamanhoTabela.HEADER_COLORS[5]  // Status - Lavanda
+        };
+
+        TamanhoTabela.configurar(tblPneusFiltros, new int[]{150, 300, 150, 200, 300, 250}, pneusFiltrosTableColors);
     }
-    
+
     private void mostrarTelaFiltroPneus() {
         cardLayout.show(Panel_Tabelas, "filtroPneusCard");
         Cadastros.setVisible(false);
@@ -376,11 +424,13 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
         TxtN_Orcamento.setVisible(false);
         habilitarCamposFiltro(true);
         btnCadastrar.setEnabled(false);
-      
+
         limparFiltros();
         limparCamposCadastroOS();
-        if (PanelContador_Ordens != null) PanelContador_Ordens.setVisible(false);
-        
+        if (PanelContador_Ordens != null) {
+            PanelContador_Ordens.setVisible(false);
+        }
+
         // Garante que o txtFogo comece desabilitado
         if (txtFogo != null) {
             txtFogo.setEnabled(false);
@@ -388,7 +438,9 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
     }
 
     private void limparFiltros() {
-        if (grupoEmpresas != null) grupoEmpresas.clearSelection();
+        if (grupoEmpresas != null) {
+            grupoEmpresas.clearSelection();
+        }
         if (txtFogo != null) {
             txtFogo.setText("");
             txtFogo.setEnabled(false); // Garante que o campo fique desabilitado ao limpar
@@ -397,17 +449,23 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
     }
 
     private void habilitarCamposFiltro(boolean habilitar) {
-        if (MARTINS_BORGES != null) MARTINS_BORGES.setEnabled(habilitar);
-        if (ALB != null) ALB.setEnabled(habilitar);
-        if (ENGEUDI != null) ENGEUDI.setEnabled(habilitar);
+        if (MARTINS_BORGES != null) {
+            MARTINS_BORGES.setEnabled(habilitar);
+        }
+        if (ALB != null) {
+            ALB.setEnabled(habilitar);
+        }
+        if (ENGEUDI != null) {
+            ENGEUDI.setEnabled(habilitar);
+        }
         atualizarEstadoTxtFogo(); // Sempre atualiza o estado do txtFogo baseado nas empresas selecionadas
     }
 
     private void atualizarEstadoTxtFogo() {
         if (txtFogo != null) {
-            boolean algumaEmpresaSelecionada = (MARTINS_BORGES != null && MARTINS_BORGES.isSelected()) ||
-                                             (ALB != null && ALB.isSelected()) ||
-                                             (ENGEUDI != null && ENGEUDI.isSelected());
+            boolean algumaEmpresaSelecionada = (MARTINS_BORGES != null && MARTINS_BORGES.isSelected())
+                    || (ALB != null && ALB.isSelected())
+                    || (ENGEUDI != null && ENGEUDI.isSelected());
             txtFogo.setEnabled(algumaEmpresaSelecionada);
             if (!algumaEmpresaSelecionada) {
                 txtFogo.setText("");
@@ -419,53 +477,67 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
     private void mostrarTelaCadastroOS() {
         cardLayout.show(Panel_Tabelas, "listaOSCard");
         Cadastros.setVisible(true);
-        
+
         Empresas.setVisible(true);
         lbFogo.setVisible(true);
         txtFogo.setVisible(true);
         lbN_Orcamento.setVisible(true);
         TxtN_Orcamento.setVisible(true);
         habilitarCamposFiltro(false);
-        if (PanelContador_Ordens != null) PanelContador_Ordens.setVisible(true);
+        if (PanelContador_Ordens != null) {
+            PanelContador_Ordens.setVisible(true);
+        }
     }
 
     private void criarGrupoEmpresas() {
         grupoEmpresas = new ButtonGroup();
-        if (MARTINS_BORGES != null) { 
+        if (MARTINS_BORGES != null) {
             MARTINS_BORGES.addActionListener(e -> {
                 aplicarFiltroPneus();
                 atualizarEstadoTxtFogo();
-            }); 
-            grupoEmpresas.add(MARTINS_BORGES); 
+            });
+            grupoEmpresas.add(MARTINS_BORGES);
         }
-        if (ALB != null) { 
+        if (ALB != null) {
             ALB.addActionListener(e -> {
                 aplicarFiltroPneus();
                 atualizarEstadoTxtFogo();
-            }); 
-            grupoEmpresas.add(ALB); 
+            });
+            grupoEmpresas.add(ALB);
         }
-        if (ENGEUDI != null) { 
+        if (ENGEUDI != null) {
             ENGEUDI.addActionListener(e -> {
                 aplicarFiltroPneus();
                 atualizarEstadoTxtFogo();
-            }); 
-            grupoEmpresas.add(ENGEUDI); 
+            });
+            grupoEmpresas.add(ENGEUDI);
         }
     }
 
     private void preencherCamposFiltroPneuSelecionado(Pneu pneu) {
         if (pneu == null) {
-            if (grupoEmpresas != null) grupoEmpresas.clearSelection();
-            if (txtFogo != null) txtFogo.setText("");
+            if (grupoEmpresas != null) {
+                grupoEmpresas.clearSelection();
+            }
+            if (txtFogo != null) {
+                txtFogo.setText("");
+            }
             return;
         }
-        if (grupoEmpresas != null) grupoEmpresas.clearSelection();
+        if (grupoEmpresas != null) {
+            grupoEmpresas.clearSelection();
+        }
         int idEmpresa = pneu.getIdEmpresaProprietaria();
-        if (MARTINS_BORGES != null && idEmpresa == ID_EMPRESA_MARTINS_BORGES) MARTINS_BORGES.setSelected(true);
-        else if (ALB != null && idEmpresa == ID_EMPRESA_ALB) ALB.setSelected(true);
-        else if (ENGEUDI != null && idEmpresa == ID_EMPRESA_ENGEUDI) ENGEUDI.setSelected(true);
-        if (txtFogo != null) txtFogo.setText(pneu.getFogo());
+        if (MARTINS_BORGES != null && idEmpresa == ID_EMPRESA_MARTINS_BORGES) {
+            MARTINS_BORGES.setSelected(true);
+        } else if (ALB != null && idEmpresa == ID_EMPRESA_ALB) {
+            ALB.setSelected(true);
+        } else if (ENGEUDI != null && idEmpresa == ID_EMPRESA_ENGEUDI) {
+            ENGEUDI.setSelected(true);
+        }
+        if (txtFogo != null) {
+            txtFogo.setText(pneu.getFogo());
+        }
     }
 
     private void habilitarCamposCadastroOS(boolean habilitar) {
@@ -483,9 +555,13 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
     }
 
     private void limparCamposCadastroOS() {
-        if (grupoEmpresas != null) grupoEmpresas.clearSelection();
-        if (txtFogo != null) txtFogo.setText("");
-        
+        if (grupoEmpresas != null) {
+            grupoEmpresas.clearSelection();
+        }
+        if (txtFogo != null) {
+            txtFogo.setText("");
+        }
+
         // Só limpa os campos se não estiver na tela de filtros
         if (!scrollPaneFiltroPneus.isVisible()) {
             TxtN_Orcamento.setText("");
@@ -497,7 +573,9 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
             dataRetornoChooser.setDate(null);
             TxtStatus.setText("");
             txtObservacoesServico.setText("");
-            if (modelListaOS != null) modelListaOS.setRowCount(0);
+            if (modelListaOS != null) {
+                modelListaOS.setRowCount(0);
+            }
             pneuSelecionadoParaOS = null;
             btnCadastrar.setText("CADASTRAR");
             for (java.awt.event.ActionListener al : btnCadastrar.getActionListeners()) {
@@ -521,19 +599,23 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
             List<String> parceiros = parceiroDAO.listarNomes();
             cbParceiroServico.removeAllItems();
             cbParceiroServico.addItem(null);
-            for (String nome : parceiros) cbParceiroServico.addItem(nome);
+            for (String nome : parceiros) {
+                cbParceiroServico.addItem(nome);
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar Parceiros: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            
+
         }
         try {
             List<String> tiposServico = tipoServicoDAO.listarNomes();
             cbTipoServico.removeAllItems();
             cbTipoServico.addItem(null);
-            for (String nome : tiposServico) cbTipoServico.addItem(nome);
+            for (String nome : tiposServico) {
+                cbTipoServico.addItem(nome);
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar Tipos de Serviço: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            
+
         }
     }
 
@@ -541,9 +623,15 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
         pneusExibidosNoFiltro.clear();
         modelPneusFiltros.setRowCount(0);
         List<Integer> idsEmpresasSelecionadas = new ArrayList<>();
-        if (MARTINS_BORGES.isSelected()) idsEmpresasSelecionadas.add(ID_EMPRESA_MARTINS_BORGES);
-        if (ALB.isSelected()) idsEmpresasSelecionadas.add(ID_EMPRESA_ALB);
-        if (ENGEUDI.isSelected()) idsEmpresasSelecionadas.add(ID_EMPRESA_ENGEUDI);
+        if (MARTINS_BORGES.isSelected()) {
+            idsEmpresasSelecionadas.add(ID_EMPRESA_MARTINS_BORGES);
+        }
+        if (ALB.isSelected()) {
+            idsEmpresasSelecionadas.add(ID_EMPRESA_ALB);
+        }
+        if (ENGEUDI.isSelected()) {
+            idsEmpresasSelecionadas.add(ID_EMPRESA_ENGEUDI);
+        }
         String fogoDigitado = txtFogo.getText().trim();
         List<Pneu> pneusFiltradosDoBanco;
         if (idsEmpresasSelecionadas.isEmpty()) {
@@ -611,10 +699,15 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
         habilitarCamposCadastroOS(true);
 
         TxtN_Orcamento.setText(osParaFinalizar.getNumOrcamento());
-        if (osParaFinalizar.getIdParceiroFk() != null) cbParceiroServico.setSelectedItem(parceiroDAO.buscarNomePorId(osParaFinalizar.getIdParceiroFk()));
+        if (osParaFinalizar.getIdParceiroFk() != null) {
+            cbParceiroServico.setSelectedItem(parceiroDAO.buscarNomePorId(osParaFinalizar.getIdParceiroFk()));
+        }
         cbTipoServico.setSelectedItem(tipoServicoDAO.buscarNomePorId(osParaFinalizar.getIdTipoServicoFk()));
-        if (osParaFinalizar.getValorServico() != null) TxtValor.setText(currencyFormat.format(osParaFinalizar.getValorServico()));
-        else TxtValor.setText("");
+        if (osParaFinalizar.getValorServico() != null) {
+            TxtValor.setText(currencyFormat.format(osParaFinalizar.getValorServico()));
+        } else {
+            TxtValor.setText("");
+        }
 
         TxtN_Orcamento.setEnabled(false);
         cbParceiroServico.setEnabled(false);
@@ -647,7 +740,9 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
             }
             if ("DESCARTADO".equals(statusDestino)) {
                 int confirm = JOptionPane.showConfirmDialog(this, "ATENÇÃO: Descartar o pneu é irreversível.\nConfirma?", "Confirmar Descarte", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                if (confirm != JOptionPane.YES_OPTION) return;
+                if (confirm != JOptionPane.YES_OPTION) {
+                    return;
+                }
             }
             String motivoFinal = TxtMotivo.getText().trim();
             String obsDaTela = txtObservacoesServico.getText().trim();
@@ -675,7 +770,6 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
         });
     }
 
-    
     private void carregarTabelaPrincipalOS() {
         modelListaOS.setRowCount(0);
         try {
@@ -696,16 +790,21 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
                     if (os.getDataRetorno() != null) {
                         statusOSVisual = "Concluída";
                         TipoServico ts = tipoServicoDAO.buscarPorId(os.getIdTipoServicoFk());
-                        if (ts != null && "DESCARTE".equalsIgnoreCase(ts.getNomeTipoServico())) statusOSVisual = "Descarte Associado";
-                        else if (ts != null) statusOSVisual = "Retorno ao Estoque";
-                        else statusOSVisual = "Concluída (Tipo Inválido)";
+                        if (ts != null && "DESCARTE".equalsIgnoreCase(ts.getNomeTipoServico())) {
+                            statusOSVisual = "Descarte Associado";
+                        } else if (ts != null) {
+                            statusOSVisual = "Retorno ao Estoque";
+                        } else {
+                            statusOSVisual = "Concluída (Tipo Inválido)";
+                        }
                     }
                     String dataEnvioStr = (os.getDataEnvio() != null) ? dateFormat.format(Date.from(os.getDataEnvio().atZone(ZoneId.systemDefault()).toInstant())) : "";
                     String dataRetornoStr = (os.getDataRetorno() != null) ? dateFormat.format(Date.from(os.getDataRetorno().atZone(ZoneId.systemDefault()).toInstant())) : "";
                     Pneu pneuAssociado = pneuDAO.buscarPorId(os.getIdPneuFk());
                     String numeroFogoPneu = (pneuAssociado != null) ? pneuAssociado.getFogo() : "N/A";
                     String observacoesCompletas = os.getObservacoesServico();
-                    String motivoExtraido = ""; String restoObservacoes = "";
+                    String motivoExtraido = "";
+                    String restoObservacoes = "";
                     if (observacoesCompletas != null && !observacoesCompletas.trim().isEmpty()) {
                         String[] linhas = observacoesCompletas.trim().split("\n");
                         StringBuilder restoObsBuilder = new StringBuilder();
@@ -716,7 +815,9 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
                                 motivoExtraido = linhaTrimmed.replaceFirst("Motivo\\s*(\\(.*\\))?:\\s*", "").trim();
                                 motivoEncontrado = true;
                             } else {
-                                if (restoObsBuilder.length() > 0) restoObsBuilder.append("\n");
+                                if (restoObsBuilder.length() > 0) {
+                                    restoObsBuilder.append("\n");
+                                }
                                 restoObsBuilder.append(linha);
                             }
                         }
@@ -731,14 +832,13 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar Ordens de Serviço: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            
+
             if (lblNumero_Ordens != null) {
                 lblNumero_Ordens.setText("Erro ao carregar ordens.");
             }
         }
     }
 
-    
     private void cadastrarNovaOS() {
         if (pneuSelecionadoParaOS == null) {
             JOptionPane.showMessageDialog(this, "Nenhum pneu selecionado para cadastrar a Ordem de Serviço.", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -792,7 +892,7 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
                 TxtValor.requestFocusInWindow();
                 return;
             } catch (HeadlessException ex) {
-                
+
                 JOptionPane.showMessageDialog(this, "Erro inesperado ao processar valor.", "Erro", JOptionPane.ERROR_MESSAGE);
                 TxtValor.requestFocusInWindow();
                 return;
@@ -880,7 +980,7 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
 
     private void configurarCampoNumerico(JTextField campo) {
         campo.setHorizontalAlignment(SwingConstants.RIGHT);
-        
+
         // Adiciona um KeyListener para aceitar apenas números
         campo.addKeyListener(new KeyAdapter() {
             @Override
@@ -891,7 +991,7 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
                 }
             }
         });
-        
+
         // Adiciona um DocumentFilter para garantir que apenas números sejam inseridos
         if (campo.getDocument() instanceof AbstractDocument) {
             ((AbstractDocument) campo.getDocument()).setDocumentFilter(new DocumentFilter() {
@@ -1323,7 +1423,6 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
 
     }//GEN-LAST:event_btnEditarParceiroActionPerformed
 
-    
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox ALB;

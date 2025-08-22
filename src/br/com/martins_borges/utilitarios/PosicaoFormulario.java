@@ -1,4 +1,4 @@
-package util;
+package br.com.martins_borges.utilitarios;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;

@@ -13,8 +13,9 @@ import br.com.martins_borges.model.ModeloPneu;
 import br.com.martins_borges.model.Pneu;
 import br.com.martins_borges.model.TipoPneu;
 import br.com.martins_borges.utilitarios.Utilitarios;
+import br.com.martins_borges.utilitarios.TamanhoTabela;
+import java.awt.Color;
 import java.awt.Component;
-import java.awt.HeadlessException;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
@@ -50,7 +51,7 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
-import util.TamanhoTabela;
+//import util.TamanhoTabela;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AttributeSet;
@@ -695,78 +696,48 @@ private void popularComboBoxFabricante() {
     }
 }
    
-  private void formatarTabela() {
-        // --- 1. CONFIGURAÇÃO DO CABEÇALHO ---
-        javax.swing.table.JTableHeader header = Tabela_Exibicao.getTableHeader();
-        header.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
-        header.setOpaque(false);
-        header.setBackground(new java.awt.Color(0, 102, 102)); // Cor de destaque
-        header.setForeground(java.awt.Color.WHITE); // Texto branco
+     private void formatarTabela() {
+        // Define as larguras das colunas
+        int[] larguras = {45, 60, 70, 150, 110, 120, 90, 100, 70, 110, 80, 90, 70, 90, 250};
 
-        if (header.getDefaultRenderer() instanceof javax.swing.JLabel) {
-            ((javax.swing.JLabel) header.getDefaultRenderer()).setHorizontalAlignment(javax.swing.JLabel.CENTER);
-        }
-        
-        Tabela_Exibicao.setShowGrid(true);
-        Tabela_Exibicao.setGridColor(new java.awt.Color(200, 200, 200));
-        Tabela_Exibicao.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        // Define as cores de fundo para cada coluna
+        Color[] pneuTableColors = {
+            TamanhoTabela.HEADER_COLORS[0], // ID - Rosa
+            TamanhoTabela.HEADER_COLORS[1], // EMPR - Azul claro
+            TamanhoTabela.HEADER_COLORS[2], // FOGO - Cáqui
+            TamanhoTabela.HEADER_COLORS[3], // FORNECEDOR - Verde-claro
+            TamanhoTabela.HEADER_COLORS[4], // VALOR - Pêssego
+            TamanhoTabela.HEADER_COLORS[5], // FABRICANTE - Lavanda
+            TamanhoTabela.HEADER_COLORS[6], // TIPO PNEU - Trigo
+            TamanhoTabela.HEADER_COLORS[7], // MODELO - Azul acinzentado
+            TamanhoTabela.HEADER_COLORS[8], // DOT - Orquídea
+            TamanhoTabela.HEADER_COLORS[9], // MEDIDA - Salmão claro
+            TamanhoTabela.HEADER_COLORS[0], // PROFUND. - Rosa (repetindo)
+            TamanhoTabela.HEADER_COLORS[1], // DATA - Azul claro (repetindo)
+            TamanhoTabela.HEADER_COLORS[2], // RECAP. - Cáqui (repetindo)
+            TamanhoTabela.HEADER_COLORS[3], // PROJ. KM - Verde-claro (repetindo)
+            TamanhoTabela.HEADER_COLORS[4]  // OBS. - Pêssego (repetindo)
+        };
 
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        TamanhoTabela.configurar(Tabela_Exibicao, larguras, pneuTableColors);
 
-        CurrencyRenderer currencyRenderer = new CurrencyRenderer();
-        DateRenderer dateRenderer = new DateRenderer();
+        // Renderers específicos que precisam ser mantidos
+        TamanhoTabela.CenterRenderer centerRenderer = new TamanhoTabela.CenterRenderer();
+        TamanhoTabela.CurrencyRenderer currencyRenderer = new TamanhoTabela.CurrencyRenderer();
+        TamanhoTabela.DateRenderer dateRenderer = new TamanhoTabela.DateRenderer();
 
         TableColumnModel columnModel = Tabela_Exibicao.getColumnModel();
         try {
-            TableColumn idCol = columnModel.getColumn(0);
-            idCol.setPreferredWidth(45);
-            idCol.setCellRenderer(centerRenderer);
-
-            TableColumn empresaCol = columnModel.getColumn(1);
-            empresaCol.setPreferredWidth(60);
-            empresaCol.setCellRenderer(centerRenderer);
-
-            TableColumn fogoCol = columnModel.getColumn(2);
-            fogoCol.setPreferredWidth(70);
-            fogoCol.setCellRenderer(centerRenderer);
-
-            columnModel.getColumn(3).setPreferredWidth(150); // Fornecedor
-
-            TableColumn valorCol = columnModel.getColumn(4);
-            valorCol.setPreferredWidth(110);
-            valorCol.setCellRenderer(currencyRenderer);
-
-            columnModel.getColumn(5).setPreferredWidth(120); // Fabricante
-            columnModel.getColumn(6).setPreferredWidth(90);  // Tipo
-            columnModel.getColumn(7).setPreferredWidth(100); // Modelo
-
-            TableColumn dotCol = columnModel.getColumn(8);
-            dotCol.setPreferredWidth(70);
-            dotCol.setCellRenderer(centerRenderer);
-
-            TableColumn medidaCol = columnModel.getColumn(9);
-            medidaCol.setPreferredWidth(110);
-            medidaCol.setCellRenderer(centerRenderer);
-
-            TableColumn profCol = columnModel.getColumn(10);
-            profCol.setPreferredWidth(80);
-            profCol.setCellRenderer(centerRenderer);
-
-            TableColumn dataCol = columnModel.getColumn(11);
-            dataCol.setPreferredWidth(90);
-            dataCol.setCellRenderer(dateRenderer);
-
-            TableColumn recapCol = columnModel.getColumn(12);
-            recapCol.setPreferredWidth(70);
-            recapCol.setCellRenderer(centerRenderer);
-
-            TableColumn projCol = columnModel.getColumn(13);
-            projCol.setPreferredWidth(90);
-            projCol.setCellRenderer(centerRenderer);
-
-            columnModel.getColumn(14).setPreferredWidth(250); // OBS
-
+            columnModel.getColumn(0).setCellRenderer(centerRenderer); // ID
+            columnModel.getColumn(1).setCellRenderer(centerRenderer); // EMPR
+            columnModel.getColumn(2).setCellRenderer(centerRenderer); // FOGO
+            columnModel.getColumn(4).setCellRenderer(currencyRenderer); // VALOR
+            columnModel.getColumn(8).setCellRenderer(centerRenderer); // DOT
+            columnModel.getColumn(9).setCellRenderer(centerRenderer); // MEDIDA
+            columnModel.getColumn(10).setCellRenderer(centerRenderer); // PROFUND.
+            columnModel.getColumn(11).setCellRenderer(dateRenderer); // DATA
+            columnModel.getColumn(12).setCellRenderer(centerRenderer); // RECAP.
+            columnModel.getColumn(13).setCellRenderer(centerRenderer); // PROJ. KM
         } catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("Erro ao configurar colunas da tabela: " + e.getMessage());
         }
@@ -1067,39 +1038,7 @@ private void popularComboBoxFabricante() {
         aplicarFiltroPneus();
     }
 
-    private class CurrencyRenderer extends DefaultTableCellRenderer {
-
-        public CurrencyRenderer() {
-            super();
-            setHorizontalAlignment(SwingConstants.RIGHT);
-        }
-
-        @Override
-        public void setValue(Object value) {
-            if (value instanceof Number) {
-                setText(currencyFormatter.format(value));
-            } else {
-                setText((value == null) ? "" : value.toString());
-            }
-        }
-    }
-
-    private class DateRenderer extends DefaultTableCellRenderer {
-
-        public DateRenderer() {
-            super();
-            setHorizontalAlignment(SwingConstants.CENTER);
-        }
-
-        @Override
-        public void setValue(Object value) {
-            if (value instanceof LocalDate) {
-                setText(((LocalDate) value).format(dateFormatter));
-            } else {
-                setText((value == null) ? "" : value.toString());
-            }
-        }
-    }
+    
     
   @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">                          

@@ -4,6 +4,7 @@ import br.com.martins_borges.dal.PneuDAO;
 import br.com.martins_borges.dal.VeiculoDAO;
 import br.com.martins_borges.model.Pneu;
 import br.com.martins_borges.model.Veiculo;
+
 import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
@@ -69,7 +70,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             });
         }
         
-        Tabela_Exibicao_veiculos2.setModel(model);
+        Tabela_Exibicao_veiculos.setModel(model);
     }
 
     private void definirTamanhoEPosicao() {
@@ -119,7 +120,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         jScrollPane1 = new javax.swing.JScrollPane();
         Tabela_Exibicao_veiculos1 = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
-        Tabela_Exibicao_veiculos2 = new javax.swing.JTable();
+        Tabela_Exibicao_veiculos = new javax.swing.JTable();
         PaneldoControle = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -254,8 +255,8 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 
         jScrollPane2.setPreferredSize(new java.awt.Dimension(900, 402));
 
-        Tabela_Exibicao_veiculos2.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        Tabela_Exibicao_veiculos2.setModel(new javax.swing.table.DefaultTableModel(
+        Tabela_Exibicao_veiculos.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Tabela_Exibicao_veiculos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -271,16 +272,16 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 return canEdit [columnIndex];
             }
         });
-        Tabela_Exibicao_veiculos2.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        Tabela_Exibicao_veiculos2.setMaximumSize(null);
-        Tabela_Exibicao_veiculos2.setName("Tabela_Exibicao_veiculos"); // NOI18N
-        Tabela_Exibicao_veiculos2.getTableHeader().setReorderingAllowed(false);
-        Tabela_Exibicao_veiculos2.addMouseListener(new java.awt.event.MouseAdapter() {
+        Tabela_Exibicao_veiculos.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        Tabela_Exibicao_veiculos.setMaximumSize(null);
+        Tabela_Exibicao_veiculos.setName("Tabela_Exibicao_veiculos"); // NOI18N
+        Tabela_Exibicao_veiculos.getTableHeader().setReorderingAllowed(false);
+        Tabela_Exibicao_veiculos.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                Tabela_Exibicao_veiculos2MouseClicked(evt);
+                Tabela_Exibicao_veiculosMouseClicked(evt);
             }
         });
-        jScrollPane2.setViewportView(Tabela_Exibicao_veiculos2);
+        jScrollPane2.setViewportView(Tabela_Exibicao_veiculos);
 
         getContentPane().add(jScrollPane2);
         jScrollPane2.setBounds(643, 205, 330, 348);
@@ -313,8 +314,8 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_Tabela_Exibicao_veiculos1MouseClicked
 
-    private void Tabela_Exibicao_veiculos2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculos2MouseClicked
-        int selectedRow = Tabela_Exibicao_veiculos2.getSelectedRow();
+    private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculosMouseClicked
+        int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
         if (selectedRow == -1) {
             return;
         }
@@ -341,7 +342,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             new Object [][] {},
             new String [] {"N° FOGO", "FABRICANTE", "PROFUNDIDADE"}
         ));
-    }//GEN-LAST:event_Tabela_Exibicao_veiculos2MouseClicked
+    }//GEN-LAST:event_Tabela_Exibicao_veiculosMouseClicked
 
     /**
      * @param args the command line arguments
@@ -403,8 +404,8 @@ private void configuraPneu(javax.swing.JLabel labelDoPneu, javax.swing.ImageIcon
     private javax.swing.JPanel Painel;
     private javax.swing.JPanel PaneldoControle;
     private javax.swing.JTable Tabela_Exibicao_pneus_em_estoque;
+    private javax.swing.JTable Tabela_Exibicao_veiculos;
     private javax.swing.JTable Tabela_Exibicao_veiculos1;
-    private javax.swing.JTable Tabela_Exibicao_veiculos2;
     private javax.swing.JLabel Tipo_pneu;
     private javax.swing.JLabel conserto;
     private javax.swing.JLabel estoque;

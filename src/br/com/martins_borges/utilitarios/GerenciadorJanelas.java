@@ -1,8 +1,5 @@
 package br.com.martins_borges.utilitarios; // Ou o pacote correto
-
-import br.com.martins_borges.telas.TelaCadastroVeiculos;
 import br.com.martins_borges.telas.TelaControleDePneus;
-import br.com.martins_borges.telas.TelaPrincipal;
 import java.awt.Component;
 import javax.swing.*;
 import java.awt.event.*;

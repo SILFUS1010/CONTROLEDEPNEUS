@@ -8,7 +8,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import javax.swing.JFrame;
-import util.PosicaoFormulario;
+import br.com.martins_borges.utilitarios.PosicaoFormulario;
 
     public class TelaPrincipal extends javax.swing.JFrame {
 
