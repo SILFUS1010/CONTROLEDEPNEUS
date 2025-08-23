@@ -107,9 +107,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     private void initComponents() {
 
         Tipo_pneu = new javax.swing.JLabel();
-        PNEUS_ESTOQUE = new javax.swing.JScrollPane();
-        Tabela_Exibicao_pneus_em_estoque = new javax.swing.JTable();
-        Painel = new javax.swing.JPanel();
+        PainelManutencao = new javax.swing.JPanel();
         lbtitulo = new javax.swing.JLabel();
         lbconserto = new javax.swing.JLabel();
         conserto = new javax.swing.JLabel();
@@ -117,10 +115,12 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         estoque = new javax.swing.JLabel();
         lbsucata = new javax.swing.JLabel();
         sucata = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        Tabela_Exibicao_veiculos1 = new javax.swing.JTable();
+        PNEUS_ESTOQUE = new javax.swing.JScrollPane();
+        Tabela_Exibicao_pneus_em_estoque = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
         Tabela_Exibicao_veiculos = new javax.swing.JTable();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        Tabela_ExibicaoPneuUsado = new javax.swing.JTable();
         PaneldoControle = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -129,6 +129,62 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         getContentPane().setLayout(null);
         getContentPane().add(Tipo_pneu);
         Tipo_pneu.setBounds(593, 61, 202, 22);
+
+        PainelManutencao.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        PainelManutencao.setLayout(null);
+
+        lbtitulo.setBackground(new java.awt.Color(102, 102, 102));
+        lbtitulo.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lbtitulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lbtitulo.setText("AÇOES DO PNEU");
+        lbtitulo.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        lbtitulo.setOpaque(true);
+        PainelManutencao.add(lbtitulo);
+        lbtitulo.setBounds(0, 0, 130, 20);
+
+        lbconserto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lbconserto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/Martins_Borges/telas/Imagens/support.png"))); // NOI18N
+        lbconserto.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        lbconserto.setName("AG. CONSERTO"); // NOI18N
+        PainelManutencao.add(lbconserto);
+        lbconserto.setBounds(9, 30, 100, 104);
+
+        conserto.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        conserto.setText("AG. CONSERTO");
+        conserto.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        PainelManutencao.add(conserto);
+        conserto.setBounds(20, 110, 85, 16);
+
+        lbestoque.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lbestoque.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/Martins_Borges/telas/Imagens/ESTOQUE.png"))); // NOI18N
+        lbestoque.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        lbestoque.setMaximumSize(new java.awt.Dimension(64, 64));
+        lbestoque.setMinimumSize(new java.awt.Dimension(64, 64));
+        lbestoque.setName("ESTOQUE"); // NOI18N
+        lbestoque.setPreferredSize(new java.awt.Dimension(64, 64));
+        PainelManutencao.add(lbestoque);
+        lbestoque.setBounds(10, 190, 100, 120);
+
+        estoque.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        estoque.setText("ESTOQUE");
+        estoque.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        PainelManutencao.add(estoque);
+        estoque.setBounds(30, 290, 53, 16);
+
+        lbsucata.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lbsucata.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/Martins_Borges/telas/Imagens/LIXO.png"))); // NOI18N
+        lbsucata.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        PainelManutencao.add(lbsucata);
+        lbsucata.setBounds(20, 370, 77, 110);
+
+        sucata.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        sucata.setText("SUCATA");
+        sucata.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        PainelManutencao.add(sucata);
+        sucata.setBounds(35, 460, 50, 16);
+
+        getContentPane().add(PainelManutencao);
+        PainelManutencao.setBounds(433, 18, 128, 505);
 
         PNEUS_ESTOQUE.setPreferredSize(new java.awt.Dimension(900, 402));
 
@@ -164,95 +220,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         getContentPane().add(PNEUS_ESTOQUE);
         PNEUS_ESTOQUE.setBounds(643, 18, 330, 175);
 
-        Painel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        Painel.setLayout(null);
-
-        lbtitulo.setBackground(new java.awt.Color(102, 102, 102));
-        lbtitulo.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        lbtitulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lbtitulo.setText("AÇOES DO PNEU");
-        lbtitulo.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        lbtitulo.setOpaque(true);
-        Painel.add(lbtitulo);
-        lbtitulo.setBounds(0, 0, 130, 20);
-
-        lbconserto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lbconserto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/Martins_Borges/telas/Imagens/support.png"))); // NOI18N
-        lbconserto.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        lbconserto.setName("AG. CONSERTO"); // NOI18N
-        Painel.add(lbconserto);
-        lbconserto.setBounds(9, 30, 100, 104);
-
-        conserto.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        conserto.setText("AG. CONSERTO");
-        conserto.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        Painel.add(conserto);
-        conserto.setBounds(20, 110, 85, 16);
-
-        lbestoque.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lbestoque.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/Martins_Borges/telas/Imagens/ESTOQUE.png"))); // NOI18N
-        lbestoque.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        lbestoque.setMaximumSize(new java.awt.Dimension(64, 64));
-        lbestoque.setMinimumSize(new java.awt.Dimension(64, 64));
-        lbestoque.setName("ESTOQUE"); // NOI18N
-        lbestoque.setPreferredSize(new java.awt.Dimension(64, 64));
-        Painel.add(lbestoque);
-        lbestoque.setBounds(10, 190, 100, 120);
-
-        estoque.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        estoque.setText("ESTOQUE");
-        estoque.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        Painel.add(estoque);
-        estoque.setBounds(30, 290, 53, 16);
-
-        lbsucata.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lbsucata.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/Martins_Borges/telas/Imagens/LIXO.png"))); // NOI18N
-        lbsucata.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        Painel.add(lbsucata);
-        lbsucata.setBounds(20, 370, 77, 110);
-
-        sucata.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        sucata.setText("SUCATA");
-        sucata.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        Painel.add(sucata);
-        sucata.setBounds(35, 460, 50, 16);
-
-        getContentPane().add(Painel);
-        Painel.setBounds(433, 18, 128, 505);
-
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(900, 402));
-
-        Tabela_Exibicao_veiculos1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        Tabela_Exibicao_veiculos1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "N° FOGO", "FABRICANTE", "PROFUNDIDADE"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, true, true
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        Tabela_Exibicao_veiculos1.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        Tabela_Exibicao_veiculos1.setMaximumSize(null);
-        Tabela_Exibicao_veiculos1.setName("Tabela_Exibicao_veiculos"); // NOI18N
-        Tabela_Exibicao_veiculos1.getTableHeader().setReorderingAllowed(false);
-        Tabela_Exibicao_veiculos1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                Tabela_Exibicao_veiculos1MouseClicked(evt);
-            }
-        });
-        jScrollPane1.setViewportView(Tabela_Exibicao_veiculos1);
-
-        getContentPane().add(jScrollPane1);
-        jScrollPane1.setBounds(640, 560, 340, 134);
-
         jScrollPane2.setPreferredSize(new java.awt.Dimension(900, 402));
 
         Tabela_Exibicao_veiculos.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -286,6 +253,39 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         getContentPane().add(jScrollPane2);
         jScrollPane2.setBounds(643, 205, 330, 348);
 
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(900, 402));
+
+        Tabela_ExibicaoPneuUsado.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Tabela_ExibicaoPneuUsado.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "N° FOGO", "FABRICANTE", "PROFUNDIDADE"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, true, true
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        Tabela_ExibicaoPneuUsado.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        Tabela_ExibicaoPneuUsado.setMaximumSize(null);
+        Tabela_ExibicaoPneuUsado.setName("Tabela_Exibicao_veiculos"); // NOI18N
+        Tabela_ExibicaoPneuUsado.getTableHeader().setReorderingAllowed(false);
+        Tabela_ExibicaoPneuUsado.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                Tabela_ExibicaoPneuUsadoMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(Tabela_ExibicaoPneuUsado);
+
+        getContentPane().add(jScrollPane1);
+        jScrollPane1.setBounds(640, 560, 340, 134);
+
         javax.swing.GroupLayout PaneldoControleLayout = new javax.swing.GroupLayout(PaneldoControle);
         PaneldoControle.setLayout(PaneldoControleLayout);
         PaneldoControleLayout.setHorizontalGroup(
@@ -310,9 +310,9 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_Tabela_Exibicao_pneus_em_estoqueMouseClicked
 
-    private void Tabela_Exibicao_veiculos1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculos1MouseClicked
+    private void Tabela_ExibicaoPneuUsadoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_ExibicaoPneuUsadoMouseClicked
         // TODO add your handling code here:
-    }//GEN-LAST:event_Tabela_Exibicao_veiculos1MouseClicked
+    }//GEN-LAST:event_Tabela_ExibicaoPneuUsadoMouseClicked
 
     private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculosMouseClicked
         int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
@@ -338,7 +338,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         popularTabelaPneusEstoque(pneusCompativeis);
 
         // Limpa a outra tabela de pneus (detalhes) pois um novo veículo foi selecionado
-        Tabela_Exibicao_veiculos1.setModel(new DefaultTableModel(
+        Tabela_ExibicaoPneuUsado.setModel(new DefaultTableModel(
             new Object [][] {},
             new String [] {"N° FOGO", "FABRICANTE", "PROFUNDIDADE"}
         ));
@@ -401,11 +401,11 @@ private void configuraPneu(javax.swing.JLabel labelDoPneu, javax.swing.ImageIcon
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane PNEUS_ESTOQUE;
-    private javax.swing.JPanel Painel;
+    private javax.swing.JPanel PainelManutencao;
     private javax.swing.JPanel PaneldoControle;
+    private javax.swing.JTable Tabela_ExibicaoPneuUsado;
     private javax.swing.JTable Tabela_Exibicao_pneus_em_estoque;
     private javax.swing.JTable Tabela_Exibicao_veiculos;
-    private javax.swing.JTable Tabela_Exibicao_veiculos1;
     private javax.swing.JLabel Tipo_pneu;
     private javax.swing.JLabel conserto;
     private javax.swing.JLabel estoque;

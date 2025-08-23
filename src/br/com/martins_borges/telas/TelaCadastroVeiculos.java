@@ -1525,7 +1525,6 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
     private void CadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CadastrarActionPerformed
      
-    // --- ETAPA 1: VALIDAÇÕES PRIMÁRIAS ---
     if (this.veiculoSelecionado == null && txtFrota.getText().trim().isEmpty()) {
         JOptionPane.showMessageDialog(this, "O campo 'Frota' é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
         txtFrota.requestFocusInWindow();
@@ -1555,33 +1554,31 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
     Integer posicaoCarreta = null;
     if (cbposicao_carreta.isVisible()) {
-        try {
-            posicaoCarreta = Integer.parseInt(cbposicao_carreta.getSelectedItem().toString().trim());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Por favor, selecione uma posição válida para a carreta.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
-            cbposicao_carreta.requestFocusInWindow();
+        if (cbposicao_carreta.getSelectedIndex() < 0) { // Valida se algo foi selecionado
+            JOptionPane.showMessageDialog(this, "Por favor, selecione a posição da carreta.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        posicaoCarreta = Integer.valueOf(cbposicao_carreta.getSelectedItem().toString());
     }
+    
+    // Validação Segura da Quantidade de Pneus
+    int qtdPneusCorreta;
+    String textoQtdPneus = Qtd_numeroPneu.getText().trim();
+    if (textoQtdPneus.isEmpty() || !textoQtdPneus.matches("\\d+") || "0".equals(textoQtdPneus)) {
+        JOptionPane.showMessageDialog(this, "Quantidade de pneus inválida. Selecione um modelo de veículo para definir a quantidade.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    qtdPneusCorreta = Integer.parseInt(textoQtdPneus);
 
-    // --- LÓGICA DE DECISÃO: CADASTRAR OU ATUALIZAR ---
+
+    // --- ETAPA 3: LÓGICA DE DECISÃO: CADASTRAR OU ATUALIZAR ---
     if (this.veiculoSelecionado == null) {
         // --- MODO CADASTRO ---
-        
-        // Validação da Quantidade de Pneus
-        int qtdPneusCorreta;
-        String textoQtdPneus = Qtd_numeroPneu.getText().trim();
-        if (textoQtdPneus.isEmpty() || !textoQtdPneus.matches("\\d+") || Integer.parseInt(textoQtdPneus) == 0) {
-            JOptionPane.showMessageDialog(this, "Quantidade de pneus inválida. Selecione um modelo de veículo.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        qtdPneusCorreta = Integer.parseInt(textoQtdPneus);
-
         Veiculo novoVeiculo = new Veiculo();
         novoVeiculo.setFROTA(frota);
         novoVeiculo.setPLACA(placa);
         novoVeiculo.setID_CONFIG_FK(idConfigSelecionado);
-        novoVeiculo.setQTD_PNEUS(qtdPneusCorreta);
+        novoVeiculo.setQTD_PNEUS(qtdPneusCorreta); // <--- USA O VALOR VALIDADO
         novoVeiculo.setDATA_CADASTRO(LocalDate.now());
         novoVeiculo.setMEDIDA_PNEU(medidaPneu);
         novoVeiculo.setSTATUS_VEICULO("ATIVO");
@@ -1599,10 +1596,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         this.veiculoSelecionado.setPLACA(placa);
         this.veiculoSelecionado.setID_CONFIG_FK(idConfigSelecionado);
         this.veiculoSelecionado.setMEDIDA_PNEU(medidaPneu);
-        // Atualiza a posição apenas se o combo box estiver visível, senão mantém a antiga
-        if (cbposicao_carreta.isVisible()) {
-             this.veiculoSelecionado.setPosicaoCarreta(posicaoCarreta);
-        }
+        // A quantidade de pneus de um veículo não muda, então não precisa de setQTD_PNEUS aqui.
+        // A posição pode mudar:
+        this.veiculoSelecionado.setPosicaoCarreta(posicaoCarreta);
        
         if (veiculoDAO.atualizarVeiculo(this.veiculoSelecionado)) {
             JOptionPane.showMessageDialog(this, "Veículo atualizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
