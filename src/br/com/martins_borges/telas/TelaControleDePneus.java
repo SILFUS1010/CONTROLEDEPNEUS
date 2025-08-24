@@ -35,6 +35,16 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 
         // Carrega os dados na tabela de veículos. A tabela de pneus começa vazia.
         atualizarTabelaVeiculos();
+
+        // Oculta os componentes de engate por padrão
+        Triangulo1.setVisible(false);
+        Triangulo2.setVisible(false);
+        Triangulo3.setVisible(false);
+        Triangulo4.setVisible(false);
+        engate1.setVisible(false);
+        engate2.setVisible(false);
+        engate3.setVisible(false);
+        engate4.setVisible(false);
     }
 
     // Enum para os tipos de eixo
