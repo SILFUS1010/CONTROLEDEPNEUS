@@ -45,6 +45,12 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         engate2.setVisible(false);
         engate3.setVisible(false);
         engate4.setVisible(false);
+
+        // Garante que os triângulos fiquem sobrepostos ao chassi (Z-Order)
+        TELA_ZERO.setComponentZOrder(Triangulo1, 0);
+        TELA_ZERO.setComponentZOrder(Triangulo2, 0);
+        TELA_ZERO.setComponentZOrder(Triangulo3, 0);
+        TELA_ZERO.setComponentZOrder(Triangulo4, 0);
     }
 
     // Enum para os tipos de eixo
@@ -314,67 +320,193 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     }
 
     private void inicializarComponentesChassi() {
+
         slotsDePneus = new javax.swing.JLabel[6][4];
-        // Adicione os JLabels ao painel e à matriz
-        // Exemplo para um eixo (repita para todos os 24 pneus)
-        // slotsDePneus[0][0] = Label100;
-        // slotsDePneus[0][1] = Label101;
-        // ... e assim por diante para todos os labels de pneu
+
+        slotsDePneus[0][0] = Label100;
+        slotsDePneus[0][1] = Label101;
+        slotsDePneus[0][2] = Label102;
+        slotsDePneus[0][3] = Label103;
+
+        // Eixo 2 (índice 1)
+        slotsDePneus[1][0] = Label104;
+        slotsDePneus[1][1] = Label105;
+        slotsDePneus[1][2] = Label106;
+        slotsDePneus[1][3] = Label107;
+
+        // Eixo 3 (índice 2)
+        slotsDePneus[2][0] = Label108;
+        slotsDePneus[2][1] = Label109;
+        slotsDePneus[2][2] = Label110;
+        slotsDePneus[2][3] = Label111;
+
+        // Eixo 4 (índice 3)
+        slotsDePneus[3][0] = Label112;
+        slotsDePneus[3][1] = Label113;
+        slotsDePneus[3][2] = Label114;
+        slotsDePneus[3][3] = Label115;
+
+        // Eixo 5 (índice 4)
+        slotsDePneus[4][0] = Label116;
+        slotsDePneus[4][1] = Label117;
+        slotsDePneus[4][2] = Label118;
+        slotsDePneus[4][3] = Label119;
+
+        // Eixo 6 (índice 5)
+        slotsDePneus[5][0] = Label120;
+        slotsDePneus[5][1] = Label121;
+        slotsDePneus[5][2] = Label122;
+        slotsDePneus[5][3] = Label123;
     }
 
-    private void desenharChassi(TipoEixo[] tipos, boolean[] visibilidadeEixos, int espacamento,
-            AlinhamentoVertical alinhamento, int[] deslocamentos,
-            int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos) {
-
-        // Oculta todos os componentes antes de desenhar
-        // (código para ocultar eixos e pneus)
-        // ...
-        int totalPneus = 0;
-        int yInicial = 120;
-        int xCentro = 170;
-        int yAtual = yInicial;
-        int eixoVisivelIndex = 0;
-
-        ImageIcon iconePneu = redimensionarIcone("/br/com/Martins_Borges/telas/Imagens/pneu.png", 32, 96);
-
-        for (int i = 0; i < visibilidadeEixos.length; i++) {
-            if (visibilidadeEixos[i]) {
-                // (código para posicionar eixos)
-                // ...
-                int larguraEixo = largurasEixos[eixoVisivelIndex];
-                int xEixo = xCentro - (larguraEixo / 2);
-
-                if (tipos[eixoVisivelIndex] == TipoEixo.SIMPLES) {
-                    // Lógica para pneu simples
-                    totalPneus += 2;
-                } else { // Eixo Duplo
-                    // Lógica para pneu duplo
-                    totalPneus += 4;
-                }
-                eixoVisivelIndex++;
-                yAtual += 90; // Espaçamento vertical entre eixos
+    private void desenharChassi(TipoEixo[] tipos, boolean[] visibilidade, int espacamento, AlinhamentoVertical alinhamento, int[] deslocamentos, int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos) {
+        // --- Validação ---
+        int numEixosVisiveis = 0;
+        for (boolean v : visibilidade) {
+            if (v) {
+                numEixosVisiveis++;
             }
         }
-        // (código para ajustar a espinha dorsal)
-        // ...
-        // Qtd_numeroPneu.setText(String.valueOf(totalPneus));
+        if (numEixosVisiveis != tipos.length || (largurasEixos != null && numEixosVisiveis != largurasEixos.length)) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Erro de configuração: O número de eixos visíveis, tipos e larguras devem corresponder.",
+                    "Erro de Desenho", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // --- Preparação ---
+        javax.swing.JLabel[] todosOsEixos = {lbeixo1, lbeixo2, lbeixo3, lbeixo4, lbeixo5, lbeixo6, lbeixo7, lbeixo8, lbeixo9};
+        javax.swing.ImageIcon iconeOriginal = new javax.swing.ImageIcon(getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png"));
+        int larguraPneu = 45, alturaPneu = 70;
+        javax.swing.ImageIcon iconPneu = redimensionarIcone(iconeOriginal, larguraPneu, alturaPneu);
+        int centroChassiX = TELA_ZERO.getWidth() / 2;
+
+        // --- Limpeza ---
+        for (javax.swing.JLabel eixo : todosOsEixos) {
+            if (eixo != null) {
+                eixo.setVisible(false);
+            }
+        }
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (slotsDePneus[i][j] != null) {
+                    slotsDePneus[i][j].setVisible(false);
+                    slotsDePneus[i][j].setIcon(null);
+                }
+            }
+        }
+        lbespinha_dorsal.setVisible(false);
+
+        // --- Cálculo de Posição ---
+        int alturaTotalChassi = (numEixosVisiveis > 0 ? (numEixosVisiveis - 1) * espacamento + alturaPneu : 0);
+        int yInicial;
+
+        // Posição 0 = Ajuste para BASE
+        // Posição 1 = Ajuste para CENTRO
+        // Posição 2 = Ajuste para TOPO
+        int ajusteBase = (ajustesVerticais != null && ajustesVerticais.length >= 1) ? ajustesVerticais[0] : 30; // Padrão: 30
+        int ajusteCentro = (ajustesVerticais != null && ajustesVerticais.length >= 2) ? ajustesVerticais[1] : 0;   // Padrão: 0
+        int ajusteTopo = (ajustesVerticais != null && ajustesVerticais.length >= 3) ? ajustesVerticais[2] : 30;   // Padrão: 30
+
+        switch (alinhamento) {
+            case TOPO:
+                yInicial = ajusteTopo;
+                break;
+            case BASE:
+                yInicial = TELA_ZERO.getHeight() - alturaTotalChassi - ajusteBase;
+                break;
+            case CENTRO:
+            default:
+                yInicial = (TELA_ZERO.getHeight() - alturaTotalChassi) / 2 + ajusteCentro;
+                break;
+        }
+
+        // --- Desenho ---
+        int contadorDeReceita = 0;
+        int yEixoAtual = yInicial;
+        int totalTires = 0; // Inicializa o contador de pneus
+
+        for (int i = 0; i < visibilidade.length; i++) {
+            if (visibilidade[i]) {
+                javax.swing.JLabel eixoAtual = todosOsEixos[i];
+                TipoEixo tipoDoEixo = tipos[contadorDeReceita];
+                int deslocamento = (deslocamentos != null && contadorDeReceita < deslocamentos.length) ? deslocamentos[contadorDeReceita] : 0;
+                int larguraDoEixoAtual = (largurasEixos != null && contadorDeReceita < largurasEixos.length) ? largurasEixos[contadorDeReceita] : (tipoDoEixo == TipoEixo.SIMPLES ? 190 : 280);
+
+                // Pega o ajuste fino para este eixo específico do novo array.
+                // Se o array for nulo ou o índice for inválido, o ajuste é 0.
+                int ajusteFino = (posicoesEixos != null && i < posicoesEixos.length) ? posicoesEixos[i] : 0;
+
+                eixoAtual.setVisible(true);
+
+                int alturaEixo = eixoAtual.getHeight();
+                javax.swing.JLabel pneuEsqExterno = slotsDePneus[i][0], pneuEsqInterno = slotsDePneus[i][1];
+                javax.swing.JLabel pneuDirInterno = slotsDePneus[i][2], pneuDirExterno = slotsDePneus[i][3];
+
+                if (tipoDoEixo == TipoEixo.SIMPLES) {
+                    eixoAtual.setBounds(centroChassiX - (larguraDoEixoAtual / 2), yEixoAtual + ajusteFino, larguraDoEixoAtual, alturaEixo);
+                    int yPneu = yEixoAtual + ajusteFino + (alturaEixo / 2) - (alturaPneu / 2);
+                    int xPneuEsquerdo = eixoAtual.getX() + deslocamento;
+                    int xPneuDireito = eixoAtual.getX() + larguraDoEixoAtual - larguraPneu - deslocamento;
+                    configuraPneu(pneuEsqExterno, iconPneu, xPneuEsquerdo, yPneu);
+                    configuraPneu(pneuDirExterno, iconPneu, xPneuDireito, yPneu);
+                    pneuEsqInterno.setVisible(false);
+                    pneuDirInterno.setVisible(false);
+                    totalTires += 2; // Adiciona 2 pneus para eixo simples
+                } else if (tipoDoEixo == TipoEixo.DUPLO) {
+                    eixoAtual.setBounds(centroChassiX - (larguraDoEixoAtual / 2), yEixoAtual + ajusteFino, larguraDoEixoAtual, alturaEixo);
+                    int espacamentoPneus = 5;
+                    int yPneu = yEixoAtual + ajusteFino + (alturaEixo / 2) - (alturaPneu / 2);
+                    int xPneuEsqExterno = eixoAtual.getX() + deslocamento;
+                    int xPneuEsqInterno = eixoAtual.getX() + larguraPneu + espacamentoPneus + deslocamento;
+                    int xPneuDirExterno = eixoAtual.getX() + larguraDoEixoAtual - larguraPneu - deslocamento;
+                    int xPneuDirInterno = eixoAtual.getX() + larguraDoEixoAtual - (larguraPneu * 2) - espacamentoPneus - deslocamento;
+                    configuraPneu(pneuEsqExterno, iconPneu, xPneuEsqExterno, yPneu);
+                    configuraPneu(pneuEsqInterno, iconPneu, xPneuEsqInterno, yPneu);
+                    configuraPneu(pneuDirInterno, iconPneu, xPneuDirInterno, yPneu);
+                    configuraPneu(pneuDirExterno, iconPneu, xPneuDirExterno, yPneu);
+                    totalTires += 4; // Adiciona 4 pneus para eixo duplo
+                }
+
+                yEixoAtual += espacamento;
+                contadorDeReceita++;
+            }
+        }
+
+        // --- Espinha Dorsal ---
+        javax.swing.JLabel primeiroEixoVisivel = null, ultimoEixoVisivel = null;
+        for (int i = 0; i < visibilidade.length; i++) {
+            if (visibilidade[i]) {
+                if (primeiroEixoVisivel == null) {
+                    primeiroEixoVisivel = todosOsEixos[i];
+                }
+                ultimoEixoVisivel = todosOsEixos[i];
+            }
+        }
+
+        if (primeiroEixoVisivel != null && ultimoEixoVisivel != null) {
+            int yInicio = primeiroEixoVisivel.getY() + primeiroEixoVisivel.getHeight() / 2;
+            int yFim = ultimoEixoVisivel.getY() + ultimoEixoVisivel.getHeight() / 2;
+            lbespinha_dorsal.setBounds(centroChassiX - (lbespinha_dorsal.getWidth() / 2), yInicio, lbespinha_dorsal.getWidth(), yFim - yInicio);
+            lbespinha_dorsal.setVisible(true);
+        }
+
+        TELA_ZERO.repaint();
     }
 
-    private ImageIcon redimensionarIcone(String caminho, int largura, int altura) {
-        ImageIcon iconeOriginal = new ImageIcon(getClass().getResource(caminho));
-        Image imagemOriginal = iconeOriginal.getImage();
-        Image imagemRedimensionada = imagemOriginal.getScaledInstance(largura, altura, Image.SCALE_SMOOTH);
-        return new ImageIcon(imagemRedimensionada);
+    private javax.swing.ImageIcon redimensionarIcone(javax.swing.ImageIcon iconeOriginal, int largura, int altura) {
+        if (iconeOriginal == null) {
+            return null;
+        }
+        return new javax.swing.ImageIcon(iconeOriginal.getImage().getScaledInstance(largura, altura, java.awt.Image.SCALE_SMOOTH));
     }
 
-    private void configuraPneu(JLabel labelDoPneu, ImageIcon icone, int x, int y) {
-        if (labelDoPneu != null) {
-            int larguraPneu = icone.getIconWidth();
-            int alturaPneu = icone.getIconHeight();
-
-            labelDoPneu.setIcon(icone);
-            labelDoPneu.setBounds(x, y, larguraPneu, alturaPneu);
-            labelDoPneu.setVisible(true);
+    private void configuraPneu(javax.swing.JLabel pneuLabel, javax.swing.ImageIcon icone, int x, int y) {
+        if (pneuLabel != null) {
+            pneuLabel.setIcon(icone);
+            pneuLabel.setBounds(x, y, icone.getIconWidth(), icone.getIconHeight());
+            pneuLabel.setVisible(true);
+            TELA_ZERO.setComponentZOrder(pneuLabel, 0);
         }
     }
 
