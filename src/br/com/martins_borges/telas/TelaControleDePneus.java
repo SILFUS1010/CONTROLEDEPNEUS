@@ -843,99 +843,232 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     }//GEN-LAST:event_Tabela_ExibicaoPneuUsadoMouseClicked
 
     private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculosMouseClicked
-        int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
-        if (selectedRow == -1) {
+      
+    int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
+    if (selectedRow == -1) {
+        return;
+    }
+
+    // Pega o veículo selecionado da lista
+    Veiculo veiculoSelecionado = this.listaDeVeiculos.get(selectedRow);
+    
+    // --- LÓGICA DE DESENHO DO CHASSI ---
+    int idConfig = veiculoSelecionado.getID_CONFIG_FK();
+
+    // Declara as variáveis de configuração que vamos definir
+    TipoEixo[] tipos;
+    boolean[] visibilidade;
+    int espacamento;
+    AlinhamentoVertical alinhamento;
+    int[] deslocamentos;
+    int[] ajustesVerticais;
+    int[] largurasEixos;
+    int[] posicoesEixos = null; // Padrão é null
+
+    // Define as configurações específicas para cada tipo de veículo
+    switch (idConfig) {
+        case 0:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, true, true, false, false, false};
+            espacamento = 120;
+            alinhamento = AlinhamentoVertical.TOPO;
+            deslocamentos = new int[]{-30, -10, -10};
+            ajustesVerticais = new int[]{100, 0, 100};
+            largurasEixos = new int[]{140, 280, 280};
+            break;
+        case 1:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES};
+            visibilidade = new boolean[]{true, true, false, false, false, false};
+            espacamento = 287;
+            alinhamento = AlinhamentoVertical.TOPO;
+            deslocamentos = new int[]{-30, -30, -30};
+            ajustesVerticais = new int[]{0, 0, 100};
+            largurasEixos = new int[]{150, 150};
+            break;
+        case 2:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES};
+            visibilidade = new boolean[]{true, false, true, false, false, true};
+            espacamento = 200;
+            alinhamento = AlinhamentoVertical.CENTRO;
+            deslocamentos = new int[]{-30, -30, -30};
+            ajustesVerticais = new int[]{0, 0, 0};
+            largurasEixos = new int[]{150, 150, 150};
+            break;
+        case 3:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, false, false, false, false, true};
+            espacamento = 300;
+            alinhamento = AlinhamentoVertical.BASE;
+            deslocamentos = new int[]{-30, -30, -30};
+            ajustesVerticais = new int[]{50, 0, 0};
+            largurasEixos = new int[]{150, 220};
+            break;
+        case 4:
+            tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, true, true, true, false, false};
+            espacamento = 100;
+            alinhamento = AlinhamentoVertical.TOPO;
+            deslocamentos = new int[]{-30, -30, -30, -30};
+            ajustesVerticais = new int[]{0, 0, 110};
+            largurasEixos = new int[]{230, 230, 230, 230};
+            break;
+        case 5:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES};
+            visibilidade = new boolean[]{true, true, true, true, false, false};
+            espacamento = 100;
+            alinhamento = AlinhamentoVertical.CENTRO;
+            deslocamentos = new int[]{-30, -30, -30, -30};
+            ajustesVerticais = new int[]{0, 80, 0};
+            largurasEixos = new int[]{150, 150, 150, 150};
+            break;
+        case 6:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, true, false, false, true, true};
+            espacamento = 135;
+            alinhamento = AlinhamentoVertical.BASE;
+            deslocamentos = new int[]{-30, -30, -30, -30};
+            ajustesVerticais = new int[]{30, 0, 0};
+            largurasEixos = new int[]{150, 150, 280, 280};
+            posicoesEixos = new int[]{50, 20, 0, 0, 70, 50};
+            break;
+        case 7:
+            tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, true, false, false, false, false};
+            espacamento = 100;
+            alinhamento = AlinhamentoVertical.TOPO;
+            deslocamentos = new int[]{-30, -30, -30};
+            ajustesVerticais = new int[]{0, 0, 100};
+            largurasEixos = new int[]{220, 220};
+            break;
+        case 8:
+            tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, true, true, false, false, false};
+            espacamento = 90;
+            alinhamento = AlinhamentoVertical.BASE;
+            deslocamentos = new int[]{-30, -30, -30};
+            ajustesVerticais = new int[]{-15, 0, 0};
+            largurasEixos = new int[]{220, 220, 220};
+            break;
+        case 9:
+            tipos = new TipoEixo[]{TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, false, false, false, false, false};
+            espacamento = 100;
+            alinhamento = AlinhamentoVertical.CENTRO;
+            deslocamentos = new int[]{-30, -30, -30};
+            ajustesVerticais = new int[]{0, 50, 0};
+            largurasEixos = new int[]{220};
+            break;
+        case 10:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES};
+            visibilidade = new boolean[]{true, false, false, false, false, false};
+            espacamento = 100;
+            alinhamento = AlinhamentoVertical.CENTRO;
+            deslocamentos = new int[]{-30, -30, -30};
+            ajustesVerticais = new int[]{0, 30, 0};
+            largurasEixos = new int[]{150};
+            break;
+        case 11:
+            tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.SIMPLES};
+            visibilidade = new boolean[]{true, true, false, false, false, false};
+            espacamento = 200;
+            alinhamento = AlinhamentoVertical.CENTRO;
+            deslocamentos = new int[]{-30, -30, -30};
+            ajustesVerticais = new int[]{0, 0, 0};
+            largurasEixos = new int[]{220, 150};
+            break;
+        case 12:
+            tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, true, true, true, true, true};
+            espacamento = 100;
+            alinhamento = AlinhamentoVertical.TOPO;
+            deslocamentos = new int[]{-30, -30, -30, -30, -30, -30};
+            ajustesVerticais = new int[]{0, 0, 100};
+            largurasEixos = new int[]{220, 220, 220, 220, 220, 220};
+            break;
+        case 13:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES};
+            visibilidade = new boolean[]{true, true, true, true, true, false};
+            espacamento = 100;
+            alinhamento = AlinhamentoVertical.CENTRO;
+            deslocamentos = new int[]{-30, -30, -30, -30, -30};
+            ajustesVerticais = new int[]{0, 0, 0};
+            largurasEixos = new int[]{150, 150, 150, 150, 150};
+            break;
+        case 14:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, true, true, true, true, false};
+            espacamento = 100;
+            alinhamento = AlinhamentoVertical.BASE;
+            deslocamentos = new int[]{-30, -30, -30, -30, -30};
+            ajustesVerticais = new int[]{20, 0, 30};
+            largurasEixos = new int[]{150, 150, 150, 240, 240};
+            posicoesEixos = new int[]{-80, -80, -80, 30, 30};
+            break;
+        case 15:
+            tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES};
+            visibilidade = new boolean[]{true, true, true, true, true, true};
+            espacamento = 100;
+            alinhamento = AlinhamentoVertical.TOPO;
+            deslocamentos = new int[]{-30, -30, -30, -30, -30, -30};
+            ajustesVerticais = new int[]{0, 0, 110};
+            largurasEixos = new int[]{150, 150, 150, 150, 150, 150};
+            break;
+        case 16:
+             tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO};
+             visibilidade = new boolean[]{true, false, false, false, true, true};
+             espacamento = 150;
+             alinhamento = AlinhamentoVertical.BASE;
+             deslocamentos = new int[]{-30, -30, -30};
+             ajustesVerticais = new int[]{80, 0, 0};
+             largurasEixos = new int[]{150, 220, 220};
+             posicoesEixos = new int[]{0, 0, 0, 0, 90, 50};
+             break;
+        case 17:
+            tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, false, false, false, false, true};
+            espacamento = 370;
+            alinhamento = AlinhamentoVertical.TOPO;
+            deslocamentos = new int[]{-30, -30, -30};
+            ajustesVerticais = new int[]{30, 0, 100};
+            largurasEixos = new int[]{230, 230};
+            break;
+        case 18: // Dolly
+            tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO};
+            visibilidade = new boolean[]{true, false, false, false, false, true};
+            espacamento = 120;
+            alinhamento = AlinhamentoVertical.BASE;
+            deslocamentos = new int[]{-30, -30, 0};
+            ajustesVerticais = new int[]{30, 0, 0};
+            largurasEixos = new int[]{210, 210};
+            break;
+        default:
+            // Se o veículo não tiver uma configuração conhecida, limpa o painel e para.
+            desenharChassi(null, null, 0, null, null, null, null, null);
             return;
-        }
+    }
 
-        // Pega o veículo selecionado da lista que já carregamos
-        Veiculo veiculoSelecionado = this.listaDeVeiculos.get(selectedRow);
-        String medidaNecessaria = veiculoSelecionado.getMEDIDA_PNEU();
+    // Depois de configurar, chama o método de desenho UMA ÚNICA VEZ
+    desenharChassi(tipos, visibilidade, espacamento, alinhamento, deslocamentos, ajustesVerticais, largurasEixos, posicoesEixos);
 
-        // Se o veículo não tiver uma medida de pneu definida, não faz nada
-        if (medidaNecessaria == null || medidaNecessaria.trim().isEmpty()) {
-            // Limpa a tabela de pneus se o veículo não tiver medida
-            popularTabelaPneusEstoque(new java.util.ArrayList<>());
-            return;
-        }
-
-        // Busca no banco os pneus em estoque que tenham a medida necessária
+    // --- ATUALIZA AS OUTRAS TABELAS ---
+    String medidaNecessaria = veiculoSelecionado.getMEDIDA_PNEU();
+    if (medidaNecessaria == null || medidaNecessaria.trim().isEmpty()) {
+        popularTabelaPneusEstoque(new java.util.ArrayList<>());
+    } else {
         List<Pneu> pneusCompativeis = pneuDAO.listarPneusPorStatusEMedida("ESTOQUE", medidaNecessaria);
-
-        // Popula a tabela de pneus com os resultados
         popularTabelaPneusEstoque(pneusCompativeis);
+    }
+    
+    Tabela_ExibicaoPneuUsado.setModel(new DefaultTableModel(
+        new Object[][]{},
+        new String[]{"N° FOGO", "FABRICANTE", "PROFUNDIDADE"}
+    ));
 
-        // --- LÓGICA DE DESENHO DO CHASSI ---
-        int idConfig = veiculoSelecionado.getID_CONFIG_FK();
-        VehicleConfig config = vehicleConfigs.get(idConfig);
-        String codigo = veiculoSelecionado.getFROTA();
-        System.out.println("DEBUG - Valor de codigo/frota selecionado: [" + codigo + "]");
-        if (codigo != null && codigo.trim().toUpperCase().contains("1")) {
-            System.out.println("DEBUG - Entrou no bloco de configuração personalizada para COD1");
 
-            // --- CONFIGURAÇÃO EXCLUSIVA DO CHASSI PARA O VEÍCULO/CÓDIGO 1 ---
-
-            // TIPOS DE EIXO (SIMPLES OU DUPLO): controla o tipo de cada eixo exibido
-            TipoEixo[] tipos = {TipoEixo.SIMPLES, TipoEixo.SIMPLES};
-
-            // QUAIS EIXOS FICAM VISÍVEIS: true para mostrar, false para esconder
-            boolean[] visibilidade = {true, true, false, false, false, false};
-
-            // ESPAÇAMENTO VERTICAL ENTRE EIXOS (quanto maior o número, mais "comprido"/vertical o chassi)
-            // AUMENTA para ALONGAR, DIMINUI para ENCURTAR
-            int espacamento = 180; // Exemplo: 50 fica curto, 287 alongado
-
-            // POSICIONAMENTO VERTICAL DO CHASSI NO PAINEL
-            // TOPO joga mais para cima, BASE para baixo, CENTRO centraliza
-            AlinhamentoVertical alinhamento = AlinhamentoVertical.TOPO;
-
-            // DESLOCAMENTO HORIZONTAL dos pneus (ajusta para alinhar as rodas nos eixos)
-            int[] deslocamentos = {-30, -30, -30};
-
-            // AJUSTES FINOS NA ALTURA (vertical) dos eixos
-            // Primeiro valor: BASE, segundo: CENTRO, terceiro: TOPO
-            // Altere para "levantar" (mais positivo) ou "descer" (mais negativo) o chassi
-            int[] ajustesVerticais = {0, 0, 40};
-
-            // LARGURA DE CADA EIXO NA TELA (se aumentar, o eixo ficará mais "grosso" horizontalmente)
-            int[] largurasEixos = {150, 150};
-
-            // CHAMA O DESENHO COM ESSAS CONFIGURAÇÕES
-            desenharChassi(
-                tipos, // tipos de eixos
-                visibilidade, // visibilidade dos eixos
-                espacamento, // distancia verticalmente
-                alinhamento, // alinhamento vertical
-                deslocamentos, // ajuste posição horizontal dos pneus
-                ajustesVerticais, // ajuste vertical fino
-                largurasEixos, // largura de cada eixo
-                null // posicoesEixos, se precisar ajuste pixel a pixel
-            );
-            // FIM DA CONFIGURAÇÃO DO CHASSI EXCLUSIVA COD1
-        } else if (config != null) {
-            desenharChassi(config.tipos, config.visibilidade, config.espacamento,
-                    config.alinhamento, config.deslocamentos,
-                    config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
-        } else {
-            // Limpa o chassi se não encontrar a configuração
-            desenharChassi(new TipoEixo[]{}, new boolean[]{}, 0,
-                    AlinhamentoVertical.CENTRO, new int[]{},
-                    new int[]{}, new int[]{}, null);
-        }
-
-        // Limpa a outra tabela de pneus (detalhes) pois um novo veículo foi selecionado
-        Tabela_ExibicaoPneuUsado.setModel(new DefaultTableModel(
-                new Object[][]{},
-                new String[]{"N° FOGO", "FABRICANTE", "PROFUNDIDADE"}
-        ));
     }//GEN-LAST:event_Tabela_Exibicao_veiculosMouseClicked
 
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+        
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
