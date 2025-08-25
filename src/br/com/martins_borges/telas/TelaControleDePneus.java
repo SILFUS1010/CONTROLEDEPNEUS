@@ -286,11 +286,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         }
     }
 
-    private void atualizarNumeroModelo(int numero) {
-        // O componente 'zero' não existe nesta tela, então esta linha é comentada.
-        // zero.setText(String.valueOf(numero));
-    }
-
     // Este método agora apenas POPULA a tabela com uma lista de pneus fornecida
     private void popularTabelaPneusEstoque(List<Pneu> pneus) {
         String[] colunas = {"EMPRESA", "N° FOGO", "TIPO DE PNEU", "MODELO", "MEDIDA"};
@@ -361,10 +356,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 setLocation(x, y);
             }
         });
-    }
-
-    TelaControleDePneus() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @SuppressWarnings("unchecked")
@@ -877,7 +868,51 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         // --- LÓGICA DE DESENHO DO CHASSI ---
         int idConfig = veiculoSelecionado.getID_CONFIG_FK();
         VehicleConfig config = vehicleConfigs.get(idConfig);
-        if (config != null) {
+        String codigo = veiculoSelecionado.getFROTA();
+        System.out.println("DEBUG - Valor de codigo/frota selecionado: [" + codigo + "]");
+        if (codigo != null && codigo.trim().toUpperCase().contains("1")) {
+            System.out.println("DEBUG - Entrou no bloco de configuração personalizada para COD1");
+
+            // --- CONFIGURAÇÃO EXCLUSIVA DO CHASSI PARA O VEÍCULO/CÓDIGO 1 ---
+
+            // TIPOS DE EIXO (SIMPLES OU DUPLO): controla o tipo de cada eixo exibido
+            TipoEixo[] tipos = {TipoEixo.SIMPLES, TipoEixo.SIMPLES};
+
+            // QUAIS EIXOS FICAM VISÍVEIS: true para mostrar, false para esconder
+            boolean[] visibilidade = {true, true, false, false, false, false};
+
+            // ESPAÇAMENTO VERTICAL ENTRE EIXOS (quanto maior o número, mais "comprido"/vertical o chassi)
+            // AUMENTA para ALONGAR, DIMINUI para ENCURTAR
+            int espacamento = 180; // Exemplo: 50 fica curto, 287 alongado
+
+            // POSICIONAMENTO VERTICAL DO CHASSI NO PAINEL
+            // TOPO joga mais para cima, BASE para baixo, CENTRO centraliza
+            AlinhamentoVertical alinhamento = AlinhamentoVertical.TOPO;
+
+            // DESLOCAMENTO HORIZONTAL dos pneus (ajusta para alinhar as rodas nos eixos)
+            int[] deslocamentos = {-30, -30, -30};
+
+            // AJUSTES FINOS NA ALTURA (vertical) dos eixos
+            // Primeiro valor: BASE, segundo: CENTRO, terceiro: TOPO
+            // Altere para "levantar" (mais positivo) ou "descer" (mais negativo) o chassi
+            int[] ajustesVerticais = {0, 0, 40};
+
+            // LARGURA DE CADA EIXO NA TELA (se aumentar, o eixo ficará mais "grosso" horizontalmente)
+            int[] largurasEixos = {150, 150};
+
+            // CHAMA O DESENHO COM ESSAS CONFIGURAÇÕES
+            desenharChassi(
+                tipos, // tipos de eixos
+                visibilidade, // visibilidade dos eixos
+                espacamento, // distancia verticalmente
+                alinhamento, // alinhamento vertical
+                deslocamentos, // ajuste posição horizontal dos pneus
+                ajustesVerticais, // ajuste vertical fino
+                largurasEixos, // largura de cada eixo
+                null // posicoesEixos, se precisar ajuste pixel a pixel
+            );
+            // FIM DA CONFIGURAÇÃO DO CHASSI EXCLUSIVA COD1
+        } else if (config != null) {
             desenharChassi(config.tipos, config.visibilidade, config.espacamento,
                     config.alinhamento, config.deslocamentos,
                     config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
@@ -895,9 +930,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         ));
     }//GEN-LAST:event_Tabela_Exibicao_veiculosMouseClicked
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
