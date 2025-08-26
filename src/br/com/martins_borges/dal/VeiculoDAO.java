@@ -226,6 +226,39 @@ public class VeiculoDAO {
         return false;
     }
 
+    public boolean placaExiste(String placa) {
+        String sql = "SELECT COUNT(*) FROM CAD_VEICULOS WHERE placa = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = ModuloConexao.conector();
+            if (conn == null) {
+                System.err.println("DAO: Falha na conexão ao verificar a placa.");
+                return false;
+            }
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, placa);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("DAO SQL Error: Erro ao verificar se a placa existe - " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+            } catch (SQLException ex) {}
+            try {
+                if (pstmt != null) pstmt.close();
+            } catch (SQLException ex) {}
+            try {
+                if (conn != null) conn.close();
+            } catch (SQLException ex) {}
+        }
+        return false;
+    }
+
     public boolean excluir(int id) {
         String sql = "DELETE FROM CAD_VEICULOS WHERE id = ?";
         Connection conn = null;

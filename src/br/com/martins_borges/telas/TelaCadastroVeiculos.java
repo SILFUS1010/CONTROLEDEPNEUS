@@ -84,6 +84,8 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                                 } else {
                                     JOptionPane.showMessageDialog(TelaCadastroVeiculos.this, "Falha ao excluir o veículo.", "Erro", JOptionPane.ERROR_MESSAGE);
                                 }
+                                CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
+                                layout.show(EscolhaModelo, "TELA_ZERO_ZERO");
                             }
                         }
                     }
@@ -118,6 +120,56 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             txtFrota.addKeyListener(new java.awt.event.KeyAdapter() {
                 public void keyTyped(java.awt.event.KeyEvent evt) {
                     txtFrotaKeyTyped(evt);
+                }
+            });
+
+            txtPlaca.addFocusListener(new java.awt.event.FocusAdapter() {
+                public void focusLost(java.awt.event.FocusEvent evt) {
+                    txtPlacaFocusLost(evt);
+                }
+            });
+
+            lbPosicao.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    if (evt.getClickCount() == 2) {
+                        // Verifique se um veículo está selecionado e se o label está visível
+                        if (veiculoSelecionado != null && lbPosicao.isVisible()) {
+                            try {
+                                int currentPosition = Integer.parseInt(lbPosicao.getText());
+                                int newPosition = (currentPosition == 1) ? 2 : 1;
+
+                                // Atualiza o objeto e o label
+                                veiculoSelecionado.setPosicaoCarreta(newPosition);
+                                lbPosicao.setText(String.valueOf(newPosition));
+
+                                // Atualiza no banco de dados
+                                if (veiculoDAO.atualizarVeiculo(veiculoSelecionado)) {
+                                    JOptionPane.showMessageDialog(TelaCadastroVeiculos.this,
+                                            "Posição da carreta atualizada para " + newPosition + " com sucesso!",
+                                            "Sucesso",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                    atualizarTabelaVeiculos(); // Atualiza a tabela para refletir a mudança
+                                    limparCampos();
+                                    CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
+                                    layout.show(EscolhaModelo, "TELA_ZERO_ZERO");
+                                } else {
+                                    JOptionPane.showMessageDialog(TelaCadastroVeiculos.this,
+                                            "Falha ao atualizar a posição da carreta.",
+                                            "Erro",
+                                            JOptionPane.ERROR_MESSAGE);
+                                    // Reverte a mudança no label se a atualização falhar
+                                    lbPosicao.setText(String.valueOf(currentPosition));
+                                    veiculoSelecionado.setPosicaoCarreta(currentPosition);
+                                }
+                            } catch (NumberFormatException e) {
+                                // Trata o caso onde o texto do label não é um número válido
+                                JOptionPane.showMessageDialog(TelaCadastroVeiculos.this,
+                                        "Erro ao ler a posição atual da carreta.",
+                                        "Erro de Formato",
+                                        JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
                 }
             });
 
@@ -908,7 +960,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void cod_zeroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_zeroActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -958,7 +1012,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_zeroActionPerformed
 
     private void cod_umActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_umActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -983,7 +1039,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_umActionPerformed
 
     private void cod_doisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_doisActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1001,7 +1059,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_doisActionPerformed
 
     private void cod_trezActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_trezActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1019,7 +1079,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_trezActionPerformed
 
     private void cod_quatroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_quatroActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1033,11 +1095,14 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                     config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
         }
         atualizarNumeroModelo(4);
+        selecionarTipoVeiculoPorId(4);
 
     }//GEN-LAST:event_cod_quatroActionPerformed
 
     private void cod_cincoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_cincoActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1056,7 +1121,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_cincoActionPerformed
 
     private void cod_seisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_seisActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1074,7 +1141,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_seisActionPerformed
 
     private void cod_seteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_seteActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1115,10 +1184,13 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         });
 
         atualizarNumeroModelo(7);
+        selecionarTipoVeiculoPorId(7);
     }//GEN-LAST:event_cod_seteActionPerformed
 
     private void cod_oitoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_oitoActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1132,11 +1204,14 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                     config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
         }
         atualizarNumeroModelo(8);
+        selecionarTipoVeiculoPorId(8);
 
     }//GEN-LAST:event_cod_oitoActionPerformed
 
     private void cod_noveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_noveActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1154,7 +1229,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_noveActionPerformed
 
     private void cod_dezActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_dezActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1172,7 +1249,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_dezActionPerformed
 
     private void cod_onzeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_onzeActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1190,7 +1269,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_onzeActionPerformed
 
     private void cod_dozeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_dozeActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1208,7 +1289,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_dozeActionPerformed
 
     private void cod_trezeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_trezeActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1226,7 +1309,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_trezeActionPerformed
 
     private void cod_quatorzeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_quatorzeActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1244,7 +1329,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_quatorzeActionPerformed
 
     private void cod_quinzeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_quinzeActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1262,7 +1349,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_quinzeActionPerformed
 
     private void cod_desesseisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_desesseisActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1306,7 +1395,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_desesseisActionPerformed
 
     private void cod_desesseteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cod_desesseteActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1324,7 +1415,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_cod_desesseteActionPerformed
 
     private void dollyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dollyActionPerformed
-
+        if (veiculoSelecionado == null) {
+            limparCampos();
+        }
         TELA_ZERO.remove(labelMensagem);
         TELA_ZERO.repaint();
 
@@ -1428,26 +1521,62 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     }//GEN-LAST:event_txtPlacaKeyTyped
 
     private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculosMouseClicked
+        int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
+        if (selectedRow == -1) {
+            return;
+        }
+        int modelRow = Tabela_Exibicao_veiculos.convertRowIndexToModel(selectedRow);
+        Veiculo veiculoClicado = this.listaDeVeiculos.get(modelRow);
 
-        if (evt.getClickCount() == 1) { // Single click
-            int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
-            if (selectedRow == -1) {
+        // --- LÓGICA DE CLIQUE SIMPLES ---
+        if (evt.getClickCount() == 1) {
+            // Se estiver em modo de edição e clicar em uma linha diferente, limpa a tela.
+            if (veiculoSelecionado != null && veiculoClicado.getID() != veiculoSelecionado.getID()) {
+                limparCampos();
+                CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
+                layout.show(EscolhaModelo, "TELA_ZERO_ZERO");
                 return;
             }
 
-            // 1. Entrar em modo de edição
-            int modelRow = Tabela_Exibicao_veiculos.convertRowIndexToModel(selectedRow);
-            this.veiculoSelecionado = this.listaDeVeiculos.get(modelRow);
-            Cadastrar.setText("ATUALIZAR");
-            txtFrota.setEditable(false); // Impede a edição da frota, que é um identificador
+            // Se for um veículo especial (carreta), mostra a posição.
+            if (carretaIds.contains(veiculoClicado.getID_CONFIG_FK())) {
+                Integer posicao = veiculoClicado.getPosicaoCarreta();
+                lb_carreta.setVisible(true);
+                cbposicao_carreta.setVisible(false); // Esconde o combo, pois não estamos em modo de edição
 
-            // 2. Popular o formulário com os dados do veículo selecionado
+                if (posicao != null && posicao > 0) {
+                    lbPosicao.setText(String.valueOf(posicao));
+                    lbPosicao.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
+                    lbPosicao.setVisible(true);
+                } else {
+                    lbPosicao.setVisible(false); // Esconde se não houver posição definida
+                }
+            } else {
+                // Se não for um veículo especial, esconde os labels de posição.
+                lb_carreta.setVisible(false);
+                lbPosicao.setVisible(false);
+                cbposicao_carreta.setVisible(false);
+            }
+        }
+        // --- LÓGICA DE CLIQUE DUPLO ---
+        else if (evt.getClickCount() == 2) {
+            // Se clicar duas vezes no mesmo veículo que está sendo editado, sai do modo de edição.
+            if (veiculoSelecionado != null && veiculoClicado.getID() == veiculoSelecionado.getID()) {
+                limparCampos();
+                CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
+                layout.show(EscolhaModelo, "TELA_ZERO_ZERO");
+                return;
+            }
+
+            // Entra em modo de edição completo
+            this.veiculoSelecionado = veiculoClicado;
+            Cadastrar.setText("ATUALIZAR");
+            txtFrota.setEditable(false);
+
             txtFrota.setText(veiculoSelecionado.getFROTA());
             txtPlaca.setText(veiculoSelecionado.getPLACA());
             Qtd_numeroPneu.setText(String.valueOf(veiculoSelecionado.getQTD_PNEUS()));
 
-            // Seleciona o item correto nos ComboBoxes
-            // Para Tipo de Veículo
             String tipoVeiculoItem = veiculoSelecionado.getID_CONFIG_FK() + " - ";
             for (int i = 0; i < cmbTipoVeiculo.getItemCount(); i++) {
                 if (cmbTipoVeiculo.getItemAt(i).startsWith(tipoVeiculoItem)) {
@@ -1455,14 +1584,11 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                     break;
                 }
             }
-            // Para Medida de Pneu
             cmbMedidaPneu.setSelectedItem(veiculoSelecionado.getMEDIDA_PNEU());
 
-            // 3. Gerenciar a visibilidade e o estado dos campos de posição da carreta
             int idConfig = veiculoSelecionado.getID_CONFIG_FK();
             Integer posicao = veiculoSelecionado.getPosicaoCarreta();
 
-            // Primeiro, esconde tudo para garantir um estado limpo
             lb_carreta.setVisible(false);
             cbposicao_carreta.setVisible(false);
             lbPosicao.setVisible(false);
@@ -1470,17 +1596,14 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             if (carretaIds.contains(idConfig)) {
                 lb_carreta.setVisible(true);
                 if (posicao != null && posicao > 0) {
-                    // Se já tem posição, mostra o label APENAS COM O NÚMERO e fonte grande
                     lbPosicao.setText(String.valueOf(posicao));
                     lbPosicao.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
                     lbPosicao.setVisible(true);
                 } else {
-                    // Se não tem, mostra o ComboBox para o usuário escolher
                     cbposicao_carreta.setVisible(true);
                 }
             }
 
-            // 4. Lógica existente para desenhar o chassi e mostrar mensagens
             labelMensagem.setVisible(false);
             TELA_ZERO.remove(labelMensagem);
             TELA_ZERO.repaint();
@@ -1490,10 +1613,8 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
             VehicleConfig config = vehicleConfigs.get(idConfig);
             if (config != null) {
-                // A lógica de alinhamento dinâmico foi removida.
-                // O desenho usará a configuração padrão do veículo.
                 desenharChassi(config.tipos, config.visibilidade, config.espacamento,
-                        config.alinhamento, 
+                        config.alinhamento,
                         config.deslocamentos,
                         config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
                 atualizarNumeroModelo(idConfig);
@@ -1554,7 +1675,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
     Integer posicaoCarreta = null;
     if (cbposicao_carreta.isVisible()) {
-        if (cbposicao_carreta.getSelectedIndex() < 0) { // Valida se algo foi selecionado
+        if (cbposicao_carreta.getSelectedIndex() <= 0) { // Valida se o item " " foi selecionado
             JOptionPane.showMessageDialog(this, "Por favor, selecione a posição da carreta.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -1586,7 +1707,6 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
         if (veiculoDAO.salvarVeiculoCompleto(novoVeiculo)) {
             JOptionPane.showMessageDialog(this, "Veículo cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            limparCampos();
         } else {
             JOptionPane.showMessageDialog(this, "Erro ao cadastrar o veículo.", "Erro de Cadastro", JOptionPane.ERROR_MESSAGE);
         }
@@ -1602,18 +1722,20 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
        
         if (veiculoDAO.atualizarVeiculo(this.veiculoSelecionado)) {
             JOptionPane.showMessageDialog(this, "Veículo atualizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            limparCampos();
         } else {
             JOptionPane.showMessageDialog(this, "Erro ao atualizar o veículo.", "Erro de Atualização", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     // --- ATUALIZA A TELA INDEPENDENTEMENTE DO MODO ---
+    limparCampos();
     atualizarTabelaVeiculos();
     atualizarContagemTotalPneus();
     atualizarContagemDeVeiculos();
 
-      
+    // Volta para a tela inicial para forçar a seleção de um novo veículo
+    CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
+    layout.show(EscolhaModelo, "TELA_ZERO_ZERO");
    
 
     }//GEN-LAST:event_CadastrarActionPerformed
@@ -1624,9 +1746,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         if (!frota.isEmpty()) {
             boolean existe = veiculoDAO.frotaExiste(frota);
             if (existe) {
-                String mensagem = "<html><b><font color='red'>"
-                        + "ATENÇÃO: A FROTA NÚMERO '" + frota + "' JÁ ESTÁ CADASTRADA."
-                        + "</font></b></html>";
+                String mensagem = "<html><b><font color='red'>ATENÇÃO: A FROTA NÚMERO '" + frota + "' JÁ ESTÁ CADASTRADA.</font></b></html>";
 
                 JOptionPane.showMessageDialog(this,
                         mensagem,
@@ -1635,6 +1755,22 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
                 txtFrota.setText("");
                 txtFrota.requestFocusInWindow();
+            }
+        }
+    }
+
+    private void txtPlacaFocusLost(java.awt.event.FocusEvent evt) {
+        String placa = txtPlaca.getText().trim();
+        if (!placa.isEmpty()) {
+            boolean existe = veiculoDAO.placaExiste(placa);
+            if (existe) {
+                String mensagem = "<html><b><font color='red'>ATENÇÃO: A PLACA '" + placa + "' JÁ ESTÁ CADASTRADA.</font></b></html>";
+                JOptionPane.showMessageDialog(this,
+                        mensagem,
+                        "PLACA DUPLICADA",
+                        JOptionPane.WARNING_MESSAGE);
+                txtPlaca.setText("");
+                txtPlaca.requestFocusInWindow();
             }
         }
     }
@@ -1988,6 +2124,16 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             }
         } catch (Exception e) {
             // Ignora erros de parsing, apenas não mostra os campos
+        }
+    }
+
+    private void selecionarTipoVeiculoPorId(int idConfig) {
+        for (int i = 0; i < cmbTipoVeiculo.getItemCount(); i++) {
+            String item = cmbTipoVeiculo.getItemAt(i);
+            if (item.startsWith(idConfig + " - ")) {
+                cmbTipoVeiculo.setSelectedIndex(i);
+                break;
+            }
         }
     }
 

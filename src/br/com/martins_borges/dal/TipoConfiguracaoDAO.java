@@ -14,7 +14,7 @@ public class TipoConfiguracaoDAO {
     // Método para LISTAR TODOS os tipos (usado para popular ComboBox)
     public List<TipoConfiguracao> listarTodos() {
         // Use nomes de coluna em CAIXA ALTA se você os renomeou no banco
-        String sql = "SELECT ID_CONFIG, NOME_CONFIG, QTD_PNEUS_PADRAO FROM TIPOS_CONFIGURACAO ORDER BY NOME_CONFIG";
+        String sql =  "SELECT ID_CONFIG, NOME_CONFIG, QTD_PNEUS_PADRAO FROM TIPOS_CONFIGURACAO ORDER BY ID_CONFIG ASC";
         List<TipoConfiguracao> listaTipos = new ArrayList<>();
         Connection conn = null;
         PreparedStatement pstmt = null;
