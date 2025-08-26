@@ -20,6 +20,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.JComponent;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
@@ -62,6 +64,15 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
         try {
             initComponents();
+
+            Tabela_Exibicao_veiculos.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+                public void valueChanged(javax.swing.event.ListSelectionEvent event) {
+                    if (!event.getValueIsAdjusting()) {
+                        int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
+                        mostrarVeiculoSelecionado(selectedRow);
+                    }
+                }
+            });
 
             // Adiciona o KeyListener para a tecla ESC
             this.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -1537,86 +1548,95 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         }
     }//GEN-LAST:event_txtPlacaKeyTyped
 
+    private void mostrarVeiculoSelecionado(int selectedRow) {
+        if (selectedRow == -1) {
+            return;
+        }
+        int modelRow = Tabela_Exibicao_veiculos.convertRowIndexToModel(selectedRow);
+        if (modelRow < 0 || modelRow >= listaDeVeiculos.size()) {
+            return;
+        }
+        Veiculo veiculoClicado = this.listaDeVeiculos.get(modelRow);
+
+        // Se estiver em modo de edição e clicar em uma linha diferente, limpa a tela.
+        if (veiculoSelecionado != null && veiculoClicado.getID() != veiculoSelecionado.getID()) {
+            limparCampos();
+            CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
+            layout.show(EscolhaModelo, "TELA_ZERO_ZERO");
+            return;
+        }
+
+        // Exibe o chassi do veículo clicado no painel (para qualquer veículo)
+        CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
+        layout.show(EscolhaModelo, "TELA_ZERO");
+
+        VehicleConfig config = vehicleConfigs.get(veiculoClicado.getID_CONFIG_FK());
+        if (config != null) {
+            desenharChassi(config.tipos, config.visibilidade, config.espacamento,
+                    config.alinhamento,
+                    config.deslocamentos,
+                    config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
+            atualizarNumeroModelo(veiculoClicado.getID_CONFIG_FK());
+
+            // Lógica para exibir mensagens específicas
+            switch (veiculoClicado.getID_CONFIG_FK()) {
+                case 0:
+                    mostrarMensagem("<html>MODELO PARA ENGATE E DESENGATE<br>DE CARRETAS, PARA OUTROS UTILIZE<br>O MODELO 16</html>", 550, 70);
+                    break;
+                case 7:
+                    mostrarMensagem("<html>MODELO APENAS PARA CARRETAS, PARA<br>OUTROS, UTILIZE O MODELO 17.</html>", 550, 70);
+                    break;
+                case 16:
+                    mostrarMensagem("<html>MODELO PARA CAMINHŐES QUE NÃO<br>TENHAM ENGATES DE CARRETAS:<br> BETONEIRAS, BASCULANTES, MUNCKS E OUTROS.</html>", 620, 50);
+                    break;
+                case 18: // Dolly
+                    mostrarMensagem("<html>MODELO APENAS PARA DOLLY, PARA<br>OUTROS, UTILIZE O MODELO 7.</html>", 620, 70);
+                    break;
+                default:
+                    labelMensagem.setVisible(false);
+                    TELA_ZERO.remove(labelMensagem);
+                    TELA_ZERO.repaint();
+                    break;
+            }
+        } else {
+            // Se não houver configuração, limpa o chassi
+            desenharChassi(new TipoEixo[]{}, new boolean[]{}, 0, AlinhamentoVertical.CENTRO, new int[]{}, new int[]{}, new int[]{}, null);
+            atualizarNumeroModelo(0);
+            labelMensagem.setVisible(false);
+            TELA_ZERO.remove(labelMensagem);
+            TELA_ZERO.repaint();
+        }
+
+        // Lógica para exibir/ocultar labels de posição da carreta
+        lb_carreta.setVisible(false);
+        cbposicao_carreta.setVisible(false);
+        lbPosicao.setVisible(false);
+
+        if (carretaIds.contains(veiculoClicado.getID_CONFIG_FK())) {
+            lb_carreta.setVisible(true);
+            Integer posicao = veiculoClicado.getPosicaoCarreta();
+            if (posicao != null && posicao > 0) {
+                lbPosicao.setText(String.valueOf(posicao));
+                lbPosicao.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
+                lbPosicao.setVisible(true);
+            } else {
+                // Se não tem posição, não mostra o lbPosicao, mas mostra o lb_carreta
+                lbPosicao.setVisible(false);
+            }
+        }
+    }
+
     private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculosMouseClicked
         int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
         if (selectedRow == -1) {
             return;
         }
-        int modelRow = Tabela_Exibicao_veiculos.convertRowIndexToModel(selectedRow);
-        Veiculo veiculoClicado = this.listaDeVeiculos.get(modelRow);
 
-        // --- LÓGICA DE CLIQUE SIMPLES ---
         if (evt.getClickCount() == 1) {
-            // Se estiver em modo de edição e clicar em uma linha diferente, limpa a tela.
-            if (veiculoSelecionado != null && veiculoClicado.getID() != veiculoSelecionado.getID()) {
-                limparCampos();
-                CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
-                layout.show(EscolhaModelo, "TELA_ZERO_ZERO");
-                return;
-            }
-
-            // Exibe o chassi do veículo clicado no painel (para qualquer veículo)
-            CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
-            layout.show(EscolhaModelo, "TELA_ZERO");
-
-            VehicleConfig config = vehicleConfigs.get(veiculoClicado.getID_CONFIG_FK());
-            if (config != null) {
-                desenharChassi(config.tipos, config.visibilidade, config.espacamento,
-                        config.alinhamento,
-                        config.deslocamentos,
-                        config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
-                atualizarNumeroModelo(veiculoClicado.getID_CONFIG_FK());
-
-                // Lógica para exibir mensagens específicas
-                switch (veiculoClicado.getID_CONFIG_FK()) {
-                    case 0:
-                        mostrarMensagem("<html>MODELO PARA ENGATE E DESENGATE<br>DE CARRETAS, PARA OUTROS UTILIZE<br>O MODELO 16</html>", 550, 70);
-                        break;
-                    case 7:
-                        mostrarMensagem("<html>MODELO APENAS PARA CARRETAS, PARA<br>OUTROS, UTILIZE O MODELO 17.</html>", 550, 70);
-                        break;
-                    case 16:
-                        mostrarMensagem("<html>MODELO PARA CAMINHŐES QUE NÃO<br>TENHAM ENGATES DE CARRETAS:<br> BETONEIRAS, BASCULANTES, MUNCKS E OUTROS.</html>", 620, 50);
-                        break;
-                    case 18: // Dolly
-                        mostrarMensagem("<html>MODELO APENAS PARA DOLLY, PARA<br>OUTROS, UTILIZE O MODELO 7.</html>", 620, 70);
-                        break;
-                    default:
-                        labelMensagem.setVisible(false);
-                        TELA_ZERO.remove(labelMensagem);
-                        TELA_ZERO.repaint();
-                        break;
-                }
-            } else {
-                // Se não houver configuração, limpa o chassi
-                desenharChassi(new TipoEixo[]{}, new boolean[]{}, 0, AlinhamentoVertical.CENTRO, new int[]{}, new int[]{}, new int[]{}, null);
-                atualizarNumeroModelo(0);
-                labelMensagem.setVisible(false);
-                TELA_ZERO.remove(labelMensagem);
-                TELA_ZERO.repaint();
-            }
-
-            // Lógica para exibir/ocultar labels de posição da carreta
-            lb_carreta.setVisible(false);
-            cbposicao_carreta.setVisible(false);
-            lbPosicao.setVisible(false);
-
-            if (carretaIds.contains(veiculoClicado.getID_CONFIG_FK())) {
-                lb_carreta.setVisible(true);
-                Integer posicao = veiculoClicado.getPosicaoCarreta();
-                if (posicao != null && posicao > 0) {
-                    lbPosicao.setText(String.valueOf(posicao));
-                    lbPosicao.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
-                    lbPosicao.setVisible(true);
-                } else {
-                    // Se não tem posição, não mostra o lbPosicao, mas mostra o lb_carreta
-                    lbPosicao.setVisible(false);
-                }
-            }
-
-        }
-        // --- LÓGICA DE CLIQUE DUPLO ---
-        else if (evt.getClickCount() == 2) {
+            mostrarVeiculoSelecionado(selectedRow);
+        } else if (evt.getClickCount() == 2) {
+            int modelRow = Tabela_Exibicao_veiculos.convertRowIndexToModel(selectedRow);
+            Veiculo veiculoClicado = this.listaDeVeiculos.get(modelRow);
             // Se clicar duas vezes no mesmo veículo que está sendo editado, sai do modo de edição.
             if (veiculoSelecionado != null && veiculoClicado.getID() == veiculoSelecionado.getID()) {
                 limparCampos();
