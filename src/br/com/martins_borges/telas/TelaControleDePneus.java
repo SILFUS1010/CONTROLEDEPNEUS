@@ -148,6 +148,8 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     }
 
     private void desenharChassi(TipoEixo[] tipos, boolean[] visibilidade, int espacamento, AlinhamentoVertical alinhamento, int[] deslocamentos, int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos) {
+        
+        
         int numEixosVisiveis = 0;
         for (boolean v : visibilidade) {
             if (v) {
@@ -886,10 +888,10 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         case 0:
             tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO}; // Define o tipo de cada eixo (1º simples, 2º duplo, 3º duplo).
             visibilidade = new boolean[]{true, true, true, false, false, false, false, false, false}; // Mostra apenas os 3 primeiros eixos dos 9 disponíveis.
-            espacamento = 120;           // Distância VERTICAL entre um eixo e outro. Menor = mais juntos.
+            espacamento = 90;           // Distância VERTICAL entre um eixo e outro. Menor = mais juntos.
             alinhamento = AlinhamentoVertical.TOPO; // Posição VERTICAL de todo o chassi no painel.
             deslocamentos = new int[]{-30, -10, -10}; // Ajuste fino HORIZONTAL dos pneus. Negativo = mais para dentro.
-            ajustesVerticais = new int[]{0, 0, 0}; // Ajuste fino VERTICAL de todo o chassi. // Ajustes: {BASE, CENTRO, TOPO}
+            ajustesVerticais = new int[]{0, 0, 40}; // Ajuste fino VERTICAL de todo o chassi. // Ajustes: {BASE, CENTRO, TOPO}
             largurasEixos = new int[]{140, 280, 280}; // Largura HORIZONTAL de cada eixo visível.
             break;
         case 1:

@@ -15,6 +15,11 @@ import java.util.HashMap;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.KeyStroke;
+import java.awt.event.KeyEvent;
+import javax.swing.JComponent;
+import javax.swing.AbstractAction;
+import java.awt.event.ActionEvent;
 
 public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
@@ -57,7 +62,19 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
         try {
             initComponents();
-                
+
+            // Adiciona o KeyListener para a tecla ESC
+            this.addKeyListener(new java.awt.event.KeyAdapter() {
+                @Override
+                public void keyPressed(java.awt.event.KeyEvent evt) {
+                    if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ESCAPE) {
+                        dispose(); // Fecha a janela
+                    }
+                }
+            });
+            this.setFocusable(true); // Garante que o JDialog possa receber foco para o KeyListener
+            this.requestFocusInWindow(); // Solicita o foco para o JDialog
+
              javax.swing.ListCellRenderer renderer = cbposicao_carreta.getRenderer();
     if (renderer instanceof javax.swing.JLabel) {
         ((javax.swing.JLabel) renderer).setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
