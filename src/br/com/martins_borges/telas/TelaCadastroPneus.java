@@ -58,6 +58,8 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.DocumentFilter.FilterBypass;
+import javax.swing.AbstractAction;
+import java.awt.event.ActionEvent;
 
 // <editor-fold defaultstate="collapsed" desc="Declarações de Atributos">
 public class TelaCadastroPneus extends javax.swing.JDialog {
@@ -84,6 +86,16 @@ public class TelaCadastroPneus extends javax.swing.JDialog {
     public TelaCadastroPneus(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+
+        // Adiciona o listener para a tecla ESC
+        getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "escape");
+        getRootPane().getActionMap().put("escape", new javax.swing.AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                dispose(); // Fecha a janela
+            }
+        });
+
         aplicarFiltroMaiusculasAosCampos();
         adicionarListenersValor();
         criarGrupoEmpresas();

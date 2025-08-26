@@ -1538,25 +1538,65 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                 return;
             }
 
-            // Se for um veículo especial (carreta), mostra a posição.
-            if (carretaIds.contains(veiculoClicado.getID_CONFIG_FK())) {
-                Integer posicao = veiculoClicado.getPosicaoCarreta();
-                lb_carreta.setVisible(true);
-                cbposicao_carreta.setVisible(false); // Esconde o combo, pois não estamos em modo de edição
+            // Exibe o chassi do veículo clicado no painel (para qualquer veículo)
+            CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
+            layout.show(EscolhaModelo, "TELA_ZERO");
 
+            VehicleConfig config = vehicleConfigs.get(veiculoClicado.getID_CONFIG_FK());
+            if (config != null) {
+                desenharChassi(config.tipos, config.visibilidade, config.espacamento,
+                        config.alinhamento,
+                        config.deslocamentos,
+                        config.ajustesVerticais, config.largurasEixos, config.posicoesEixos);
+                atualizarNumeroModelo(veiculoClicado.getID_CONFIG_FK());
+
+                // Lógica para exibir mensagens específicas
+                switch (veiculoClicado.getID_CONFIG_FK()) {
+                    case 0:
+                        mostrarMensagem("<html>MODELO PARA ENGATE E DESENGATE<br>DE CARRETAS, PARA OUTROS UTILIZE<br>O MODELO 16</html>", 550, 70);
+                        break;
+                    case 7:
+                        mostrarMensagem("<html>MODELO APENAS PARA CARRETAS, PARA<br>OUTROS, UTILIZE O MODELO 17.</html>", 550, 70);
+                        break;
+                    case 16:
+                        mostrarMensagem("<html>MODELO PARA CAMINHŐES QUE NÃO<br>TENHAM ENGATES DE CARRETAS:<br> BETONEIRAS, BASCULANTES, MUNCKS E OUTROS.</html>", 620, 50);
+                        break;
+                    case 18: // Dolly
+                        mostrarMensagem("<html>MODELO APENAS PARA DOLLY, PARA<br>OUTROS, UTILIZE O MODELO 7.</html>", 620, 70);
+                        break;
+                    default:
+                        labelMensagem.setVisible(false);
+                        TELA_ZERO.remove(labelMensagem);
+                        TELA_ZERO.repaint();
+                        break;
+                }
+            } else {
+                // Se não houver configuração, limpa o chassi
+                desenharChassi(new TipoEixo[]{}, new boolean[]{}, 0, AlinhamentoVertical.CENTRO, new int[]{}, new int[]{}, new int[]{}, null);
+                atualizarNumeroModelo(0);
+                labelMensagem.setVisible(false);
+                TELA_ZERO.remove(labelMensagem);
+                TELA_ZERO.repaint();
+            }
+
+            // Lógica para exibir/ocultar labels de posição da carreta
+            lb_carreta.setVisible(false);
+            cbposicao_carreta.setVisible(false);
+            lbPosicao.setVisible(false);
+
+            if (carretaIds.contains(veiculoClicado.getID_CONFIG_FK())) {
+                lb_carreta.setVisible(true);
+                Integer posicao = veiculoClicado.getPosicaoCarreta();
                 if (posicao != null && posicao > 0) {
                     lbPosicao.setText(String.valueOf(posicao));
                     lbPosicao.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
                     lbPosicao.setVisible(true);
                 } else {
-                    lbPosicao.setVisible(false); // Esconde se não houver posição definida
+                    // Se não tem posição, não mostra o lbPosicao, mas mostra o lb_carreta
+                    lbPosicao.setVisible(false);
                 }
-            } else {
-                // Se não for um veículo especial, esconde os labels de posição.
-                lb_carreta.setVisible(false);
-                lbPosicao.setVisible(false);
-                cbposicao_carreta.setVisible(false);
             }
+
         }
         // --- LÓGICA DE CLIQUE DUPLO ---
         else if (evt.getClickCount() == 2) {
@@ -1636,6 +1676,9 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             } else {
                 desenharChassi(new TipoEixo[]{}, new boolean[]{}, 0, AlinhamentoVertical.CENTRO, new int[]{}, new int[]{}, new int[]{}, null);
                 atualizarNumeroModelo(0);
+                labelMensagem.setVisible(false);
+                TELA_ZERO.remove(labelMensagem);
+                TELA_ZERO.repaint();
             }
         }
     }//GEN-LAST:event_Tabela_Exibicao_veiculosMouseClicked

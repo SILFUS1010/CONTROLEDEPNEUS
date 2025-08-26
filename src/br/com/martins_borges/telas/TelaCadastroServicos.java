@@ -39,6 +39,11 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.AttributeSet;
+import javax.swing.KeyStroke;
+import java.awt.event.KeyEvent;
+import javax.swing.JComponent;
+import javax.swing.AbstractAction;
+import java.awt.event.ActionEvent;
 
 import java.awt.Component;
 import javax.swing.JTextField;

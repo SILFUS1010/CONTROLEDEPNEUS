@@ -3,6 +3,11 @@ package br.com.martins_borges.telas;
 import java.sql.*;
 
 import br.com.martins_borges.dal.ModuloConexao;
+import javax.swing.KeyStroke;
+import java.awt.event.KeyEvent;
+import javax.swing.JComponent;
+import javax.swing.AbstractAction;
+import java.awt.event.ActionEvent;
 
 public class TelaLogin extends javax.swing.JFrame {
 

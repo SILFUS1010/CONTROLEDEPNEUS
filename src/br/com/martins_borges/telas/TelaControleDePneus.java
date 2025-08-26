@@ -13,6 +13,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.KeyStroke;
+import java.awt.event.KeyEvent;
+import javax.swing.JComponent;
+import javax.swing.AbstractAction;
+import java.awt.event.ActionEvent;
 
 public class TelaControleDePneus extends javax.swing.JDialog {
 
@@ -28,6 +33,16 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         this.veiculoDAO = new VeiculoDAO();
         this.pneuDAO = new PneuDAO();
         initComponents();
+
+        // Adiciona o listener para a tecla ESC
+        getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "escape");
+        getRootPane().getActionMap().put("escape", new javax.swing.AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                dispose(); // Fecha a janela
+            }
+        });
+
         loadVehicleConfigs();
         inicializarComponentesChassi();
 
