@@ -174,28 +174,30 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         ImageIcon iconPneuNormal = redimensionarIcone(iconeOriginal, larguraPneu, alturaPneu);
 
 // --- Lógica de colorização inteligente que preserva os detalhes ---
-        Image imagemOriginal = iconPneuNormal.getImage();
-        java.awt.image.ImageFilter filtroCinza = new java.awt.image.RGBImageFilter() {
-            @Override
-            public int filterRGB(int x, int y, int rgb) {
-                int alpha = (rgb >> 24) & 0xff; // Preserva a transparência
-                int red = (rgb >> 16) & 0xff;
-                int green = (rgb >> 8) & 0xff;
-                int blue = rgb & 0xff;
+            // --- Lógica de colorização com controle de brilho (Preserva detalhes) ---
+    Image imagemOriginal = iconPneuNormal.getImage();
+    
+    // Cria um "BufferedImage", que é um tipo de imagem que podemos manipular
+    java.awt.image.BufferedImage bufferedImage = new java.awt.image.BufferedImage(
+        imagemOriginal.getWidth(null), 
+        imagemOriginal.getHeight(null), 
+        java.awt.image.BufferedImage.TYPE_INT_ARGB
+    );
+    
+  
+    java.awt.Graphics2D g2d = bufferedImage.createGraphics();
+    g2d.drawImage(imagemOriginal, 0, 0, null);
+    g2d.dispose();
+    
+    // A MÁGICA ACONTECE AQUI: Cria uma operação para escurecer a imagem
+    // O fator 0.7f significa 70% do brilho original. 
+    // Use valores menores para mais escuro (ex: 0.6f), maiores para mais claro (ex: 0.8f).
+    float fatorBrilho = 2.9f;
+    java.awt.image.RescaleOp rescaleOp = new java.awt.image.RescaleOp(fatorBrilho, 0, null);
+    java.awt.image.BufferedImage imagemEscurecida = rescaleOp.filter(bufferedImage, null);
+    ImageIcon iconPneuCinza = new ImageIcon(imagemEscurecida);
+    // --- Fim da nova lógica ---
 
-                // Calcula a "luminosidade" (brilho) do pixel
-                int luminosidade = (int) (0.299 * red + 0.587 * green + 0.114 * blue);
-
-                // Cria a nova cor cinza usando a luminosidade
-                int cinza = (luminosidade << 16) | (luminosidade << 8) | luminosidade;
-
-                // Retorna a cor final com a transparência original
-                return (alpha << 24) | cinza;
-            }
-        };
-        Image imagemCinza = java.awt.Toolkit.getDefaultToolkit().createImage(new java.awt.image.FilteredImageSource(imagemOriginal.getSource(), filtroCinza));
-        ImageIcon iconPneuCinza = new ImageIcon(imagemCinza);
-// --- Fim da nova lógica ---
         int centroChassiX = TELA_ZERO.getWidth() / 2;
         for (JLabel eixo : todosOsEixos) {
             if (eixo != null) {
