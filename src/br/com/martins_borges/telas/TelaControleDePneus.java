@@ -48,6 +48,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "escape");
         getRootPane().getActionMap().put("escape", new javax.swing.AbstractAction() {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 dispose(); // Fecha a janela
             }
@@ -186,18 +187,21 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         slotsDePneus[5][1] = Label121;
         slotsDePneus[5][2] = Label122;
         slotsDePneus[5][3] = Label123;
+        // Eixo 7 (índice 6)
         slotsDePneus[6][0] = Label127;
         slotsDePneus[6][1] = Label126;
-        slotsDePneus[6][2] = Label125;
-        slotsDePneus[6][3] = Label124;
+        slotsDePneus[6][2] = Label124;
+        slotsDePneus[6][3] = Label125;
+        // Eixo 8 (índice 7)
         slotsDePneus[7][0] = Label130;
         slotsDePneus[7][1] = Label129;
-        slotsDePneus[7][2] = Label128;
-        slotsDePneus[7][3] = Label131;
+        slotsDePneus[7][2] = Label131;
+        slotsDePneus[7][3] = Label128;
+        // Eixo 9 (índice 8)
         slotsDePneus[8][0] = Label135;
         slotsDePneus[8][1] = Label134;
-        slotsDePneus[8][2] = Label133;
-        slotsDePneus[8][3] = Label132;
+        slotsDePneus[8][2] = Label132;
+        slotsDePneus[8][3] = Label133;
     }
 
     private void desenharChassi(TipoEixo[] tipos, boolean[] visibilidade, int espacamento, AlinhamentoVertical alinhamento, int[] deslocamentos, int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos) {
@@ -212,6 +216,11 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         jLabel7.setVisible(true);
         jLabel8.setVisible(true);
         jLabel9.setVisible(true);
+
+        if (tipos == null || visibilidade == null) {
+            limparChassi();
+            return;
+        }
 
         int numEixosVisiveis = 0;
         for (boolean v : visibilidade) {
@@ -232,15 +241,11 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         }
         ImageIcon iconeOriginal = new ImageIcon(imgUrl);
 
-        // Bloco Novo e Corrigido
         int larguraPneu = 45, alturaPneu = 70;
         ImageIcon iconPneuNormal = redimensionarIcone(iconeOriginal, larguraPneu, alturaPneu);
 
-// --- Lógica de colorização inteligente que preserva os detalhes ---
-        // --- Lógica de colorização com controle de brilho (Preserva detalhes) ---
         Image imagemOriginal = iconPneuNormal.getImage();
 
-        // Cria um "BufferedImage", que é um tipo de imagem que podemos manipular
         java.awt.image.BufferedImage bufferedImage = new java.awt.image.BufferedImage(
                 imagemOriginal.getWidth(null),
                 imagemOriginal.getHeight(null),
@@ -251,14 +256,10 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         g2d.drawImage(imagemOriginal, 0, 0, null);
         g2d.dispose();
 
-        // A MÁGICA ACONTECE AQUI: Cria uma operação para escurecer a imagem
-        // O fator 0.7f significa 70% do brilho original. 
-        // Use valores menores para mais escuro (ex: 0.6f), maiores para mais claro (ex: 0.8f).
         float fatorBrilho = 2.9f;
         java.awt.image.RescaleOp rescaleOp = new java.awt.image.RescaleOp(fatorBrilho, 0, null);
         java.awt.image.BufferedImage imagemEscurecida = rescaleOp.filter(bufferedImage, null);
         ImageIcon iconPneuCinza = new ImageIcon(imagemEscurecida);
-        // --- Fim da nova lógica ---
 
         int centroChassiX = TELA_ZERO.getWidth() / 2;
         for (JLabel eixo : todosOsEixos) {
@@ -266,7 +267,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 eixo.setVisible(false);
             }
         }
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < slotsDePneus.length; i++) {
             for (int j = 0; j < 4; j++) {
                 if (slotsDePneus[i][j] != null) {
                     slotsDePneus[i][j].setVisible(false);
@@ -924,6 +925,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     }//GEN-LAST:event_Tabela_ExibicaoPneuUsadoMouseClicked
 
     private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculosMouseClicked
+                                                    
 
         int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
         if (selectedRow == -1) {
@@ -1086,7 +1088,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 deslocamentos = new int[]{-30, -30, -30, -30, -30, -30, -30, -30, -30};
                 ajustesVerticais = new int[]{0, 0, 30};
                 largurasEixos = new int[]{220, 220, 220, 220, 220, 220, 220, 220, 220};
-                posicoesEixos = new int[]{0, 10, 30, 40, 60, 70, 120, 130, 150};
+                posicoesEixos = new int[]{0, 10, 30, 40, 60, 110, 120, 130, 150};
                 break;
             case 13: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES};
@@ -1169,6 +1171,8 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         ));
 
 
+
+
     }//GEN-LAST:event_Tabela_Exibicao_veiculosMouseClicked
 
     public static void main(String args[]) {
@@ -1206,6 +1210,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         });
     }
 
+// <editor-fold defaultstate="collapsed" desc="Generated Code"> 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel Label100;
     private javax.swing.JLabel Label101;
@@ -1287,7 +1292,9 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     private javax.swing.JLabel lbtitulo;
     private javax.swing.JLabel sucata;
     // End of variables declaration//GEN-END:variables
-
+// </editor-fold> 
+    
+    
     void setState(int NORMAL) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
