@@ -204,7 +204,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         slotsDePneus[8][3] = Label133;
     }
 
-    private void desenharChassi(TipoEixo[] tipos, boolean[] visibilidade, int espacamento, AlinhamentoVertical alinhamento, int[] deslocamentos, int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos) {
+        private void desenharChassi(TipoEixo[] tipos, boolean[] visibilidade, int espacamento, AlinhamentoVertical alinhamento, int[] deslocamentos, int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos, int extensaoEspinha) {
 
         // Garante que os números dos eixos estejam visíveis
         jLabel1.setVisible(true);
@@ -344,7 +344,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         if (primeiroEixoVisivel != null && ultimoEixoVisivel != null) {
             int yInicio = primeiroEixoVisivel.getY() + primeiroEixoVisivel.getHeight() / 2;
             int yFim = ultimoEixoVisivel.getY() + ultimoEixoVisivel.getHeight() / 2;
-            lbespinha_dorsal.setBounds(centroChassiX - (lbespinha_dorsal.getWidth() / 2), yInicio, lbespinha_dorsal.getWidth(), yFim - yInicio);
+            lbespinha_dorsal.setBounds(centroChassiX - (lbespinha_dorsal.getWidth() / 2), yInicio - extensaoEspinha, lbespinha_dorsal.getWidth(), yFim - yInicio + extensaoEspinha);
             lbespinha_dorsal.setVisible(true);
         }
         TELA_ZERO.repaint();
@@ -947,6 +947,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         int[] ajustesVerticais;
         int[] largurasEixos;
         int[] posicoesEixos = null; // Padrão é null, usado para ajustes finos
+        int extensaoEspinha = 0; // Variável para a extensão
 
         // Estrutura de decisão para carregar as instruções de desenho corretas para cada veículo
         switch (idConfig) {
@@ -1036,22 +1037,40 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 posicoesEixos = new int[]{50, 20, 0, 0, 48, 10, 0, 0, 0}; // Ajuste fino VERTICAL de cada eixo individualmente.
                 break;
             case 7:
+                Integer posicao7 = veiculoSelecionado.getPosicaoCarreta();
+
                 tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO};
                 visibilidade = new boolean[]{true, true, false, false, false, false, false, false, false};
-                espacamento = 100;
-                alinhamento = AlinhamentoVertical.TOPO;
-                deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{100, 0, 0};
                 largurasEixos = new int[]{220, 220};
+                deslocamentos = new int[]{-30, -30, -30};
+                alinhamento = AlinhamentoVertical.TOPO;
+
+                if (posicao7 != null && posicao7 == 1) {
+                    espacamento = 120; // Valor para posição 1
+                    ajustesVerticais = new int[]{100, 0, 0};
+                } else {
+                    espacamento = 100; // Valor original para posição 2
+                    ajustesVerticais = new int[]{100, 0, 0};
+                }
+                extensaoEspinha = 50;
                 break;
-            case 8:          
+            case 8:
+                Integer posicao8 = veiculoSelecionado.getPosicaoCarreta();
+
                 tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO};
                 visibilidade = new boolean[]{true, true, true, false, false, false, false, false, false};
-                espacamento = 90;
-                alinhamento = AlinhamentoVertical.BASE;
-                deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, -15};
                 largurasEixos = new int[]{220, 220, 220};
+                deslocamentos = new int[]{-30, -30, -30};
+                alinhamento = AlinhamentoVertical.BASE;
+
+                if (posicao8 != null && posicao8 == 1) {
+                    espacamento = 90; // Valor original, agora para posição 1
+                    ajustesVerticais = new int[]{0, 0, -15};
+                } else {
+                    espacamento = 70; // Valor similar ao case 4 para posição 2
+                    ajustesVerticais = new int[]{0, 0, -20};
+                }
+                extensaoEspinha = 50;
                 break;                
             case 9: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.DUPLO};
@@ -1149,12 +1168,12 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 break;
             default:
                 // Se o veículo não tem uma configuração conhecida, limpa o painel e para.
-                desenharChassi(null, null, 0, null, null, null, null, null);
+                desenharChassi(null, null, 0, null, null, null, null, null, 0);
                 return;
         }
 
         // Após definir as instruções, manda o desenhista trabalhar com elas
-        desenharChassi(tipos, visibilidade, espacamento, alinhamento, deslocamentos, ajustesVerticais, largurasEixos, posicoesEixos);
+        desenharChassi(tipos, visibilidade, espacamento, alinhamento, deslocamentos, ajustesVerticais, largurasEixos, posicoesEixos, extensaoEspinha);
 
         // --- ATUALIZA AS OUTRAS TABELAS DA TELA ---
         String medidaNecessaria = veiculoSelecionado.getMEDIDA_PNEU();
