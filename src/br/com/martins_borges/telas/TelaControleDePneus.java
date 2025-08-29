@@ -278,9 +278,9 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         lbespinha_dorsal.setVisible(false);
         int alturaTotalChassi = (numEixosVisiveis > 0 ? (numEixosVisiveis - 1) * espacamento + alturaPneu : 0);
         int yInicial;
-        int ajusteBase = (ajustesVerticais != null && ajustesVerticais.length >= 1) ? ajustesVerticais[0] : 30;
+        int ajusteTopo = (ajustesVerticais != null && ajustesVerticais.length >= 1) ? ajustesVerticais[0] : 30;
         int ajusteCentro = (ajustesVerticais != null && ajustesVerticais.length >= 2) ? ajustesVerticais[1] : 0;
-        int ajusteTopo = (ajustesVerticais != null && ajustesVerticais.length >= 3) ? ajustesVerticais[2] : 30;
+        int ajusteBase = (ajustesVerticais != null && ajustesVerticais.length >= 3) ? ajustesVerticais[2] : 30;
         switch (alinhamento) {
             case TOPO:
                 yInicial = ajusteTopo;
@@ -924,7 +924,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_Tabela_ExibicaoPneuUsadoMouseClicked
 
-    private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tabela_Exibicao_veiculosMouseClicked
+    private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {                                                      
                                                     
 
         int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
@@ -956,7 +956,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 90;           // Distância VERTICAL entre um eixo e outro. Menor = mais juntos.
                 alinhamento = AlinhamentoVertical.TOPO; // Posição VERTICAL de todo o chassi no painel.
                 deslocamentos = new int[]{-30, -10, -10}; // Ajuste fino HORIZONTAL dos pneus. Negativo = mais para dentro.
-                ajustesVerticais = new int[]{0, 0, 40}; // Ajuste fino VERTICAL de todo o chassi. // Ajustes: {BASE, CENTRO, TOPO}
+                ajustesVerticais = new int[]{40, 0, 0}; // Ajuste fino VERTICAL de todo o chassi. // Ajustes: {TOPO, CENTRO, BASE}
                 largurasEixos = new int[]{140, 280, 280}; // Largura HORIZONTAL de cada eixo visível.
                 break;
             case 1: //PRONTO
@@ -965,7 +965,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 180;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 40};
+                ajustesVerticais = new int[]{40, 0, 0};
                 largurasEixos = new int[]{150, 150};
                 break;
             case 2: //PRONTO
@@ -974,7 +974,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 125;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 40};
+                ajustesVerticais = new int[]{40, 0, 0};
                 largurasEixos = new int[]{150, 150, 150};
                 break;
             case 3: //PRONTO
@@ -983,7 +983,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 190;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 100};
+                ajustesVerticais = new int[]{100, 0, 0};
                 largurasEixos = new int[]{150, 220};
                 break; //PRONTO
             case 4: //RECEITA PARA O "CASE 4" QUE É O BOTAO 4 NA POSIÇÃO 2
@@ -998,7 +998,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         espacamento = 90;
         alinhamento = AlinhamentoVertical.BASE;
         deslocamentos = new int[]{-30, -30, -30,-30};    
-        ajustesVerticais = new int[]{-15, 0, 0};     
+        ajustesVerticais = new int[]{0, 0, -15};     
         largurasEixos = new int[]{230, 230, 230, 230};  
     } 
    
@@ -1011,7 +1011,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         espacamento = 70;
         alinhamento = AlinhamentoVertical.BASE;
         deslocamentos = new int[]{-30, -30, -30, -30}; 
-        ajustesVerticais = new int[]{-20, 0, 0};     
+        ajustesVerticais = new int[]{0, 0, -20};     
         largurasEixos = new int[]{230, 230, 230, 230}; 
     }
     break; 
@@ -1022,7 +1022,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 65;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 100};
+                ajustesVerticais = new int[]{100, 0, 0};
                 largurasEixos = new int[]{150, 150, 150, 150};
                 break;
             case 6:
@@ -1031,7 +1031,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 105;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30, -30};
-                ajustesVerticais = new int[]{0, 0,40};
+                ajustesVerticais = new int[]{40, 0, 0};
                 largurasEixos = new int[]{150, 150, 240, 240};
                 posicoesEixos = new int[]{50, 20, 0, 0, 48, 10, 0, 0, 0}; // Ajuste fino VERTICAL de cada eixo individualmente.
                 break;
@@ -1041,7 +1041,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 100;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 100};
+                ajustesVerticais = new int[]{100, 0, 0};
                 largurasEixos = new int[]{220, 220};
                 break;
             case 8:          
@@ -1050,45 +1050,45 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 90;
                 alinhamento = AlinhamentoVertical.BASE;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{-15, 0, 0};
+                ajustesVerticais = new int[]{0, 0, -15};
                 largurasEixos = new int[]{220, 220, 220};
-                break;                //PRONTO
-            case 9:
+                break;                
+            case 9: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.DUPLO};
                 visibilidade = new boolean[]{true, false, false, false, false, false, false, false, false};
                 espacamento = 100;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 160};
+                ajustesVerticais = new int[]{160, 0, 0};
                 largurasEixos = new int[]{220};
-                break;             //PRONTO
-            case 10:
+                break;             
+            case 10: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.SIMPLES};
                 visibilidade = new boolean[]{true, false, false, false, false, false, false, false, false};
                 espacamento = 100;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 160};
+                ajustesVerticais = new int[]{160, 0, 0};
                 largurasEixos = new int[]{150};
-                break;      //PRONTO
-            case 11:
+                break;      
+            case 11: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.SIMPLES};
                 visibilidade = new boolean[]{true, true, false, false, false, false, false, false, false};
-                espacamento = 200;
-                alinhamento = AlinhamentoVertical.CENTRO;
+                espacamento = 130;
+                alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 0};
+                ajustesVerticais = new int[]{100, 0, 0};
                 largurasEixos = new int[]{220, 150};
                 break;
-            case 12:
+            case 12: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO};
                 visibilidade = new boolean[]{true, true, true, true, true, true, true, true, true};
                 espacamento = 50;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30, -30, -30, -30, -30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 30};
+                ajustesVerticais = new int[]{30, 0, 0};
                 largurasEixos = new int[]{220, 220, 220, 220, 220, 220, 220, 220, 220};
-                posicoesEixos = new int[]{0, 10, 30, 40, 60, 110, 120, 130, 150};
+                posicoesEixos = new int[]{0, 15, 30, 50, 65, 85, 110, 130, 150};
                 break;
             case 13: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES};
@@ -1096,7 +1096,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 60;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 30};
+                ajustesVerticais = new int[]{30, 0, 0};
                 largurasEixos = new int[]{150, 150, 150, 150, 150};
                 posicoesEixos = new int[]{0, 07, 10, 20, 25};
                 break;
@@ -1106,7 +1106,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 60;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 120};
+                ajustesVerticais = new int[]{120, 0, 0};
                 largurasEixos = new int[]{150, 150, 150, 240, 240};
                 posicoesEixos = new int[]{-90, -80, -70, 0, 15, 0, 0, 0, 0};
                 break;
@@ -1116,7 +1116,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 68;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30, -30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 30};
+                ajustesVerticais = new int[]{30, 0, 0};
                 largurasEixos = new int[]{150, 150, 150, 150, 150, 150};
                 break;
             case 16: //PRONTO
@@ -1125,7 +1125,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 110;
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 40};
+                ajustesVerticais = new int[]{40, 0, 0};
                 largurasEixos = new int[]{150, 220, 220};
                 posicoesEixos = new int[]{0, 0, 0, 0, 90, 50, 0, 0, 0};
                 break;
@@ -1135,7 +1135,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 270; 
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
-                ajustesVerticais = new int[]{0, 0, 30};
+                ajustesVerticais = new int[]{30, 0, 0};
                 largurasEixos = new int[]{230, 230};
                 break;
             case 18: // Dolly
@@ -1144,7 +1144,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 espacamento = 120;
                 alinhamento = AlinhamentoVertical.BASE;
                 deslocamentos = new int[]{-30, -30, 0};
-                ajustesVerticais = new int[]{30, 0, 0};
+                ajustesVerticais = new int[]{0, 0, 30};
                 largurasEixos = new int[]{210, 210};
                 break;
             default:
@@ -1173,7 +1173,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 
 
 
-    }//GEN-LAST:event_Tabela_Exibicao_veiculosMouseClicked
+    }
 
     public static void main(String args[]) {
 
