@@ -444,12 +444,24 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         lbeixo6.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         TELA_ZERO.add(lbeixo6);
         lbeixo6.setBounds(62, 580, 220, 7);
+
+        Label100.setMaximumSize(null);
+        Label100.setMinimumSize(null);
         TELA_ZERO.add(Label100);
         Label100.setBounds(70, 80, 32, 96);
+
+        Label101.setMaximumSize(null);
+        Label101.setMinimumSize(null);
         TELA_ZERO.add(Label101);
         Label101.setBounds(100, 80, 32, 96);
+
+        Label102.setMaximumSize(null);
+        Label102.setMinimumSize(null);
         TELA_ZERO.add(Label102);
         Label102.setBounds(280, 80, 32, 96);
+
+        Label103.setMaximumSize(null);
+        Label103.setMinimumSize(null);
         TELA_ZERO.add(Label103);
         Label103.setBounds(230, 80, 32, 96);
 
@@ -458,44 +470,103 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         labelMensagem.setBounds(30, 710, 320, 70);
         labelMensagem.getAccessibleContext().setAccessibleName("labelMensagem");
 
+        Label104.setMaximumSize(null);
+        Label104.setMinimumSize(null);
         TELA_ZERO.add(Label104);
         Label104.setBounds(70, 160, 32, 96);
+
+        Label105.setMaximumSize(null);
+        Label105.setMinimumSize(null);
         TELA_ZERO.add(Label105);
         Label105.setBounds(100, 160, 32, 96);
+
+        Label106.setMaximumSize(null);
+        Label106.setMinimumSize(null);
         TELA_ZERO.add(Label106);
         Label106.setBounds(280, 160, 32, 96);
+
+        Label107.setMaximumSize(null);
+        Label107.setMinimumSize(null);
         TELA_ZERO.add(Label107);
         Label107.setBounds(230, 160, 32, 96);
+
+        Label108.setMaximumSize(null);
+        Label108.setMinimumSize(null);
         TELA_ZERO.add(Label108);
         Label108.setBounds(70, 260, 32, 96);
+
+        Label109.setMaximumSize(null);
+        Label109.setMinimumSize(null);
         TELA_ZERO.add(Label109);
         Label109.setBounds(100, 260, 32, 96);
+
+        Label110.setMaximumSize(null);
+        Label110.setMinimumSize(null);
         TELA_ZERO.add(Label110);
         Label110.setBounds(280, 260, 32, 96);
+
+        Label111.setMaximumSize(null);
+        Label111.setMinimumSize(null);
         TELA_ZERO.add(Label111);
         Label111.setBounds(230, 260, 32, 96);
+
+        Label112.setMaximumSize(null);
+        Label112.setMinimumSize(null);
         TELA_ZERO.add(Label112);
         Label112.setBounds(70, 350, 32, 96);
+
+        Label113.setMaximumSize(null);
+        Label113.setMinimumSize(null);
         TELA_ZERO.add(Label113);
         Label113.setBounds(100, 350, 32, 96);
+
+        Label114.setMaximumSize(null);
+        Label114.setMinimumSize(null);
         TELA_ZERO.add(Label114);
         Label114.setBounds(280, 350, 32, 96);
+
+        Label115.setMaximumSize(null);
+        Label115.setMinimumSize(null);
         TELA_ZERO.add(Label115);
         Label115.setBounds(230, 350, 32, 96);
+
+        Label116.setMaximumSize(null);
+        Label116.setMinimumSize(null);
         TELA_ZERO.add(Label116);
         Label116.setBounds(70, 430, 32, 96);
+
+        Label117.setMaximumSize(null);
+        Label117.setMinimumSize(null);
         TELA_ZERO.add(Label117);
         Label117.setBounds(100, 430, 32, 96);
+
+        Label118.setMaximumSize(null);
+        Label118.setMinimumSize(null);
         TELA_ZERO.add(Label118);
         Label118.setBounds(280, 430, 32, 96);
+
+        Label119.setMaximumSize(null);
+        Label119.setMinimumSize(null);
         TELA_ZERO.add(Label119);
         Label119.setBounds(230, 430, 32, 96);
+
+        Label120.setMaximumSize(null);
+        Label120.setMinimumSize(null);
         TELA_ZERO.add(Label120);
         Label120.setBounds(60, 540, 32, 96);
+
+        Label121.setMaximumSize(null);
+        Label121.setMinimumSize(null);
         TELA_ZERO.add(Label121);
         Label121.setBounds(90, 540, 32, 96);
+
+        Label122.setMaximumSize(null);
+        Label122.setMinimumSize(null);
         TELA_ZERO.add(Label122);
         Label122.setBounds(270, 530, 32, 96);
+
+        Label123.setMaximumSize(null);
+        Label123.setMinimumSize(null);
         TELA_ZERO.add(Label123);
         Label123.setBounds(220, 530, 32, 96);
 

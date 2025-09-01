@@ -40,26 +40,19 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
-//import util.TamanhoTabela;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.DocumentFilter.FilterBypass;
-import javax.swing.AbstractAction;
-import java.awt.event.ActionEvent;
 
 // <editor-fold defaultstate="collapsed" desc="Declarações de Atributos">
 public class TelaCadastroPneus extends javax.swing.JDialog {
@@ -420,16 +413,15 @@ public class TelaCadastroPneus extends javax.swing.JDialog {
         configurarCampoNumerico(TxtRecap);
         popularComboBoxTipoPneu();
 
+        // Implementação de autocompletar usando Swing padrão
         try {
-            AutoCompleteDecorator.decorate(CbFornecedor);
-            AutoCompleteDecorator.decorate(CbFabricante);
-            AutoCompleteDecorator.decorate(CbModelo);
-            AutoCompleteDecorator.decorate(CbMedida);
-            AutoCompleteDecorator.decorate(CbTipoPneu);
-        } catch (NoClassDefFoundError e) {
-            System.err.println("AVISO: Biblioteca SwingX (AutoCompleteDecorator) não encontrada.");
+            configurarAutoCompletar(CbFornecedor);
+            configurarAutoCompletar(CbFabricante);
+            configurarAutoCompletar(CbModelo);
+            configurarAutoCompletar(CbMedida);
+            configurarAutoCompletar(CbTipoPneu);
         } catch (Exception e) {
-            System.err.println("Erro ao aplicar AutoCompleteDecorator: " + e.getMessage());
+            System.err.println("Erro ao configurar autocompletar: " + e.getMessage());
         }
 
         DefaultTableModel tableModel = new DefaultTableModel(
@@ -2297,6 +2289,78 @@ if (tipoPneuDAO == null) {
    
 
     }                                                 
+
+    /**
+     * Configura autocompletar para um ComboBox usando Swing padrão
+     */
+    private void configurarAutoCompletar(JComboBox<String> comboBox) {
+        // Configura o editor do ComboBox para permitir digitação
+        comboBox.setEditable(true);
+        
+        // Obtém o editor do ComboBox
+        JTextField editor = (JTextField) comboBox.getEditor().getEditorComponent();
+        
+        // Adiciona um DocumentListener para filtrar os itens
+        editor.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filtrarComboBox(comboBox, editor.getText());
+            }
+            
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filtrarComboBox(comboBox, editor.getText());
+            }
+            
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                // Não é necessário para JTextField
+            }
+        });
+        
+        // Adiciona um KeyListener para navegação
+        editor.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    // Seleciona o item atual se for válido
+                    String texto = editor.getText();
+                    if (!texto.isEmpty()) {
+                        // Procura por um item que corresponda ao texto
+                        for (int i = 0; i < comboBox.getItemCount(); i++) {
+                            String item = comboBox.getItemAt(i);
+                            if (item != null && item.equalsIgnoreCase(texto)) {
+                                comboBox.setSelectedIndex(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * Filtra os itens do ComboBox baseado no texto digitado
+     */
+    private void filtrarComboBox(JComboBox<String> comboBox, String filtro) {
+        if (filtro == null || filtro.isEmpty()) {
+            // Se não há filtro, mostra todos os itens
+            comboBox.showPopup();
+            return;
+        }
+        
+        // Filtra os itens que começam com o texto digitado (case-insensitive)
+        String filtroLower = filtro.toLowerCase();
+        for (int i = 0; i < comboBox.getItemCount(); i++) {
+            String item = comboBox.getItemAt(i);
+            if (item != null && item.toLowerCase().startsWith(filtroLower)) {
+                comboBox.setSelectedIndex(i);
+                comboBox.showPopup();
+                return;
+            }
+        }
+    }
 
     public static void main(String args[]) {
 
