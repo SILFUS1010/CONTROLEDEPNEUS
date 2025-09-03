@@ -4,25 +4,15 @@ import br.com.martins_borges.dal.PneuDAO;
 import br.com.martins_borges.dal.VeiculoDAO;
 import br.com.martins_borges.model.Pneu;
 import br.com.martins_borges.model.Veiculo;
-import java.awt.Image;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.GrayFilter;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.KeyStroke;
-import java.awt.event.KeyEvent;
-import javax.swing.JComponent;
-import javax.swing.AbstractAction;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.Point;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 public class TelaControleDePneus extends javax.swing.JDialog {
 
@@ -164,6 +154,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         TOPO, CENTRO, BASE
     }
 
+    @SuppressWarnings("unused") // Os campos são usados via reflexão
     private static class VehicleConfig {
 
         final TipoEixo[] tipos;
@@ -174,10 +165,11 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         final int[] ajustesVerticais;
         final int[] largurasEixos;
         final int[] posicoesEixos;
+        final int extensaoEspinha;
 
         VehicleConfig(TipoEixo[] tipos, boolean[] visibilidade, int espacamento,
                 AlinhamentoVertical alinhamento, int[] deslocamentos,
-                int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos) {
+                int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos, int extensaoEspinha) {
             this.tipos = tipos;
             this.visibilidade = visibilidade;
             this.espacamento = espacamento;
@@ -186,29 +178,30 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             this.ajustesVerticais = ajustesVerticais;
             this.largurasEixos = largurasEixos;
             this.posicoesEixos = posicoesEixos;
+            this.extensaoEspinha = extensaoEspinha;
         }
     }
 
     private void loadVehicleConfigs() {
-        vehicleConfigs.put(0, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, false, false, false}, 120, AlinhamentoVertical.TOPO, new int[]{-30, -10, -10}, new int[]{100, 0, 100}, new int[]{140, 280, 280}, null));
-        vehicleConfigs.put(1, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, true, false, false, false, false}, 287, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30}, new int[]{0, 0, 100}, new int[]{150, 150}, null));
-        vehicleConfigs.put(2, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, false, true, false, false, true}, 200, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30}, new int[]{0, 0, 0}, new int[]{150, 150, 150}, null));
-        vehicleConfigs.put(3, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO}, new boolean[]{true, false, false, false, false, true}, 300, AlinhamentoVertical.BASE, new int[]{-30, -30, -30}, new int[]{50, 0, 0}, new int[]{150, 220}, null));
-        vehicleConfigs.put(4, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, true, false, false}, 100, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30, -30}, new int[]{0, 0, 110}, new int[]{230, 230, 230, 230}, null));
-        vehicleConfigs.put(5, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, true, true, true, false, false}, 100, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30, -30}, new int[]{0, 80, 0}, new int[]{150, 150, 150, 150}, null));
-        vehicleConfigs.put(6, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, false, false, true, true}, 135, AlinhamentoVertical.BASE, new int[]{-30, -30, -30, -30}, new int[]{30, 0, 0}, new int[]{150, 150, 280, 280}, new int[]{50, 20, 0, 0, 70, 50}));
-        vehicleConfigs.put(7, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, false, false, false, false}, 100, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30}, new int[]{0, 0, 100}, new int[]{220, 220}, null));
-        vehicleConfigs.put(8, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, false, false, false}, 90, AlinhamentoVertical.BASE, new int[]{-30, -30, -30}, new int[]{-15, 0, 0}, new int[]{220, 220, 220}, null));
-        vehicleConfigs.put(9, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO}, new boolean[]{true, false, false, false, false, false}, 100, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30}, new int[]{0, 50, 0}, new int[]{220}, null));
-        vehicleConfigs.put(10, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES}, new boolean[]{true, false, false, false, false, false}, 100, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30}, new int[]{0, 30, 0}, new int[]{150}, null));
-        vehicleConfigs.put(11, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.SIMPLES}, new boolean[]{true, true, false, false, false, false}, 200, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30}, new int[]{0, 0, 0}, new int[]{220, 150}, null));
-        vehicleConfigs.put(12, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, true, true, true}, 100, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30, -30, -30, -30}, new int[]{0, 0, 100}, new int[]{220, 220, 220, 220, 220, 220}, null));
-        vehicleConfigs.put(13, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, true, true, true, true, false}, 100, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30, -30, -30}, new int[]{0, 0, 0}, new int[]{150, 150, 150, 150, 150}, null));
-        vehicleConfigs.put(14, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, true, true, false}, 100, AlinhamentoVertical.BASE, new int[]{-30, -30, -30, -30, -30}, new int[]{20, 0, 30}, new int[]{150, 150, 150, 240, 240}, new int[]{-80, -80, -80, 30, 30}));
-        vehicleConfigs.put(15, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, true, true, true, true, true}, 100, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30, -30, -30, -30}, new int[]{0, 0, 110}, new int[]{150, 150, 150, 150, 150, 150}, null));
-        vehicleConfigs.put(16, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, false, false, false, true, true}, 150, AlinhamentoVertical.BASE, new int[]{-30, -30, -30}, new int[]{80, 0, 0}, new int[]{150, 220, 220}, new int[]{0, 0, 0, 0, 90, 50}));
-        vehicleConfigs.put(17, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, false, false, false, false, true}, 370, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30}, new int[]{30, 0, 100}, new int[]{230, 230}, null));
-        vehicleConfigs.put(18, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, false, false, false, false, true}, 120, AlinhamentoVertical.BASE, new int[]{-30, -30, 0}, new int[]{30, 0, 0}, new int[]{210, 210}, null));
+        vehicleConfigs.put(0, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, false, false, false}, 120, AlinhamentoVertical.TOPO, new int[]{-30, -10, -10}, new int[]{100, 0, 100}, new int[]{140, 280, 280}, null, 0));
+        vehicleConfigs.put(1, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, true, false, false, false, false}, 287, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30}, new int[]{0, 0, 100}, new int[]{150, 150}, null, 0));
+        vehicleConfigs.put(2, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, false, true, false, false, true}, 200, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30}, new int[]{0, 0, 0}, new int[]{150, 150, 150}, null, 0));
+        vehicleConfigs.put(3, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO}, new boolean[]{true, false, false, false, false, true}, 300, AlinhamentoVertical.BASE, new int[]{-30, -30, -30}, new int[]{50, 0, 0}, new int[]{150, 220}, null, 0));
+        vehicleConfigs.put(4, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, true, false, false}, 100, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30, -30}, new int[]{0, 0, 110}, new int[]{230, 230, 230, 230}, null, 0));
+        vehicleConfigs.put(5, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, true, true, true, false, false}, 100, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30, -30}, new int[]{0, 80, 0}, new int[]{150, 150, 150, 150}, null, 0));
+        vehicleConfigs.put(6, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, false, false, true, true}, 135, AlinhamentoVertical.BASE, new int[]{-30, -30, -30, -30}, new int[]{30, 0, 0}, new int[]{150, 150, 280, 280}, new int[]{50, 20, 0, 0, 70, 50}, 0));
+        vehicleConfigs.put(7, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, false, false, false, false}, 100, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30}, new int[]{0, 0, 100}, new int[]{220, 220}, null, 50));
+        vehicleConfigs.put(8, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, false, false, false}, 90, AlinhamentoVertical.BASE, new int[]{-30, -30, -30}, new int[]{-15, 0, 0}, new int[]{220, 220, 220}, null, 50));
+        vehicleConfigs.put(9, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO}, new boolean[]{true, false, false, false, false, false}, 100, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30}, new int[]{0, 50, 0}, new int[]{220}, null, 0));
+        vehicleConfigs.put(10, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES}, new boolean[]{true, false, false, false, false, false}, 100, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30}, new int[]{0, 30, 0}, new int[]{150}, null, 0));
+        vehicleConfigs.put(11, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.SIMPLES}, new boolean[]{true, true, false, false, false, false}, 200, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30}, new int[]{0, 0, 0}, new int[]{220, 150}, null, 0));
+        vehicleConfigs.put(12, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, true, true, true}, 100, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30, -30, -30, -30}, new int[]{0, 0, 100}, new int[]{220, 220, 220, 220, 220, 220}, null, 0));
+        vehicleConfigs.put(13, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, true, true, true, true, false}, 100, AlinhamentoVertical.CENTRO, new int[]{-30, -30, -30, -30, -30}, new int[]{0, 0, 0}, new int[]{150, 150, 150, 150, 150}, null, 0));
+        vehicleConfigs.put(14, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, true, true, true, true, false}, 100, AlinhamentoVertical.BASE, new int[]{-30, -30, -30, -30, -30}, new int[]{20, 0, 30}, new int[]{150, 150, 150, 240, 240}, new int[]{-80, -80, -80, 30, 30}, 0));
+        vehicleConfigs.put(15, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES}, new boolean[]{true, true, true, true, true, true}, 100, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30, -30, -30, -30}, new int[]{0, 0, 110}, new int[]{150, 150, 150, 150, 150, 150}, null, 0));
+        vehicleConfigs.put(16, new VehicleConfig(new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, false, false, false, true, true}, 150, AlinhamentoVertical.BASE, new int[]{-30, -30, -30}, new int[]{80, 0, 0}, new int[]{150, 220, 220}, new int[]{0, 0, 0, 0, 90, 50}, 0));
+        vehicleConfigs.put(17, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, false, false, false, false, true}, 370, AlinhamentoVertical.TOPO, new int[]{-30, -30, -30}, new int[]{30, 0, 100}, new int[]{230, 230}, null, 0));
+        vehicleConfigs.put(18, new VehicleConfig(new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO}, new boolean[]{true, false, false, false, false, true}, 120, AlinhamentoVertical.BASE, new int[]{-30, -30, 0}, new int[]{30, 0, 0}, new int[]{210, 210}, null, 0));
     }
 
     private void inicializarComponentesChassi() {
@@ -525,6 +518,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         }
     }
 
+    @SuppressWarnings("unused") // Pode ser usado em desenvolvimento futuro
     private ImageIcon criarIconeColorido(java.awt.Color cor, int largura, int altura) {
         try {
             java.net.URL imgUrl = getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png");
@@ -548,7 +542,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         }
     }
 
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -1344,7 +1337,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     }
 
     public static void main(String args[]) {
-
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -1352,29 +1344,20 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(TelaControleDePneus.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(TelaControleDePneus.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(TelaControleDePneus.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(TelaControleDePneus.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                TelaControleDePneus dialog = new TelaControleDePneus(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
+        /* Cria e exibe a janela */
+        java.awt.EventQueue.invokeLater(() -> {
+            TelaControleDePneus dialog = new TelaControleDePneus(new javax.swing.JFrame(), true);
+            dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    System.exit(0);
+                }
+            });
+            dialog.setVisible(true);
         });
     }
 
@@ -1383,29 +1366,29 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         private JLabel pneuSendoArrastado;
         private Point offset;
         private Point localizacaoOriginal;
-        private JPanel painelOriginal;
+        private Container painelOriginal;
+        private JLayeredPane layeredPane;
 
         @Override
         public void mousePressed(MouseEvent e) {
             pneuSendoArrastado = (JLabel) e.getSource();
-
             if (pneuSendoArrastado.getIcon() == null) {
                 pneuSendoArrastado = null;
                 return;
             }
 
+            // Guarda informações cruciais
             offset = e.getPoint();
+            painelOriginal = pneuSendoArrastado.getParent();
             localizacaoOriginal = pneuSendoArrastado.getLocation();
-            painelOriginal = (JPanel) pneuSendoArrastado.getParent();
+            layeredPane = getRootPane().getLayeredPane();
 
-            Point pontoNoPainelPrincipal = SwingUtilities.convertPoint(pneuSendoArrastado.getParent(), pneuSendoArrastado.getLocation(), TELA_ZERO);
+            // Move o componente para a camada de arrasto
+            Point layeredPanePoint = SwingUtilities.convertPoint(painelOriginal, pneuSendoArrastado.getLocation(), layeredPane);
+            pneuSendoArrastado.setLocation(layeredPanePoint);
+            layeredPane.add(pneuSendoArrastado, JLayeredPane.DRAG_LAYER);
 
-            TELA_ZERO.add(pneuSendoArrastado);
-            pneuSendoArrastado.setLocation(pontoNoPainelPrincipal);
-            TELA_ZERO.setComponentZOrder(pneuSendoArrastado, 0);
-
-            painelOriginal.revalidate();
-            painelOriginal.repaint();
+            setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
         }
 
         @Override
@@ -1413,8 +1396,16 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             if (pneuSendoArrastado == null) {
                 return;
             }
-            Point newPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TELA_ZERO);
-            pneuSendoArrastado.setLocation(newPoint.x - offset.x, newPoint.y - offset.y);
+            // A posição do evento 'e' é relativa ao componente de origem (que agora está no layeredPane).
+            // Precisamos converter a localização do mouse na tela para o layeredPane.
+            Point mousePosOnScreen = e.getLocationOnScreen();
+            SwingUtilities.convertPointFromScreen(mousePosOnScreen, layeredPane); // Modifica mousePosOnScreen in-place
+
+            // Calcula a nova posição do canto superior esquerdo do label
+            int newX = mousePosOnScreen.x - offset.x;
+            int newY = mousePosOnScreen.y - offset.y;
+
+            pneuSendoArrastado.setLocation(newX, newY);
         }
 
         @Override
@@ -1423,45 +1414,50 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 return;
             }
 
+            setCursor(Cursor.getDefaultCursor());
+
+            // Ponto de soltura relativo ao TELA_ZERO para verificação
+            // Usa a posição do mouse na tela para maior precisão
+            Point dropPoint = e.getLocationOnScreen();
+            SwingUtilities.convertPointFromScreen(dropPoint, TELA_ZERO); // Converte o ponto para o sistema de coordenadas do TELA_ZERO
+
             boolean dropValido = false;
-            Point pontoSoltura = pneuSendoArrastado.getLocation();
-
-            for (int i = 0; i < slotsDePneus.length; i++) {
-                for (int j = 0; j < 4; j++) {
-                    JLabel slot = slotsDePneus[i][j];
-                    if (slot != null && slot.isVisible() && slot.getBounds().contains(pontoSoltura)) {
+            for (JLabel[] eixo : slotsDePneus) {
+                for (JLabel slot : eixo) {
+                    // Um slot é um alvo válido se estiver visível, não ocupado (desabilitado), e se o mouse estiver sobre ele.
+                    if (slot != null && slot.isVisible() && !slot.isEnabled() && slot.getBounds().contains(dropPoint)) {
+                        // Ação de soltar no slot válido
                         slot.setIcon(pneuSendoArrastado.getIcon());
-                        slot.setEnabled(true); 
+                        slot.setEnabled(true); // Marca o slot como ocupado/habilitado.
 
-                        TELA_ZERO.remove(pneuSendoArrastado);
-
-                        if (pneuSendoArrastado == Pneu_Escolhido) {
-                            Pneu_Escolhido.setIcon(null);
-                        } else {
-                            pneuSendoArrastado.setVisible(false);
-                        }
-
-                        TELA_ZERO.revalidate();
-                        TELA_ZERO.repaint();
-
+                        // Opcional: associar dados do pneu ao slot aqui.
                         dropValido = true;
                         break;
                     }
                 }
-                if (dropValido) {
-                    break;
-                }
+                if (dropValido) break;
             }
 
-            if (!dropValido) {
-                TELA_ZERO.remove(pneuSendoArrastado);
-                painelOriginal.add(pneuSendoArrastado);
-                pneuSendoArrastado.setLocation(localizacaoOriginal);
-                painelOriginal.revalidate();
-                painelOriginal.repaint();
+            // Remove o pneu da camada de arrasto
+            layeredPane.remove(pneuSendoArrastado);
+
+            if (dropValido) {
+                // Se o drop foi válido, o pneu de origem "some"
+                pneuSendoArrastado.setIcon(null);
             }
 
+            // Devolve o label (agora sem ícone se o drop foi válido) para sua posição e painel originais
+            pneuSendoArrastado.setLocation(localizacaoOriginal);
+            painelOriginal.add(pneuSendoArrastado);
+
+            // Limpa o estado
             pneuSendoArrastado = null;
+
+            // Força a repintura geral
+            painelOriginal.revalidate();
+            painelOriginal.repaint();
+            TELA_ZERO.revalidate();
+            TELA_ZERO.repaint();
         }
     }
 
