@@ -18,6 +18,11 @@ import java.awt.event.KeyEvent;
 import javax.swing.JComponent;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.Point;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 public class TelaControleDePneus extends javax.swing.JDialog {
 
@@ -33,6 +38,14 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         this.veiculoDAO = new VeiculoDAO();
         this.pneuDAO = new PneuDAO();
         initComponents();
+
+        ArrastadorDePneus arrastador = new ArrastadorDePneus();
+        Pneu_Escolhido.addMouseListener(arrastador);
+        Pneu_Escolhido.addMouseMotionListener(arrastador);
+        lb_estepe1.addMouseListener(arrastador);
+        lb_estepe1.addMouseMotionListener(arrastador);
+        lb_estepe2.addMouseListener(arrastador);
+        lb_estepe2.addMouseMotionListener(arrastador);
 
         Tabela_Exibicao_veiculos.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent event) {
@@ -92,12 +105,12 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 
             // Configura o primeiro estepe
             lb_estepe1.setIcon(iconeFinal);
-            lb_estepe1.setEnabled(false);
+            lb_estepe1.setEnabled(true); // Habilitado para ser arrastável
             lb_estepe1.setBounds(10, 40, 45, 70); // (x, y, largura, altura)
 
             // Configura o segundo estepe
             lb_estepe2.setIcon(iconeFinal);
-            lb_estepe2.setEnabled(false);
+            lb_estepe2.setEnabled(true); // Habilitado para ser arrastável
             lb_estepe2.setBounds(60, 40, 45, 70); // Posição ao lado do primeiro
 
         } catch (Exception e) {
@@ -931,7 +944,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         lb_estepe.setBounds(0, 0, 100, 20);
 
         getContentPane().add(ESTEPE);
-        ESTEPE.setBounds(390, 40, 100, 140);
+        ESTEPE.setBounds(390, 40, 120, 140);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel1.setPreferredSize(new java.awt.Dimension(450, 450));
@@ -1044,7 +1057,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         Pneu_Escolhido.setMinimumSize(null);
         Pneu_Escolhido.setName(""); // NOI18N
         getContentPane().add(Pneu_Escolhido);
-        Pneu_Escolhido.setBounds(620, 40, 32, 30);
+        Pneu_Escolhido.setBounds(602, 40, 50, 100);
 
         getAccessibleContext().setAccessibleName("TelaControleDePneus");
 
@@ -1363,6 +1376,93 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 dialog.setVisible(true);
             }
         });
+    }
+
+    private class ArrastadorDePneus extends MouseAdapter {
+
+        private JLabel pneuSendoArrastado;
+        private Point offset;
+        private Point localizacaoOriginal;
+        private JPanel painelOriginal;
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            pneuSendoArrastado = (JLabel) e.getSource();
+
+            if (pneuSendoArrastado.getIcon() == null) {
+                pneuSendoArrastado = null;
+                return;
+            }
+
+            offset = e.getPoint();
+            localizacaoOriginal = pneuSendoArrastado.getLocation();
+            painelOriginal = (JPanel) pneuSendoArrastado.getParent();
+
+            Point pontoNoPainelPrincipal = SwingUtilities.convertPoint(pneuSendoArrastado.getParent(), pneuSendoArrastado.getLocation(), TELA_ZERO);
+
+            TELA_ZERO.add(pneuSendoArrastado);
+            pneuSendoArrastado.setLocation(pontoNoPainelPrincipal);
+            TELA_ZERO.setComponentZOrder(pneuSendoArrastado, 0);
+
+            painelOriginal.revalidate();
+            painelOriginal.repaint();
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            if (pneuSendoArrastado == null) {
+                return;
+            }
+            Point newPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TELA_ZERO);
+            pneuSendoArrastado.setLocation(newPoint.x - offset.x, newPoint.y - offset.y);
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            if (pneuSendoArrastado == null) {
+                return;
+            }
+
+            boolean dropValido = false;
+            Point pontoSoltura = pneuSendoArrastado.getLocation();
+
+            for (int i = 0; i < slotsDePneus.length; i++) {
+                for (int j = 0; j < 4; j++) {
+                    JLabel slot = slotsDePneus[i][j];
+                    if (slot != null && slot.isVisible() && slot.getBounds().contains(pontoSoltura)) {
+                        slot.setIcon(pneuSendoArrastado.getIcon());
+                        slot.setEnabled(true); 
+
+                        TELA_ZERO.remove(pneuSendoArrastado);
+
+                        if (pneuSendoArrastado == Pneu_Escolhido) {
+                            Pneu_Escolhido.setIcon(null);
+                        } else {
+                            pneuSendoArrastado.setVisible(false);
+                        }
+
+                        TELA_ZERO.revalidate();
+                        TELA_ZERO.repaint();
+
+                        dropValido = true;
+                        break;
+                    }
+                }
+                if (dropValido) {
+                    break;
+                }
+            }
+
+            if (!dropValido) {
+                TELA_ZERO.remove(pneuSendoArrastado);
+                painelOriginal.add(pneuSendoArrastado);
+                pneuSendoArrastado.setLocation(localizacaoOriginal);
+                painelOriginal.revalidate();
+                painelOriginal.repaint();
+            }
+
+            pneuSendoArrastado = null;
+        }
     }
 
 // <editor-fold defaultstate="collapsed" desc="Generated Code"> 
