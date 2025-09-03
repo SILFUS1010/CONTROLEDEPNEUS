@@ -54,6 +54,13 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             }
         });
 
+        // Listener para a tabela de pneus em estoque
+        Tabela_Exibicao_pneus_em_estoque.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                atualizarPneuEscolhido();
+            }
+        });
+
         loadVehicleConfigs();
         inicializarComponentesChassi();
 
@@ -66,6 +73,36 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         TELA_ZERO.setComponentZOrder(Triangulo4, 0);
 
         limparChassi();
+        configurarEstepes();
+    }
+
+    private void configurarEstepes() {
+        try {
+            // Define o layout do painel dos estepes como NULO para controlar a posição
+            ESTEPE.setLayout(null);
+
+            java.net.URL imgUrl = getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png");
+            if (imgUrl == null) {
+                System.err.println("ERRO: O arquivo pneu.png não foi encontrado para os estepes!");
+                return;
+            }
+            ImageIcon iconeOriginal = new ImageIcon(imgUrl);
+            java.awt.Image imagemRedimensionada = iconeOriginal.getImage().getScaledInstance(45, 70, java.awt.Image.SCALE_SMOOTH);
+            ImageIcon iconeFinal = new ImageIcon(imagemRedimensionada);
+
+            // Configura o primeiro estepe
+            lb_estepe1.setIcon(iconeFinal);
+            lb_estepe1.setEnabled(false);
+            lb_estepe1.setBounds(10, 40, 45, 70); // (x, y, largura, altura)
+
+            // Configura o segundo estepe
+            lb_estepe2.setIcon(iconeFinal);
+            lb_estepe2.setEnabled(false);
+            lb_estepe2.setBounds(60, 40, 45, 70); // Posição ao lado do primeiro
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void limparChassi() {
@@ -440,6 +477,64 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         });
     }
 
+    private void atualizarPneuEscolhido() {
+        int selectedRow = Tabela_Exibicao_pneus_em_estoque.getSelectedRow();
+        if (selectedRow == -1) {
+            Pneu_Escolhido.setIcon(null);
+            return;
+        }
+
+        try {
+            // 1. Carrega a imagem base do pneu
+            java.net.URL imgUrl = getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png");
+            if (imgUrl == null) {
+                System.err.println("ERRO: O arquivo pneu.png não foi encontrado!");
+                return;
+            }
+            ImageIcon iconeOriginal = new ImageIcon(imgUrl);
+
+            // 2. Redimensiona o ícone para um tamanho padrão
+            java.awt.Image imagemRedimensionada = iconeOriginal.getImage().getScaledInstance(50, 80, java.awt.Image.SCALE_SMOOTH);
+            ImageIcon iconeFinal = new ImageIcon(imagemRedimensionada);
+
+            // 3. Aplica o ícone ao JLabel
+            Pneu_Escolhido.setIcon(iconeFinal);
+
+            // 4. Força o JLabel a ter o tamanho do ícone e força o painel a se redesenhar
+            Pneu_Escolhido.setPreferredSize(new java.awt.Dimension(50, 80));
+            Pneu_Escolhido.revalidate();
+            Pneu_Escolhido.repaint();
+            jPanel1.revalidate();
+            jPanel1.repaint();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private ImageIcon criarIconeColorido(java.awt.Color cor, int largura, int altura) {
+        try {
+            java.net.URL imgUrl = getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png");
+            if (imgUrl == null) {
+                System.err.println("ERRO: O arquivo pneu.png não foi encontrado!");
+                return null;
+            }
+            ImageIcon iconeOriginal = new ImageIcon(imgUrl);
+            java.awt.Image imagemBase = iconeOriginal.getImage().getScaledInstance(largura, altura, java.awt.Image.SCALE_SMOOTH);
+            java.awt.image.BufferedImage imagemProcessada = new java.awt.image.BufferedImage(largura, altura, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g2d = imagemProcessada.createGraphics();
+            g2d.drawImage(imagemBase, 0, 0, null);
+            g2d.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_ATOP, 0.5f)); // 50% de opacidade para a cor
+            g2d.setColor(cor);
+            g2d.fillRect(0, 0, largura, altura);
+            g2d.dispose();
+            return new ImageIcon(imagemProcessada);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -451,6 +546,7 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         estoque = new javax.swing.JLabel();
         lbsucata = new javax.swing.JLabel();
         sucata = new javax.swing.JLabel();
+        lbtitulo = new javax.swing.JLabel();
         TELA_ZERO = new javax.swing.JPanel();
         lbespinha_dorsal = new javax.swing.JLabel();
         lbeixo1 = new javax.swing.JLabel();
@@ -516,18 +612,17 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         ESTEPE = new javax.swing.JPanel();
-        lb_estepe = new javax.swing.JLabel();
         lb_estepe1 = new javax.swing.JLabel();
         lb_estepe2 = new javax.swing.JLabel();
+        lb_estepe = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
-        Pneu_Escolhido = new javax.swing.JLabel();
         PNEUS_ESTOQUE = new javax.swing.JScrollPane();
         Tabela_Exibicao_pneus_em_estoque = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
         Tabela_Exibicao_veiculos = new javax.swing.JTable();
         jScrollPane1 = new javax.swing.JScrollPane();
         Tabela_ExibicaoPneuUsado = new javax.swing.JTable();
-        lbtitulo = new javax.swing.JLabel();
+        Pneu_Escolhido = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setName("TelaControleDePneus"); // NOI18N
@@ -578,8 +673,17 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         PainelManutencao.add(sucata);
         sucata.setBounds(35, 460, 50, 16);
 
+        lbtitulo.setBackground(new java.awt.Color(102, 102, 102));
+        lbtitulo.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lbtitulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lbtitulo.setText("AÇOES DO PNEU");
+        lbtitulo.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        lbtitulo.setOpaque(true);
+        PainelManutencao.add(lbtitulo);
+        lbtitulo.setBounds(0, 0, 130, 20);
+
         getContentPane().add(PainelManutencao);
-        PainelManutencao.setBounds(550, 60, 128, 610);
+        PainelManutencao.setBounds(540, 160, 128, 500);
 
         TELA_ZERO.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         TELA_ZERO.setAutoscrolls(true);
@@ -804,47 +908,34 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         getContentPane().add(TELA_ZERO);
         TELA_ZERO.setBounds(20, 40, 360, 630);
 
+        ESTEPE.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        ESTEPE.setLayout(null);
+
+        lb_estepe1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lb_estepe1.setMaximumSize(null);
+        lb_estepe1.setMinimumSize(null);
+        ESTEPE.add(lb_estepe1);
+        lb_estepe1.setBounds(6, 60, 32, 30);
+
+        lb_estepe2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lb_estepe2.setMaximumSize(null);
+        lb_estepe2.setMinimumSize(null);
+        ESTEPE.add(lb_estepe2);
+        lb_estepe2.setBounds(62, 60, 32, 30);
+
         lb_estepe.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         lb_estepe.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb_estepe.setText("ESTEPE");
+        lb_estepe.setText("ESTEPES");
         lb_estepe.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-
-        javax.swing.GroupLayout ESTEPELayout = new javax.swing.GroupLayout(ESTEPE);
-        ESTEPE.setLayout(ESTEPELayout);
-        ESTEPELayout.setHorizontalGroup(
-            ESTEPELayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(ESTEPELayout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(lb_estepe, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, ESTEPELayout.createSequentialGroup()
-                .addContainerGap(12, Short.MAX_VALUE)
-                .addComponent(lb_estepe1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(lb_estepe2, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        ESTEPELayout.setVerticalGroup(
-            ESTEPELayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(ESTEPELayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(lb_estepe)
-                .addGroup(ESTEPELayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(ESTEPELayout.createSequentialGroup()
-                        .addGap(16, 16, 16)
-                        .addComponent(lb_estepe1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(ESTEPELayout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(lb_estepe2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap())
-        );
+        ESTEPE.add(lb_estepe);
+        lb_estepe.setBounds(0, 0, 100, 20);
 
         getContentPane().add(ESTEPE);
-        ESTEPE.setBounds(440, 40, 100, 140);
+        ESTEPE.setBounds(390, 40, 100, 140);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel1.setPreferredSize(new java.awt.Dimension(450, 450));
+        jPanel1.setLayout(null);
 
         PNEUS_ESTOQUE.setPreferredSize(new java.awt.Dimension(900, 402));
 
@@ -877,6 +968,9 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         });
         PNEUS_ESTOQUE.setViewportView(Tabela_Exibicao_pneus_em_estoque);
 
+        jPanel1.add(PNEUS_ESTOQUE);
+        PNEUS_ESTOQUE.setBounds(58, 14, 330, 173);
+
         jScrollPane2.setPreferredSize(new java.awt.Dimension(900, 402));
 
         Tabela_Exibicao_veiculos.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -906,6 +1000,9 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             }
         });
         jScrollPane2.setViewportView(Tabela_Exibicao_veiculos);
+
+        jPanel1.add(jScrollPane2);
+        jScrollPane2.setBounds(58, 199, 330, 230);
 
         jScrollPane1.setPreferredSize(new java.awt.Dimension(900, 402));
 
@@ -937,48 +1034,17 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         });
         jScrollPane1.setViewportView(Tabela_ExibicaoPneuUsado);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(Pneu_Escolhido, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(PNEUS_ESTOQUE, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(20, Short.MAX_VALUE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(PNEUS_ESTOQUE, javax.swing.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(Pneu_Escolhido, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(50, 50, 50)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(15, 15, 15))
-        );
+        jPanel1.add(jScrollPane1);
+        jScrollPane1.setBounds(58, 479, 330, 134);
 
         getContentPane().add(jPanel1);
-        jPanel1.setBounds(690, 40, 410, 630);
+        jPanel1.setBounds(690, 40, 440, 630);
 
-        lbtitulo.setBackground(new java.awt.Color(102, 102, 102));
-        lbtitulo.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        lbtitulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lbtitulo.setText("AÇOES DO PNEU");
-        lbtitulo.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        lbtitulo.setOpaque(true);
-        getContentPane().add(lbtitulo);
-        lbtitulo.setBounds(550, 40, 130, 20);
+        Pneu_Escolhido.setMaximumSize(null);
+        Pneu_Escolhido.setMinimumSize(null);
+        Pneu_Escolhido.setName(""); // NOI18N
+        getContentPane().add(Pneu_Escolhido);
+        Pneu_Escolhido.setBounds(620, 40, 32, 30);
 
         getAccessibleContext().setAccessibleName("TelaControleDePneus");
 
