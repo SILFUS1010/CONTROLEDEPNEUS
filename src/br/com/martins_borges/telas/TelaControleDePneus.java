@@ -1389,7 +1389,5 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 // </editor-fold> 
     
     
-    void setState(int NORMAL) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+    
 }

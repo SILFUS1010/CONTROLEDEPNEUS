@@ -775,53 +775,53 @@ public boolean existeOrdemServicoComOrcamento(String numOrcamento) {
     // COLE ESTE MÉTODO DENTRO DA SUA CLASSE PneuDAO
 
 public List<Pneu> listarPneusPorStatusEMedida(String status, String medida) {
-    // Comando SQL para selecionar pneus com um status específico E uma medida específica
-    String sql = "SELECT * FROM cad_pneus WHERE status_pneu = ? AND medida = ?";
-    
-    List<Pneu> pneus = new ArrayList<>();
+    String sql = "SELECT * FROM cad_pneus WHERE status_pneu = ? AND medida = ? ORDER BY FOGO";
+    List<Pneu> listaPneus = new ArrayList<>();
     Connection conn = null;
     PreparedStatement pstmt = null;
     ResultSet rs = null;
-
     try {
         conn = ModuloConexao.conector();
         if (conn == null) {
-            System.err.println("DAO: Falha na conexão ao buscar pneus por status e medida.");
-            return pneus; // Retorna a lista vazia
+            return listaPneus; // Retorna lista vazia
         }
-
         pstmt = conn.prepareStatement(sql);
-        pstmt.setString(1, status);   // Define o primeiro parâmetro (?) como o status
-        pstmt.setString(2, medida);  // Define o segundo parâmetro (?) como a medida
-
+        pstmt.setString(1, status);
+        pstmt.setString(2, medida);
         rs = pstmt.executeQuery();
-
-        // Itera sobre os resultados e cria os objetos Pneu
         while (rs.next()) {
             Pneu pneu = new Pneu();
-            // Assumindo que você tem os setters correspondentes na sua classe Pneu
-            pneu.setId(rs.getInt("id"));
-            pneu.setFogo(rs.getString("fogo"));
-            pneu.setFabricante(rs.getString("fabricante"));
-            pneu.setModelo(rs.getString("modelo"));
-            pneu.setMedida(rs.getString("medida"));
+            pneu.setId(rs.getInt("ID"));
+            pneu.setIdEmpresaProprietaria(rs.getInt("ID_EMPRESA_PROPRIETARIA"));
+            pneu.setFogo(rs.getString("FOGO"));
+            pneu.setFornecedor(rs.getString("FORNECEDOR"));
+            pneu.setValor(rs.getObject("VALOR") != null ? rs.getDouble("VALOR") : null);
+            pneu.setFabricante(rs.getString("FABRICANTE"));
+            pneu.setTipoPneu(rs.getString("TIPO_PNEU"));
+            pneu.setModelo(rs.getString("MODELO"));
+            pneu.setDot(rs.getString("DOT"));
+            pneu.setMedida(rs.getString("MEDIDA"));
+            pneu.setProfundidade(rs.getObject("PROFUNDIDADE") != null ? rs.getDouble("PROFUNDIDADE") : null);
+            java.sql.Date sqlDate = rs.getDate("DATA_CADASTRO");
+            if (sqlDate != null) {
+                pneu.setDataCadastro(sqlDate.toLocalDate());
+            } else {
+                pneu.setDataCadastro(null);
+            }
+            pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
+            pneu.setProjetadoKm(rs.getObject("PROJETADO_KM") != null ? rs.getInt("PROJETADO_KM") : null);
+            pneu.setObservacoes(rs.getString("OBSERVACOES"));
             pneu.setStatusPneu(rs.getString("status_pneu"));
-            // ... continue preenchendo os outros atributos do pneu ...
-            
-            pneus.add(pneu);
+            listaPneus.add(pneu);
         }
-
     } catch (SQLException e) {
-        System.err.println("Erro de SQL ao buscar pneus por status e medida: " + e.getMessage());
-        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Erro DAO ao listar pneus por status e medida: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
     } finally {
-        // Bloco para fechar as conexões
-        try { if (rs != null) rs.close(); } catch (SQLException ex) {}
-        try { if (pstmt != null) pstmt.close(); } catch (SQLException ex) {}
-        try { if (conn != null) conn.close(); } catch (SQLException ex) {}
+        try { if (rs != null) rs.close(); } catch (SQLException e) { /* Ignora */ }
+        try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { /* Ignora */ }
+        try { if (conn != null) conn.close(); } catch (SQLException e) { /* Ignora */ }
     }
-
-    return pneus; // Retorna a lista de pneus encontrados (pode estar vazia)
+    return listaPneus;
 }
 
     public int obterUltimoFogoPorEmpresa(int idEmpresa) {

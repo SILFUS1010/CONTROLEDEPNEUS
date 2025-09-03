@@ -235,7 +235,6 @@ import br.com.martins_borges.utilitarios.PosicaoFormulario;
             controlePneus.setVisible(true);
         } else {
 
-            controlePneus.setState(JFrame.NORMAL);
             controlePneus.toFront();
             controlePneus.requestFocus();
 
