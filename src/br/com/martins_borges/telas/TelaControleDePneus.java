@@ -1372,6 +1372,8 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         @Override
         public void mousePressed(MouseEvent e) {
             pneuSendoArrastado = (JLabel) e.getSource();
+            pneuSendoArrastado.setBorder(null); // Remove o brilho do hover ao clicar
+
             if (pneuSendoArrastado.getIcon() == null) {
                 pneuSendoArrastado = null;
                 return;
@@ -1458,6 +1460,21 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             painelOriginal.repaint();
             TELA_ZERO.revalidate();
             TELA_ZERO.repaint();
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            if (pneuSendoArrastado != null) return; // Não mostra o hover durante um arraste
+            JLabel label = (JLabel) e.getSource();
+            if (label.getIcon() != null) { // Só mostra o hover se o label tiver um pneu
+                label.setBorder(BorderFactory.createLineBorder(new Color(176,224,230), 2));
+            }
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            JLabel label = (JLabel) e.getSource();
+            label.setBorder(null); // Sempre remove a borda ao sair
         }
     }
 
