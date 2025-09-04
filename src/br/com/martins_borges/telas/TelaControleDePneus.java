@@ -80,31 +80,41 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     }
 
     private void configurarEstepes() {
-        try {
-            // Define o layout do painel dos estepes como NULO para controlar a posição
-            ESTEPE.setLayout(null);
+        // Define o layout do painel dos estepes como NULO para controlar a posição
+        ESTEPE.setLayout(null);
 
+        int larguraPneu = 45;
+        int alturaPneu = 70;
+        ImageIcon iconePneu = criarIconePneu(larguraPneu, alturaPneu);
+
+        if (iconePneu == null) return;
+
+        // Configura o primeiro estepe
+        lb_estepe1.setIcon(iconePneu);
+        lb_estepe1.setEnabled(true);
+        lb_estepe1.setBounds(10, 40, larguraPneu, alturaPneu);
+        lb_estepe1.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Configura o segundo estepe
+        lb_estepe2.setIcon(iconePneu);
+        lb_estepe2.setEnabled(true);
+        lb_estepe2.setBounds(10 + larguraPneu + 5, 40, larguraPneu, alturaPneu); // Posiciona ao lado com 5px de espaço
+        lb_estepe2.setHorizontalAlignment(SwingConstants.CENTER);
+    }
+
+    private ImageIcon criarIconePneu(int largura, int altura) {
+        try {
             java.net.URL imgUrl = getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png");
             if (imgUrl == null) {
-                System.err.println("ERRO: O arquivo pneu.png não foi encontrado para os estepes!");
-                return;
+                System.err.println("ERRO: O arquivo de imagem do pneu não foi encontrado!");
+                return null;
             }
             ImageIcon iconeOriginal = new ImageIcon(imgUrl);
-            java.awt.Image imagemRedimensionada = iconeOriginal.getImage().getScaledInstance(45, 70, java.awt.Image.SCALE_SMOOTH);
-            ImageIcon iconeFinal = new ImageIcon(imagemRedimensionada);
-
-            // Configura o primeiro estepe
-            lb_estepe1.setIcon(iconeFinal);
-            lb_estepe1.setEnabled(true); // Habilitado para ser arrastável
-            lb_estepe1.setBounds(10, 40, 45, 70); // (x, y, largura, altura)
-
-            // Configura o segundo estepe
-            lb_estepe2.setIcon(iconeFinal);
-            lb_estepe2.setEnabled(true); // Habilitado para ser arrastável
-            lb_estepe2.setBounds(60, 40, 45, 70); // Posição ao lado do primeiro
-
+            java.awt.Image imagemRedimensionada = iconeOriginal.getImage().getScaledInstance(largura, altura, java.awt.Image.SCALE_SMOOTH);
+            return new ImageIcon(imagemRedimensionada);
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -490,32 +500,23 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             return;
         }
 
-        try {
-            // 1. Carrega a imagem base do pneu
-            java.net.URL imgUrl = getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png");
-            if (imgUrl == null) {
-                System.err.println("ERRO: O arquivo pneu.png não foi encontrado!");
-                return;
-            }
-            ImageIcon iconeOriginal = new ImageIcon(imgUrl);
+        int larguraPneu = 45;
+        int alturaPneu = 70;
+        ImageIcon iconePneu = criarIconePneu(larguraPneu, alturaPneu);
 
-            // 2. Redimensiona o ícone para um tamanho padrão
-            java.awt.Image imagemRedimensionada = iconeOriginal.getImage().getScaledInstance(50, 80, java.awt.Image.SCALE_SMOOTH);
-            ImageIcon iconeFinal = new ImageIcon(imagemRedimensionada);
+        if (iconePneu == null) return;
 
-            // 3. Aplica o ícone ao JLabel
-            Pneu_Escolhido.setIcon(iconeFinal);
+        // Aplica o ícone e ajusta o tamanho e posição do JLabel
+        Pneu_Escolhido.setIcon(iconePneu);
+        Pneu_Escolhido.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        // Mantém a posição X original, mas ajusta o tamanho
+        Point p = Pneu_Escolhido.getLocation();
+        Pneu_Escolhido.setBounds(p.x, p.y, larguraPneu, alturaPneu);
 
-            // 4. Força o JLabel a ter o tamanho do ícone e força o painel a se redesenhar
-            Pneu_Escolhido.setPreferredSize(new java.awt.Dimension(50, 80));
-            Pneu_Escolhido.revalidate();
-            Pneu_Escolhido.repaint();
-            jPanel1.revalidate();
-            jPanel1.repaint();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Repinta para garantir a atualização visual
+        Pneu_Escolhido.revalidate();
+        Pneu_Escolhido.repaint();
     }
 
     @SuppressWarnings("unused") // Pode ser usado em desenvolvimento futuro

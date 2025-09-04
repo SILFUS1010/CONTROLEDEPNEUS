@@ -326,12 +326,12 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         lb_carreta = new javax.swing.JLabel();
         lbPosicao = new javax.swing.JLabel();
         cbposicao_carreta = new javax.swing.JComboBox<>();
-        btAdd_Pneu = new javax.swing.JButton();
-        fechar = new javax.swing.JButton();
         medidaPneu = new javax.swing.JScrollPane();
         Tabela_medidaPneu = new javax.swing.JTable();
+        btAdd_Pneu = new javax.swing.JButton();
         Veiculos_Cadastrados = new javax.swing.JLabel();
         Pneus_necessarios = new javax.swing.JLabel();
+        fechar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(1000, 670));
@@ -873,18 +873,6 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         cbposicao_carreta.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { " ", "1", "2" }));
         cbposicao_carreta.setToolTipText("");
 
-        btAdd_Pneu.setBackground(new java.awt.Color(0, 204, 0));
-        btAdd_Pneu.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btAdd_Pneu.setText("ADD + PNEUS");
-        btAdd_Pneu.setName("cadastrar"); // NOI18N
-
-        fechar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/Martins_Borges/telas/Imagens/close.png"))); // NOI18N
-        fechar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                fecharMouseClicked(evt);
-            }
-        });
-
         medidaPneu.setPreferredSize(new java.awt.Dimension(900, 402));
 
         Tabela_medidaPneu.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -911,6 +899,18 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         if (Tabela_medidaPneu.getColumnModel().getColumnCount() > 0) {
             Tabela_medidaPneu.getColumnModel().getColumn(0).setResizable(false);
         }
+
+        btAdd_Pneu.setBackground(new java.awt.Color(0, 204, 0));
+        btAdd_Pneu.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btAdd_Pneu.setText("ADD + PNEUS");
+        btAdd_Pneu.setName("cadastrar"); // NOI18N
+
+        fechar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/Martins_Borges/telas/Imagens/close.png"))); // NOI18N
+        fechar.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                fecharMouseClicked(evt);
+            }
+        });
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
