@@ -195,6 +195,80 @@ public class PneuDAO {
         return listaPneus;
     }
 
+    /**
+     * Busca um pneu pelo seu ID
+     * @param id ID do pneu a ser buscado
+     * @return Objeto Pneu se encontrado, null caso contrário
+     */
+    public Pneu buscarPneuPorId(int id) {
+        if (id <= 0) {
+            return null;
+        }
+        
+        String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
+                + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, PROJETADO_KM, OBSERVACOES, "
+                + "status_pneu FROM cad_pneus WHERE ID = ?";
+        
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = ModuloConexao.conector();
+            if (conn == null) {
+                return null;
+            }
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, id);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                Pneu pneu = new Pneu();
+                pneu.setId(rs.getInt("ID"));
+                pneu.setIdEmpresaProprietaria(rs.getInt("ID_EMPRESA_PROPRIETARIA"));
+                pneu.setFogo(rs.getString("FOGO"));
+                pneu.setFornecedor(rs.getString("FORNECEDOR"));
+                pneu.setValor(rs.getObject("VALOR") != null ? rs.getDouble("VALOR") : null);
+                pneu.setFabricante(rs.getString("FABRICANTE"));
+                pneu.setTipoPneu(rs.getString("TIPO_PNEU"));
+                pneu.setModelo(rs.getString("MODELO"));
+                pneu.setDot(rs.getString("DOT"));
+                pneu.setMedida(rs.getString("MEDIDA"));
+                pneu.setProfundidade(rs.getObject("PROFUNDIDADE") != null ? rs.getDouble("PROFUNDIDADE") : null);
+                
+                java.sql.Date sqlDate = rs.getDate("DATA_CADASTRO");
+                if (sqlDate != null) {
+                    pneu.setDataCadastro(sqlDate.toLocalDate());
+                } else {
+                    pneu.setDataCadastro(null);
+                }
+                
+                pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
+                pneu.setProjetadoKm(rs.getObject("PROJETADO_KM") != null ? rs.getInt("PROJETADO_KM") : null);
+                pneu.setObservacoes(rs.getString("OBSERVACOES"));
+                pneu.setStatusPneu(rs.getString("status_pneu"));
+                
+                return pneu;
+            }
+            
+            return null;
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Erro ao buscar pneu por ID: " + e.getMessage(), 
+                    "Erro SQL", JOptionPane.ERROR_MESSAGE);
+            return null;
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                // Logar o erro se necessário
+            }
+        }
+    }
+    
     public boolean excluirPneu(int id) {
         if (id <= 0) {
             return false;
@@ -349,6 +423,14 @@ public class PneuDAO {
         return existe;
     }
 
+    /**
+     * Lista todos os pneus que estão em estoque.
+     * @return Lista de pneus em estoque
+     */
+    public List<Pneu> listarPneusEmEstoque() {
+        return listarPneusPorStatus("ESTOQUE");
+    }
+    
     public boolean atualizarStatusPneu(int idPneu, String novoStatus) {
         if (idPneu <= 0 || novoStatus == null || novoStatus.trim().isEmpty()) {
             return false;

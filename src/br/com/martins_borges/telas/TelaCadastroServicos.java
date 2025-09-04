@@ -1441,6 +1441,35 @@ public class TelaCadastroServicos extends javax.swing.JDialog {// <editor-fold d
     }//GEN-LAST:event_btnEditarParceiroActionPerformed
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
+    // Variáveis para armazenar os IDs do pneu e veículo
+    private int pneuIdParaServico = -1;
+    private int veiculoIdParaServico = -1;
+
+    /**
+     * Define o ID do pneu para o qual será aberto o serviço
+     * @param pneuId ID do pneu
+     */
+    public void setPneuIdParaServico(int pneuId) {
+        this.pneuIdParaServico = pneuId;
+        // Se o ID do pneu for válido, tenta carregar o pneu
+        if (pneuId > 0) {
+            Pneu pneu = pneuDAO.buscarPneuPorId(pneuId);
+            if (pneu != null) {
+                preencherCamposFiltroPneuSelecionado(pneu);
+                mostrarTelaCadastroOS();
+                prepararParaNovaOS(pneu);
+            }
+        }
+    }
+
+    /**
+     * Define o ID do veículo associado ao serviço (opcional)
+     * @param veiculoId ID do veículo
+     */
+    public void setVeiculoIdParaServico(int veiculoId) {
+        this.veiculoIdParaServico = veiculoId;
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox ALB;
     private javax.swing.JPanel Cadastros;
