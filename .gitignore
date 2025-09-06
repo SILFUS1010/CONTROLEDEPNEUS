@@ -1,2 +1,5 @@
 /dist/
 /build/
+.vscode/dist/
+.vscode/nbproject/private/
+nbproject/private/

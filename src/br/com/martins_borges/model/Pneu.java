@@ -20,6 +20,8 @@ public class Pneu {
     private Integer projetadoKm;
     private String observacoes;
     private Date dataRetorno;
+    private Integer idVeiculo; 
+    private String posicaoNoVeiculo; 
     // Construtor vazio
     public Pneu() {}
 
@@ -60,6 +62,22 @@ public class Pneu {
     private String statusPneu;
     public void setDataRetorno(Date dataRetorno) {
         this.dataRetorno = dataRetorno;
+    }
+    
+    public Integer getIdVeiculo() {
+        return idVeiculo;
+    }
+
+    public void setIdVeiculo(Integer idVeiculo) {
+        this.idVeiculo = idVeiculo;
+    }
+
+    public String getPosicaoNoVeiculo() {
+        return posicaoNoVeiculo;
+    }
+
+    public void setPosicaoNoVeiculo(String posicaoNoVeiculo) {
+        this.posicaoNoVeiculo = posicaoNoVeiculo;
     }
 
     // Método para obter a data de retorno

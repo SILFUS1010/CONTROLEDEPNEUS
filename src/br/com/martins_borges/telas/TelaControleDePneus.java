@@ -4,7 +4,6 @@ import br.com.martins_borges.dal.PneuDAO;
 import br.com.martins_borges.dal.VeiculoDAO;
 import br.com.martins_borges.model.Pneu;
 import br.com.martins_borges.model.Veiculo;
-import br.com.martins_borges.telas.TelaCadastroServicos;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,11 +19,11 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     private final VeiculoDAO veiculoDAO;
     private final PneuDAO pneuDAO;
     private List<Veiculo> listaDeVeiculos;
-    private List<Pneu> pneusEmEstoque; // Adicionado para armazenar pneus em estoque
 
     private javax.swing.JLabel[][] slotsDePneus;
     private final Map<Integer, VehicleConfig> vehicleConfigs = new HashMap<>();
-    private ArrastadorDePneus arrastador;
+    private final Map<Integer, ImageIcon[][]> pneusPorVeiculo = new HashMap<>();
+    private Integer veiculoAtualId = null;
 
     public TelaControleDePneus(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -32,13 +31,13 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         this.pneuDAO = new PneuDAO();
         initComponents();
 
-        this.arrastador = new ArrastadorDePneus();
-        Pneu_Escolhido.addMouseListener(this.arrastador);
-        Pneu_Escolhido.addMouseMotionListener(this.arrastador);
-        lb_estepe1.addMouseListener(this.arrastador);
-        lb_estepe1.addMouseMotionListener(this.arrastador);
-        lb_estepe2.addMouseListener(this.arrastador);
-        lb_estepe2.addMouseMotionListener(this.arrastador);
+        ArrastadorDePneus arrastador = new ArrastadorDePneus();
+        Pneu_Escolhido.addMouseListener(arrastador);
+        Pneu_Escolhido.addMouseMotionListener(arrastador);
+        lb_estepe1.addMouseListener(arrastador);
+        lb_estepe1.addMouseMotionListener(arrastador);
+        lb_estepe2.addMouseListener(arrastador);
+        lb_estepe2.addMouseMotionListener(arrastador);
 
         Tabela_Exibicao_veiculos.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent event) {
@@ -97,13 +96,10 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         lb_estepe1.setEnabled(true);
         lb_estepe1.setBounds(10, 40, larguraPneu, alturaPneu);
         lb_estepe1.setHorizontalAlignment(SwingConstants.CENTER);
-        lb_estepe1.setVerticalAlignment(SwingConstants.CENTER);
-        
+
         // Configura o segundo estepe
         lb_estepe2.setIcon(iconePneu);
         lb_estepe2.setEnabled(true);
-        lb_estepe2.setHorizontalAlignment(SwingConstants.CENTER);
-        lb_estepe2.setVerticalAlignment(SwingConstants.CENTER);
         lb_estepe2.setBounds(10 + larguraPneu + 5, 40, larguraPneu, alturaPneu); // Posiciona ao lado com 5px de espaço
         lb_estepe2.setHorizontalAlignment(SwingConstants.CENTER);
     }
@@ -139,14 +135,8 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         // Oculta a espinha dorsal
         lbespinha_dorsal.setVisible(false);
 
-        // Oculta todos os slots de pneus
-        for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < 4; j++) {
-                if (slotsDePneus[i][j] != null) {
-                    slotsDePneus[i][j].setVisible(false);
-                }
-            }
-        }
+        // Não ocultamos mais os slots de pneus aqui para evitar perda de referência
+        // Apenas os eixos serão ocultados
 
         // Oculta os triângulos e engates
         Triangulo1.setVisible(false);
@@ -261,16 +251,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         slotsDePneus[8][1] = Label134;
         slotsDePneus[8][2] = Label132;
         slotsDePneus[8][3] = Label133;
-
-        // Add MouseListeners to all slotsDePneus
-        for (int i = 0; i < slotsDePneus.length; i++) {
-            for (int j = 0; j < 4; j++) {
-                if (slotsDePneus[i][j] != null) {
-                    slotsDePneus[i][j].addMouseListener(this.arrastador);
-                    slotsDePneus[i][j].addMouseMotionListener(this.arrastador);
-                }
-            }
-        }
     }
 
         private void desenharChassi(TipoEixo[] tipos, boolean[] visibilidade, int espacamento, AlinhamentoVertical alinhamento, int[] deslocamentos, int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos, int extensaoEspinha) {
@@ -430,8 +410,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         if (pneuLabel != null) {
             pneuLabel.setIcon(icone);
             pneuLabel.setBounds(x, y, icone.getIconWidth(), icone.getIconHeight());
-            pneuLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            pneuLabel.setVerticalAlignment(SwingConstants.CENTER);
             pneuLabel.setVisible(true);
             // Define como desabilitado para representar pneu vazio/sem uso
             pneuLabel.setEnabled(false);
@@ -441,7 +419,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 
     // Este método agora apenas POPULA a tabela com uma lista de pneus fornecida
     private void popularTabelaPneusEstoque(List<Pneu> pneus) {
-        this.pneusEmEstoque = pneus; // Store the list
         String[] colunas = {"EMPRESA", "N° FOGO", "TIPO DE PNEU", "MODELO", "MEDIDA"};
         DefaultTableModel model = new DefaultTableModel(colunas, 0) {
             @Override
@@ -514,13 +491,10 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 
     private void atualizarPneuEscolhido() {
         int selectedRow = Tabela_Exibicao_pneus_em_estoque.getSelectedRow();
-        if (selectedRow == -1 || pneusEmEstoque == null || selectedRow >= pneusEmEstoque.size()) {
+        if (selectedRow == -1) {
             Pneu_Escolhido.setIcon(null);
-            Pneu_Escolhido.putClientProperty("idPneu", null); // Clear property
             return;
         }
-
-        Pneu pneuSelecionado = pneusEmEstoque.get(selectedRow); // Get the Pneu object
 
         int larguraPneu = 45;
         int alturaPneu = 70;
@@ -532,9 +506,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         Pneu_Escolhido.setIcon(iconePneu);
         Pneu_Escolhido.setHorizontalAlignment(SwingConstants.CENTER);
         
-        // Store the Pneu ID in the JLabel's client property
-        Pneu_Escolhido.putClientProperty("idPneu", pneuSelecionado.getId());
-
         // Mantém a posição X original, mas ajusta o tamanho
         Point p = Pneu_Escolhido.getLocation();
         Pneu_Escolhido.setBounds(p.x, p.y, larguraPneu, alturaPneu);
@@ -1093,15 +1064,27 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     }//GEN-LAST:event_Tabela_ExibicaoPneuUsadoMouseClicked
 
     private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {                                                      
-                                                    
-
         int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
         if (selectedRow == -1) {
             return;
         }
+        
+        // Salva os pneus do veículo atual antes de trocar
+        if (veiculoAtualId != null) {
+            ImageIcon[][] pneusAtuais = new ImageIcon[9][4];
+            for (int i = 0; i < slotsDePneus.length && i < pneusAtuais.length; i++) {
+                for (int j = 0; j < 4 && j < pneusAtuais[i].length; j++) {
+                    if (slotsDePneus[i][j] != null) {
+                        pneusAtuais[i][j] = (ImageIcon) slotsDePneus[i][j].getIcon();
+                    }
+                }
+            }
+            pneusPorVeiculo.put(veiculoAtualId, pneusAtuais);
+        }
 
         // Pega o objeto Veiculo completo da linha selecionada
         Veiculo veiculoSelecionado = this.listaDeVeiculos.get(selectedRow);
+        veiculoAtualId = veiculoSelecionado.getID();
 
         // Pega o ID do tipo de veículo, que servirá como chave para a configuração
         int idConfig = veiculoSelecionado.getID_CONFIG_FK();
@@ -1340,8 +1323,41 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 return;
         }
 
-        // Após definir as instruções, manda o desenhista trabalhar com elas
+        // Salva os pneus atuais antes de desenhar o chassi
+        ImageIcon[][] pneusAntes = new ImageIcon[9][4];
+        for (int i = 0; i < slotsDePneus.length && i < pneusAntes.length; i++) {
+            for (int j = 0; j < 4 && j < pneusAntes[i].length; j++) {
+                if (slotsDePneus[i][j] != null) {
+                    pneusAntes[i][j] = (ImageIcon) slotsDePneus[i][j].getIcon();
+                }
+            }
+        }
+        
+        // Desenha o chassi
         desenharChassi(tipos, visibilidade, espacamento, alinhamento, deslocamentos, ajustesVerticais, largurasEixos, posicoesEixos, extensaoEspinha);
+        
+        // Restaura os pneus que estavam visíveis
+        for (int i = 0; i < pneusAntes.length && i < slotsDePneus.length; i++) {
+            for (int j = 0; j < pneusAntes[i].length && j < 4; j++) {
+                if (pneusAntes[i][j] != null && slotsDePneus[i][j] != null) {
+                    slotsDePneus[i][j].setIcon(pneusAntes[i][j]);
+                    slotsDePneus[i][j].setVisible(true);
+                }
+            }
+        }
+        
+        // Se houver pneus salvos para este veículo, restaura-os
+        if (veiculoAtualId != null && pneusPorVeiculo.containsKey(veiculoAtualId)) {
+            ImageIcon[][] pneusSalvos = pneusPorVeiculo.get(veiculoAtualId);
+            for (int i = 0; i < pneusSalvos.length && i < slotsDePneus.length; i++) {
+                for (int j = 0; j < pneusSalvos[i].length && j < 4; j++) {
+                    if (pneusSalvos[i][j] != null && slotsDePneus[i][j] != null) {
+                        slotsDePneus[i][j].setIcon(pneusSalvos[i][j]);
+                        slotsDePneus[i][j].setVisible(true);
+                    }
+                }
+            }
+        }
 
         // --- ATUALIZA AS OUTRAS TABELAS DA TELA ---
         String medidaNecessaria = veiculoSelecionado.getMEDIDA_PNEU();
@@ -1394,27 +1410,13 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         private Point localizacaoOriginal;
         private Container painelOriginal;
         private JLayeredPane layeredPane;
-        private boolean veioDoChassi = false;
 
         @Override
         public void mousePressed(MouseEvent e) {
             pneuSendoArrastado = (JLabel) e.getSource();
             pneuSendoArrastado.setBorder(null); // Remove o brilho do hover ao clicar
 
-            // Verifica se o pneu está em um dos slots do chassi
-            veioDoChassi = false;
-            for (JLabel[] eixo : slotsDePneus) {
-                for (JLabel slot : eixo) {
-                    if (slot != null && slot == pneuSendoArrastado && slot.isEnabled()) {
-                        veioDoChassi = true;
-                        break;
-                    }
-                }
-                if (veioDoChassi) break;
-            }
-
-            // Se não tem ícone e não veio do chassi, não faz nada
-            if (pneuSendoArrastado.getIcon() == null && !veioDoChassi) {
+            if (pneuSendoArrastado.getIcon() == null) {
                 pneuSendoArrastado = null;
                 return;
             }
@@ -1459,59 +1461,36 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             setCursor(Cursor.getDefaultCursor());
 
             // Ponto de soltura relativo ao TELA_ZERO para verificação
+            // Usa a posição do mouse na tela para maior precisão
             Point dropPoint = e.getLocationOnScreen();
-            SwingUtilities.convertPointFromScreen(dropPoint, TELA_ZERO);
+            SwingUtilities.convertPointFromScreen(dropPoint, TELA_ZERO); // Converte o ponto para o sistema de coordenadas do TELA_ZERO
 
             boolean dropValido = false;
-            
-            if (veioDoChassi) {
-                // Verifica se soltou em alguma das áreas de destino
-                if (estoque.getBounds().contains(dropPoint)) {
-                    // Lógica para mover para o estoque
-                    moverPneuParaDestino("ESTOQUE");
-                    dropValido = true;
-                } else if (conserto.getBounds().contains(dropPoint)) {
-                    // Lógica para mover para conserto
-                    moverPneuParaDestino("CONSERTO");
-                    dropValido = true;
-                } else if (sucata.getBounds().contains(dropPoint)) {
-                    // Lógica para mover para sucata
-                    moverPneuParaDestino("SUCATA");
-                    dropValido = true;
-                }
-                
-                // Se o drop foi válido, remove o pneu do chassi
-                if (dropValido) {
-                    pneuSendoArrastado.setIcon(null);
-                    pneuSendoArrastado.setEnabled(false);
-                }
-            } else {
-                // Lógica original para arrastar do estoque para o chassi
-                for (JLabel[] eixo : slotsDePneus) {
-                    for (JLabel slot : eixo) {
-                        // Um slot é um alvo válido se estiver visível, não ocupado (desabilitado), e se o mouse estiver sobre ele.
-                        if (slot != null && slot.isVisible() && !slot.isEnabled() && slot.getBounds().contains(dropPoint)) {
-                            // Ação de soltar no slot válido
-                            slot.setIcon(pneuSendoArrastado.getIcon());
-                            slot.setEnabled(true); // Marca o slot como ocupado/habilitado.
-                            dropValido = true;
-                            break;
-                        }
+            for (JLabel[] eixo : slotsDePneus) {
+                for (JLabel slot : eixo) {
+                    // Um slot é um alvo válido se estiver visível, não ocupado (desabilitado), e se o mouse estiver sobre ele.
+                    if (slot != null && slot.isVisible() && !slot.isEnabled() && slot.getBounds().contains(dropPoint)) {
+                        // Ação de soltar no slot válido
+                        slot.setIcon(pneuSendoArrastado.getIcon());
+                        slot.setEnabled(true); // Marca o slot como ocupado/habilitado.
+
+                        // Opcional: associar dados do pneu ao slot aqui.
+                        dropValido = true;
+                        break;
                     }
-                    if (dropValido) break;
                 }
-                
-                // Se o drop foi válido, remove o pneu da origem
-                if (dropValido) {
-                    pneuSendoArrastado.setIcon(null);
-                    pneuSendoArrastado.putClientProperty("idPneu", null); // Clear ID from source
-                }
+                if (dropValido) break;
             }
 
             // Remove o pneu da camada de arrasto
             layeredPane.remove(pneuSendoArrastado);
-            
-            // Devolve o label para sua posição e painel originais
+
+            if (dropValido) {
+                // Se o drop foi válido, o pneu de origem "some"
+                pneuSendoArrastado.setIcon(null);
+            }
+
+            // Devolve o label (agora sem ícone se o drop foi válido) para sua posição e painel originais
             pneuSendoArrastado.setLocation(localizacaoOriginal);
             painelOriginal.add(pneuSendoArrastado);
 
@@ -1523,68 +1502,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             painelOriginal.repaint();
             TELA_ZERO.revalidate();
             TELA_ZERO.repaint();
-        }
-        
-        private void moverPneuParaDestino(String destino) {
-            try {
-                // 1. Obter informações do pneu que está sendo movido
-                int idPneu = obterIdPneuDoLabel(pneuSendoArrastado);
-                
-                if (idPneu > 0) {
-                    // 2. Atualizar o status do pneu no banco de dados
-                    PneuDAO pneuDAO = new PneuDAO();
-                    pneuDAO.atualizarStatusPneu(idPneu, destino);
-                    
-                    // 3. Atualizar a interface do usuário
-                    JOptionPane.showMessageDialog(null, "Pneu movido para " + destino + " com sucesso!");
-                    
-                    // 4. Se o destino for CONSERTO, abrir a tela de serviços
-                    if (destino.equals("CONSERTO")) {
-                        // Obter o ID do veículo atual, se disponível
-                        int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
-                        int idVeiculo = -1;
-                        if (selectedRow >= 0 && listaDeVeiculos != null && selectedRow < listaDeVeiculos.size()) {
-                            idVeiculo = listaDeVeiculos.get(selectedRow).getID();
-                        }
-                        
-                        // Abrir a tela de cadastro de serviços
-                        TelaCadastroServicos telaServicos = new TelaCadastroServicos((java.awt.Frame)getParent(), true);
-                        telaServicos.setPneuIdParaServico(idPneu);
-                        if (idVeiculo > 0) {
-                            telaServicos.setVeiculoIdParaServico(idVeiculo);
-                        }
-                        telaServicos.setVisible(true);
-                    }
-                    // 5. Atualizar a tabela de pneus em estoque se necessário
-                    else if (destino.equals("ESTOQUE")) {
-                        List<Pneu> pneus = pneuDAO.listarPneusEmEstoque();
-                        popularTabelaPneusEstoque(pneus);
-                    }
-                    
-                    // 6. Atualizar o chassi para refletir as mudanças
-                    Tabela_Exibicao_veiculosMouseClicked(null);
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(null, 
-                    "Erro ao mover pneu: " + ex.getMessage(), 
-                    "Erro", 
-                    JOptionPane.ERROR_MESSAGE
-                );
-                ex.printStackTrace();
-            }
-        }
-        
-        private int obterIdPneuDoLabel(JLabel label) {
-            // Implemente a lógica para obter o ID do pneu a partir do label
-            // Isso pode variar dependendo de como você está armazenando essa informação
-            // Por exemplo, você pode usar o método getClientProperty() para armazenar o ID no label
-            
-            // Exemplo:
-            Object idObj = label.getClientProperty("idPneu");
-            if (idObj != null && idObj instanceof Integer) {
-                return (Integer) idObj;
-            }
-            return -1; // Retorna -1 se não encontrar o ID
         }
 
         @Override
