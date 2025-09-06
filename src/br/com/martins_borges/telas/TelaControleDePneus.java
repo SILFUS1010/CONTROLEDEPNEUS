@@ -10,6 +10,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
+import java.awt.color.ColorSpace;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +25,8 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 
     private javax.swing.JLabel[][] slotsDePneus;
     private final Map<Integer, VehicleConfig> vehicleConfigs = new HashMap<>();
+    private ImageIcon iconPneuNormal;
+    private ImageIcon iconPneuCinza;
 
     public TelaControleDePneus(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -77,6 +82,9 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 
         limparChassi();
         configurarEstepes();
+        
+        // Inicializa os ícones dos pneus
+        inicializarIconesPneus();
     }
 
     private void configurarEstepes() {
@@ -1567,7 +1575,77 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     private javax.swing.JLabel sucata;
     // End of variables declaration//GEN-END:variables
 // </editor-fold> 
+
+    // --- INÍCIO: NOVOS MÉTODOS ADICIONADOS ---
+
     
+    private void carregarPneusNoChassi(int idVeiculo) {
+        java.util.List<Pneu> pneusNoVeiculo = pneuDAO.listarPneusNoVeiculo(idVeiculo);
+        
+        // Garante que os estepes também são resetados para o estado cinza antes de carregar pneus reais
+        lb_estepe1.setIcon(iconPneuCinza); 
+        lb_estepe1.putClientProperty("pneuData", null); 
+        lb_estepe1.setEnabled(false);
+
+        lb_estepe2.setIcon(iconPneuCinza); 
+        lb_estepe2.putClientProperty("pneuData", null); 
+        lb_estepe2.setEnabled(false);
+
+        // Coloca os pneus reais que vieram do banco de dados nos slots correspondentes
+        for (Pneu pneu : pneusNoVeiculo) {
+            String posicao = pneu.getPosicaoNoVeiculo(); 
+            if (posicao != null) {
+                JLabel targetLabel = getLabelForPosicaoChassi(posicao);
+                if (targetLabel != null) {
+                    targetLabel.setIcon(iconPneuNormal); // Define o ícone do pneu real (colorido)
+                    // Associa o objeto Pneu real ao JLabel para que possamos arrastá-lo depois
+                    targetLabel.putClientProperty("pneuData", pneu); 
+                    targetLabel.setEnabled(true); // Habilita o slot para arrasto (pois agora tem um pneu real)
+                }
+            }
+        }
+        // TODO: Chamar atualização da tabela de pneus em uso aqui, mas faremos isso em outra etapa
+    }
+
+    private JLabel getLabelForPosicaoChassi(String posicao) {
+        for (int i = 0; i < slotsDePneus.length; i++) {
+            for (int j = 0; j < slotsDePneus[i].length; j++) {
+                if (slotsDePneus[i][j] != null) {
+                    String slotPosicao = (String) slotsDePneus[i][j].getClientProperty("posicaoChassi");
+                    if (posicao.equals(slotPosicao)) {
+                        return slotsDePneus[i][j];
+                    }
+                }
+            }
+        }
+        // Verifica também os estepes
+        if ("ESTEPE1".equals(posicao)) return lb_estepe1;
+        if ("ESTEPE2".equals(posicao)) return lb_estepe2;
+        return null;
+    }
+
+    
+    private void inicializarIconesPneus() {
+        try {
+            // Carrega o ícone do pneu normal
+            ImageIcon pneuIcon = new ImageIcon(getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png"));
+            iconPneuNormal = redimensionarIcone(pneuIcon, 30, 30);
+            
+            // Cria uma versão em tons de cinza do ícone
+            BufferedImage img = new BufferedImage(30, 30, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = img.createGraphics();
+            g2d.drawImage(pneuIcon.getImage(), 0, 0, 30, 30, null);
+            g2d.dispose();
+            ColorConvertOp op = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
+            op.filter(img, img);
+            iconPneuCinza = new ImageIcon(img);
+        } catch (Exception e) {
+            e.printStackTrace();
+            
+            iconPneuNormal = new ImageIcon();
+            iconPneuCinza = new ImageIcon();
+        }
+    }
     
     
 }

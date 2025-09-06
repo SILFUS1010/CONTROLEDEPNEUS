@@ -313,17 +313,6 @@ import br.com.martins_borges.utilitarios.PosicaoFormulario;
 
     }//GEN-LAST:event_Cadastro_ServicoActionPerformed
 
-    public static void main(String args[]) {
-        try {
-        javax.swing.UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-        java.util.logging.Logger.getLogger(TelaPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, "Erro ao definir Look and Feel Metal.", ex);
-    }
-
-    java.awt.EventQueue.invokeLater(() -> {
-        new TelaPrincipal().setVisible(true);
-    });
-}
 
 // <editor-fold defaultstate="collapsed" desc="Generated Code"> 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -341,5 +330,29 @@ import br.com.martins_borges.utilitarios.PosicaoFormulario;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
     // End of variables declaration//GEN-END:variables
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Configura o look and feel do sistema operacional */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException | InstantiationException | 
+                IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+            System.err.println("Erro ao configurar o Look and Feel");
+            ex.printStackTrace();
+        }
+        
+        /* Cria e exibe o formulário */
+        java.awt.EventQueue.invokeLater(() -> {
+            new TelaPrincipal().setVisible(true);
+        });
+    }
 // </editor-fold> 
 }
