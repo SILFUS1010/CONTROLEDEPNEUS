@@ -13,14 +13,9 @@ import javax.swing.JOptionPane; // Para feedback de erro
 
 public class PneuDAO {
 
-    // A variável 'conexao' não está sendo usada consistentemente.
-    // O ideal é que todos os métodos peguem a conexão de ModuloConexao.conector()
-    // e a fechem no bloco finally, como você já faz em muitos lugares.
-    // Para simplificar, vou manter a estrutura de pegar a conexão dentro de cada método.
-
     public PneuDAO() {
         // O construtor não precisa inicializar a conexão globalmente se cada método
-        // pega e fecha a sua própria conexão.
+        // pega e fecha a sua própria conexão através de ModuloConexao.conector().
     }
 
     /**
@@ -28,7 +23,8 @@ public class PneuDAO {
      * @return Lista de objetos Pneu
      */
     public List<Pneu> listarTodosPneus() {
-        String sql = "SELECT * FROM cad_pneus ORDER BY FOGO";
+        // Inclui os novos campos na consulta SQL
+        String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO FROM cad_pneus ORDER BY FOGO";
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -50,29 +46,40 @@ public class PneuDAO {
                 pneu.setIdEmpresaProprietaria(rs.getInt("ID_EMPRESA_PROPRIETARIA"));
                 pneu.setFogo(rs.getString("FOGO"));
                 pneu.setFornecedor(rs.getString("FORNECEDOR"));
-                pneu.setValor(rs.getDouble("VALOR"));
+                pneu.setValor(rs.getObject("VALOR") != null ? rs.getDouble("VALOR") : null);
                 pneu.setFabricante(rs.getString("FABRICANTE"));
                 pneu.setTipoPneu(rs.getString("TIPO_PNEU"));
                 pneu.setModelo(rs.getString("MODELO"));
                 pneu.setDot(rs.getString("DOT"));
                 pneu.setMedida(rs.getString("MEDIDA"));
-                pneu.setProfundidade(rs.getDouble("PROFUNDIDADE"));
-                pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
-                pneu.setProjetadoKm(rs.getInt("PROJETADO_KM"));
-                pneu.setObservacoes(rs.getString("OBSERVACOES"));
-                pneu.setStatusPneu(rs.getString("status_pneu"));
-                pneu.setIdVeiculo(rs.getInt("ID_VEICULO"));
-                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO"));
+                pneu.setProfundidade(rs.getObject("PROFUNDIDADE") != null ? rs.getDouble("PROFUNDIDADE") : null);
                 
-                if (rs.getDate("DATA_CADASTRO") != null) {
-                    pneu.setDataCadastro(rs.getDate("DATA_CADASTRO").toLocalDate());
+                java.sql.Date sqlDateCadastro = rs.getDate("DATA_CADASTRO");
+                if (sqlDateCadastro != null) {
+                    pneu.setDataCadastro(sqlDateCadastro.toLocalDate());
+                } else {
+                    pneu.setDataCadastro(null);
                 }
+                
+                pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
+                // Tratamento para PROJETADO_KM que pode ser NULL no DB
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
+                
+                pneu.setObservacoes(rs.getString("OBSERVACOES"));
+                pneu.setDataRetorno(rs.getDate("DATA_RETORNO")); // Pode ser null
+                pneu.setStatusPneu(rs.getString("status_pneu"));
+                
+                // Tratamento para ID_VEICULO que pode ser NULL no DB
+                Integer idVeiculoRs = rs.getInt("ID_VEICULO");
+                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculoRs);
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // String já trata NULL automaticamente
                 
                 pneus.add(pneu);
             }
             
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Erro ao listar pneus: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Erro ao listar todos os pneus: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
         } finally {
             try { if (rs != null) rs.close(); } catch (SQLException e) { /* Ignora */ }
             try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { /* Ignora */ }
@@ -88,7 +95,8 @@ public class PneuDAO {
      * @return O objeto Pneu encontrado ou null se não encontrado
      */
     public Pneu buscarPneuPorId(int id) {
-        String sql = "SELECT * FROM cad_pneus WHERE ID = ?";
+        // Inclui os novos campos na consulta SQL
+        String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO FROM cad_pneus WHERE ID = ?";
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -111,27 +119,38 @@ public class PneuDAO {
                 pneu.setIdEmpresaProprietaria(rs.getInt("ID_EMPRESA_PROPRIETARIA"));
                 pneu.setFogo(rs.getString("FOGO"));
                 pneu.setFornecedor(rs.getString("FORNECEDOR"));
-                pneu.setValor(rs.getDouble("VALOR"));
+                pneu.setValor(rs.getObject("VALOR") != null ? rs.getDouble("VALOR") : null);
                 pneu.setFabricante(rs.getString("FABRICANTE"));
                 pneu.setTipoPneu(rs.getString("TIPO_PNEU"));
                 pneu.setModelo(rs.getString("MODELO"));
                 pneu.setDot(rs.getString("DOT"));
                 pneu.setMedida(rs.getString("MEDIDA"));
-                pneu.setProfundidade(rs.getDouble("PROFUNDIDADE"));
-                pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
-                pneu.setProjetadoKm(rs.getInt("PROJETADO_KM"));
-                pneu.setObservacoes(rs.getString("OBSERVACOES"));
-                pneu.setStatusPneu(rs.getString("status_pneu"));
-                pneu.setIdVeiculo(rs.getInt("ID_VEICULO"));
-                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO"));
+                pneu.setProfundidade(rs.getObject("PROFUNDIDADE") != null ? rs.getDouble("PROFUNDIDADE") : null);
                 
-                if (rs.getDate("DATA_CADASTRO") != null) {
-                    pneu.setDataCadastro(rs.getDate("DATA_CADASTRO").toLocalDate());
+                java.sql.Date sqlDateCadastro = rs.getDate("DATA_CADASTRO");
+                if (sqlDateCadastro != null) {
+                    pneu.setDataCadastro(sqlDateCadastro.toLocalDate());
+                } else {
+                    pneu.setDataCadastro(null);
                 }
+                
+                pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
+                // Tratamento para PROJETADO_KM que pode ser NULL no DB
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
+                
+                pneu.setObservacoes(rs.getString("OBSERVACOES"));
+                pneu.setDataRetorno(rs.getDate("DATA_RETORNO")); // Pode ser null
+                pneu.setStatusPneu(rs.getString("status_pneu"));
+                
+                // Tratamento para ID_VEICULO que pode ser NULL no DB
+                Integer idVeiculoRs = rs.getInt("ID_VEICULO");
+                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculoRs);
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // String já trata NULL automaticamente
             }
             
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Erro ao buscar pneu: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Erro ao buscar pneu por ID: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
         } finally {
             try { if (rs != null) rs.close(); } catch (SQLException e) { /* Ignora */ }
             try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { /* Ignora */ }
@@ -142,11 +161,11 @@ public class PneuDAO {
     }
 
     public boolean inserirPneu(Pneu pneu) {
-        // ATENÇÃO: Adicione ID_VEICULO e POSICAO_NO_VEICULO (NULL) no INSERT se eles não forem adicionados por padrão na DB
+        // Adiciona ID_VEICULO e POSICAO_NO_VEICULO (NULL) no INSERT
         String sql = "INSERT INTO cad_pneus (ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
                 + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, "
-                + "PROJETADO_KM, OBSERVACOES, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO) " // <--- ID_VEICULO e POSICAO_NO_VEICULO adicionados aqui
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // <--- Aumenta o número de VALUES
+                + "PROJETADO_KM, OBSERVACOES, status_pneu, DATA_RETORNO, ID_VEICULO, POSICAO_NO_VEICULO) " // <--- Novos campos adicionados aqui
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // <--- Aumenta o número de VALUES
         Connection conn = null;
         PreparedStatement pstmt = null;
 
@@ -194,8 +213,15 @@ public class PneuDAO {
             }
             pstmt.setString(14, pneu.getObservacoes());
             pstmt.setString(15, "ESTOQUE"); // Status inicial
-            pstmt.setNull(16, Types.INTEGER); // ID_VEICULO inicia como NULL
-            pstmt.setNull(17, Types.VARCHAR); // POSICAO_NO_VEICULO inicia como NULL
+            
+            if (pneu.getDataRetorno() != null) { // Adiciona dataRetorno
+                pstmt.setDate(16, new java.sql.Date(pneu.getDataRetorno().getTime()));
+            } else {
+                pstmt.setNull(16, Types.DATE);
+            }
+            
+            pstmt.setNull(17, Types.INTEGER); // ID_VEICULO inicia como NULL
+            pstmt.setNull(18, Types.VARCHAR); // POSICAO_NO_VEICULO inicia como NULL
 
             int adicionado = pstmt.executeUpdate();
             return adicionado > 0;
@@ -218,8 +244,6 @@ public class PneuDAO {
         try {
             conn = ModuloConexao.conector();
             if (conn == null) {
-                // Se a conexão falhar, assumimos que pode haver um erro e evitamos prosseguir.
-                // Ou você pode lançar uma exceção específica aqui.
                 JOptionPane.showMessageDialog(null, "Erro de Conexão com o Banco.", "Erro DAO", JOptionPane.ERROR_MESSAGE);
                 return true; 
             }
@@ -239,12 +263,12 @@ public class PneuDAO {
         return existe;
     }
 
-    // --- NOVO MÉTODO: 1. Buscar um pneu completo pelo número de fogo (fogo é único, assumimos) ---
-    // Este método é crucial para pegar o Pneu_Escolhido e para as operações de drag-and-drop.
+    // --- NOVO MÉTODO: 1. Buscar um pneu completo pelo número de fogo ---
     public Pneu buscarPneuPorFogo(String fogo) {
+        // Inclui os novos campos na consulta SQL
         String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
                 + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, "
-                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO " // <--- NOVOS CAMPOS AQUI
+                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO "
                 + "FROM cad_pneus WHERE FOGO = ?";
 
         Connection conn = null;
@@ -285,16 +309,18 @@ public class PneuDAO {
                 }
                 
                 pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
-                pneu.setProjetadoKm(rs.getObject("PROJETADO_KM") != null ? rs.getInt("PROJETADO_KM") : null);
-                pneu.setObservacoes(rs.getString("OBSERVACOES"));
-                pneu.setDataRetorno(rs.getDate("DATA_RETORNO"));
-                pneu.setStatusPneu(rs.getString("status_pneu")); // Já existia no seu modelo
+                // Tratamento para PROJETADO_KM que pode ser NULL no DB
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
                 
-                // --- PREENCHE OS NOVOS CAMPOS DO PNEU ---
-                Integer idVeiculo = rs.getInt("ID_VEICULO");
-                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculo); // Verifica se é NULL no DB
-                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // Pode ser NULL no DB
-                // --- FIM DOS NOVOS CAMPOS ---
+                pneu.setObservacoes(rs.getString("OBSERVACOES"));
+                pneu.setDataRetorno(rs.getDate("DATA_RETORNO")); // Pode ser null
+                pneu.setStatusPneu(rs.getString("status_pneu"));
+                
+                // Tratamento para ID_VEICULO que pode ser NULL no DB
+                Integer idVeiculoRs = rs.getInt("ID_VEICULO");
+                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculoRs);
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // String já trata NULL automaticamente
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Erro DAO ao buscar pneu por N° Fogo: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
@@ -307,16 +333,15 @@ public class PneuDAO {
     }
 
     // --- MODIFICADO MÉTODO: 2. Listar pneus por status e (opcionalmente) medida ---
-    // Garante que todos os campos (incluindo os novos) sejam preenchidos.
     public List<Pneu> listarPneusPorStatusEMedida(String status, String medida) {
         List<Pneu> listaPneus = new ArrayList<>();
-        // Adicione os novos campos à sua consulta SQL
+        // Inclui os novos campos na consulta SQL
         String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
                 + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, "
-                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO " // <--- NOVOS CAMPOS AQUI
+                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO "
                 + "FROM cad_pneus WHERE status_pneu = ?";
         if (medida != null && !medida.trim().isEmpty()) {
-            sql += " AND MEDIDA = ?"; // Use 'MEDIDA' em maiúsculas se for assim na DB
+            sql += " AND MEDIDA = ?"; 
         }
         sql += " ORDER BY FOGO"; // Adicionado ORDER BY
         
@@ -356,16 +381,18 @@ public class PneuDAO {
                     pneu.setDataCadastro(null);
                 }
                 pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
-                pneu.setProjetadoKm(rs.getObject("PROJETADO_KM") != null ? rs.getInt("PROJETADO_KM") : null);
+                // Tratamento para PROJETADO_KM que pode ser NULL no DB
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
+                
                 pneu.setObservacoes(rs.getString("OBSERVACOES"));
                 pneu.setDataRetorno(rs.getDate("DATA_RETORNO")); // Pode ser null
                 pneu.setStatusPneu(rs.getString("status_pneu"));
                 
-                // --- PREENCHE OS NOVOS CAMPOS DO PNEU ---
-                Integer idVeiculo = rs.getInt("ID_VEICULO");
-                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculo);
-                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO"));
-                // --- FIM DOS NOVOS CAMPOS ---
+                // Tratamento para ID_VEICULO que pode ser NULL no DB
+                Integer idVeiculoRs = rs.getInt("ID_VEICULO");
+                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculoRs);
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // String já trata NULL automaticamente
                 
                 listaPneus.add(pneu);
             }
@@ -380,12 +407,10 @@ public class PneuDAO {
     }
 
     // --- MODIFICADO MÉTODO: 3. Listar todos os pneus com um determinado status ---
-    // Garante que todos os campos (incluindo os novos) sejam preenchidos.
-    // Este método é a versão mais genérica para popular tabelas por status.
     public List<Pneu> listarPneusPorStatus(String status) {
         String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
                 + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, "
-                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO " // <--- NOVOS CAMPOS AQUI
+                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO "
                 + "FROM cad_pneus WHERE status_pneu = ? ORDER BY FOGO";
 
         List<Pneu> listaPneus = new ArrayList<>();
@@ -421,16 +446,18 @@ public class PneuDAO {
                     pneu.setDataCadastro(null);
                 }
                 pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
-                pneu.setProjetadoKm(rs.getObject("PROJETADO_KM") != null ? rs.getInt("PROJETADO_KM") : null);
+                // Tratamento para PROJETADO_KM que pode ser NULL no DB
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
+                
                 pneu.setObservacoes(rs.getString("OBSERVACOES"));
                 pneu.setDataRetorno(rs.getDate("DATA_RETORNO")); // Pode ser null
                 pneu.setStatusPneu(rs.getString("status_pneu"));
                 
-                // --- PREENCHE OS NOVOS CAMPOS DO PNEU ---
-                Integer idVeiculo = rs.getInt("ID_VEICULO");
-                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculo);
-                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO"));
-                // --- FIM DOS NOVOS CAMPOS ---
+                // Tratamento para ID_VEICULO que pode ser NULL no DB
+                Integer idVeiculoRs = rs.getInt("ID_VEICULO");
+                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculoRs);
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // String já trata NULL automaticamente
 
                 listaPneus.add(pneu);
             }
@@ -445,12 +472,11 @@ public class PneuDAO {
     }
     
     // --- NOVO MÉTODO: 4. Listar pneus atualmente alocados em um veículo específico ---
-    // Usado para carregar os pneus no chassi quando um veículo é selecionado.
     public List<Pneu> listarPneusNoVeiculo(int idVeiculo) {
         List<Pneu> pneus = new ArrayList<>();
         String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
                 + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, "
-                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO " // <--- NOVOS CAMPOS AQUI
+                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO "
                 + "FROM cad_pneus WHERE ID_VEICULO = ? ORDER BY POSICAO_NO_VEICULO";
 
         Connection conn = null;
@@ -490,15 +516,17 @@ public class PneuDAO {
                 }
                 
                 pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
-                pneu.setProjetadoKm(rs.getObject("PROJETADO_KM") != null ? rs.getInt("PROJETADO_KM") : null);
+                // Tratamento para PROJETADO_KM que pode ser NULL no DB
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
+                
                 pneu.setObservacoes(rs.getString("OBSERVACOES"));
                 pneu.setDataRetorno(rs.getDate("DATA_RETORNO"));
                 pneu.setStatusPneu(rs.getString("status_pneu"));
                 
-                // --- PREENCHE OS NOVOS CAMPOS DO PNEU ---
-                pneu.setIdVeiculo(rs.getInt("ID_VEICULO")); // Quando aqui, não será null
-                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // Quando aqui, não será null
-                // --- FIM DOS NOVOS CAMPOS ---
+                // ID_VEICULO e POSICAO_NO_VEICULO não serão NULL aqui, pois estamos filtrando por ID_VEICULO
+                pneu.setIdVeiculo(rs.getInt("ID_VEICULO")); 
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); 
                 
                 pneus.add(pneu);
             }
@@ -513,7 +541,6 @@ public class PneuDAO {
     }
 
     // --- NOVO MÉTODO: 5. Atualizar a localização de um pneu (alocar a um veículo/posição) ---
-    // Define ID_VEICULO, POSICAO_NO_VEICULO e status_pneu como 'NO_VEICULO'.
     public boolean atualizarLocalizacaoPneu(int pneuId, int veiculoId, String posicaoNoVeiculo) {
         String sql = "UPDATE cad_pneus SET ID_VEICULO = ?, POSICAO_NO_VEICULO = ?, status_pneu = 'NO_VEICULO' WHERE ID = ?";
         
@@ -542,10 +569,8 @@ public class PneuDAO {
     }
 
     // --- NOVO MÉTODO: 6. Remover um pneu de um veículo ---
-    // Define ID_VEICULO = NULL, POSICAO_NO_VEICULO = NULL.
-    // Não altera o status_pneu (que será atualizado por 'atualizarStatusPneu' se for para manutenção).
     public boolean removerPneuDoVeiculo(int pneuId) {
-        String sql = "UPDATE cad_pneus SET ID_VEICULO = ?, POSICAO_NO_VEICULO = ? WHERE ID = ?"; // Usamos ? para setNull
+        String sql = "UPDATE cad_pneus SET ID_VEICULO = ?, POSICAO_NO_VEICULO = ? WHERE ID = ?"; 
         
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -577,14 +602,11 @@ public class PneuDAO {
             return false;
         }
 
-        // ATENÇÃO: Se ID_VEICULO e POSICAO_NO_VEICULO também puderem ser atualizados por este método,
-        // você precisará adicioná-los ao SQL e aos pstmt.set().
-        // Para a funcionalidade Drag&Drop, usamos métodos mais específicos.
         String sql = "UPDATE cad_pneus SET "
                 + "ID_EMPRESA_PROPRIETARIA = ?, FOGO = ?, FORNECEDOR = ?, VALOR = ?, "
                 + "FABRICANTE = ?, TIPO_PNEU = ?, MODELO = ?, DOT = ?, MEDIDA = ?, "
                 + "PROFUNDIDADE = ?, N_RECAPAGENS = ?, PROJETADO_KM = ?, OBSERVACOES = ?, status_pneu = ?, "
-                + "DATA_RETORNO = ? " // <--- Adicionado DATA_RETORNO no update
+                + "DATA_RETORNO = ? " 
                 + "WHERE ID = ?";
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -593,9 +615,6 @@ public class PneuDAO {
             if (conn == null) {
                 return false;
             }
-            // Verifica duplicidade APENAS se o fogo ou empresa forem alterados e conflituírem com outro pneu.
-            // Para simplicidade, a verificação 'existePneuDuplicadoParaUpdate' foi removida do fluxo principal,
-            // mas você pode mantê-la se a lógica de negócio exigir.
             pstmt = conn.prepareStatement(sql);
 
             pstmt.setInt(1, pneu.getIdEmpresaProprietaria());
@@ -624,12 +643,12 @@ public class PneuDAO {
             }
             pstmt.setString(13, pneu.getObservacoes());
             pstmt.setString(14, pneu.getStatusPneu());
-            if (pneu.getDataRetorno() != null) { // <--- Adicionado DATA_RETORNO
+            if (pneu.getDataRetorno() != null) {
                 pstmt.setDate(15, new java.sql.Date(pneu.getDataRetorno().getTime()));
             } else {
                 pstmt.setNull(15, Types.DATE);
             }
-            pstmt.setInt(16, pneu.getId()); // ID é o último parâmetro para WHERE
+            pstmt.setInt(16, pneu.getId()); 
 
             int linhasAfetadas = pstmt.executeUpdate();
             return linhasAfetadas == 1;
@@ -672,21 +691,8 @@ public class PneuDAO {
         return existe;
     }
 
-    // --- MÉTODO ANTIGO E AGORA REDUNDANTE. PODE SER REMOVIDO ---
-    // public List<Pneu> listarPneusEmEstoque() {
-    //    return listarPneusPorStatus("ESTOQUE");
-    // }
-    // --- FIM DA REMOÇÃO ---
-
-    // --- MÉTODO ANTIGO E AGORA REDUNDANTE. PODE SER REMOVIDO ---
-    // public boolean atualizarStatus(int idPneu, String novoStatus) {
-    //    return atualizarStatusPneu(idPneu, novoStatus); // Chama o método renomeado
-    // }
-    // --- FIM DA REMOÇÃO ---
-
     // --- MODIFICADO/PADRONIZADO MÉTODO: 7. Atualizar apenas o status de um pneu ---
-    // Renomeado para 'atualizarStatusPneu' para consistência e uso no drag-and-drop.
-    public boolean atualizarStatusPneu(int pneuId, String novoStatus) { // <--- pneuId no lugar de idPneu
+    public boolean atualizarStatusPneu(int pneuId, String novoStatus) { 
         if (pneuId <= 0 || novoStatus == null || novoStatus.trim().isEmpty()) {
             return false;
         }
@@ -716,7 +722,7 @@ public class PneuDAO {
     public Pneu buscarPorEmpresaEFogo(int idEmpresa, String fogoSequencial) {
         String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
                 + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, "
-                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO " // <--- NOVOS CAMPOS AQUI
+                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO "
                 + "FROM cad_pneus WHERE ID_EMPRESA_PROPRIETARIA = ? AND FOGO = ?";
         Pneu pneu = null;
         Connection conn = null;
@@ -754,24 +760,28 @@ public class PneuDAO {
                 java.sql.Date sqlDate = rs.getDate("DATA_CADASTRO");
                 if (sqlDate != null) {
                     pneu.setDataCadastro(sqlDate.toLocalDate());
+                } else {
+                    pneu.setDataCadastro(null);
                 }
                 pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
-                pneu.setProjetadoKm(rs.getObject("PROJETADO_KM") != null ? rs.getInt("PROJETADO_KM") : null);
+                // Tratamento para PROJETADO_KM que pode ser NULL no DB
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
+                
                 pneu.setObservacoes(rs.getString("OBSERVACOES"));
                 pneu.setDataRetorno(rs.getDate("DATA_RETORNO")); // Pode ser null
                 pneu.setStatusPneu(rs.getString("status_pneu"));
 
-                // --- PREENCHE OS NOVOS CAMPOS DO PNEU ---
-                Integer idVeiculo = rs.getInt("ID_VEICULO");
-                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculo);
-                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO"));
-                // --- FIM DOS NOVOS CAMPOS ---
+                // Tratamento para ID_VEICULO que pode ser NULL no DB
+                Integer idVeiculoRs = rs.getInt("ID_VEICULO");
+                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculoRs);
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // String já trata NULL automaticamente
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Erro DAO ao buscar pneu por empresa/fogo: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
         } finally {
             try { if (rs != null) rs.close(); } catch (SQLException e) { /* Ignora */ }
-            try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { /* Ignora */ }
+            try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { /* Ignora */  }
             try { if (conn != null) conn.close(); } catch (SQLException e) { /* Ignora */ }
         }
         return pneu;
@@ -781,7 +791,7 @@ public class PneuDAO {
         List<Pneu> pneusEncontrados = new ArrayList<>();
         StringBuilder sqlBuilder = new StringBuilder("SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
                 + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, "
-                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO " // <--- NOVOS CAMPOS AQUI
+                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO "
                 + "FROM cad_pneus WHERE 1=1");
         List<Object> parametros = new ArrayList<>();
 
@@ -829,18 +839,23 @@ public class PneuDAO {
                 java.sql.Date sqlDate = rs.getDate("DATA_CADASTRO");
                 if (sqlDate != null) {
                     pneu.setDataCadastro(sqlDate.toLocalDate());
+                } else {
+                    pneu.setDataCadastro(null);
                 }
                 pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
-                pneu.setProjetadoKm(rs.getObject("PROJETADO_KM") != null ? rs.getInt("PROJETADO_KM") : null);
+                // Tratamento para PROJETADO_KM que pode ser NULL no DB
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
+                
                 pneu.setObservacoes(rs.getString("OBSERVACOES"));
                 pneu.setDataRetorno(rs.getDate("DATA_RETORNO")); // Pode ser null
                 pneu.setStatusPneu(rs.getString("status_pneu"));
 
-                // --- PREENCHE OS NOVOS CAMPOS DO PNEU ---
-                Integer idVeiculo = rs.getInt("ID_VEICULO");
-                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculo);
-                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO"));
-                // --- FIM DOS NOVOS CAMPOS ---
+                // Tratamento para ID_VEICULO que pode ser NULL no DB
+                Integer idVeiculoRs = rs.getInt("ID_VEICULO");
+                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculoRs);
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // String já trata NULL automaticamente
+                
                 pneusEncontrados.add(pneu);
             }
         } catch (SQLException e) {
@@ -859,7 +874,7 @@ public class PneuDAO {
         }
         String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
                 + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, "
-                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO " // <--- NOVOS CAMPOS AQUI
+                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO "
                 + "FROM cad_pneus WHERE ID = ?";
         Pneu pneu = null;
         Connection conn = null;
@@ -895,16 +910,18 @@ public class PneuDAO {
                     pneu.setDataCadastro(null);
                 }
                 pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
-                pneu.setProjetadoKm(rs.getObject("PROJETADO_KM") != null ? rs.getInt("PROJETADO_KM") : null);
+                // Tratamento para PROJETADO_KM que pode ser NULL no DB
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
+                
                 pneu.setObservacoes(rs.getString("OBSERVACOES"));
                 pneu.setDataRetorno(rs.getDate("DATA_RETORNO")); // Pode ser null
                 pneu.setStatusPneu(rs.getString("status_pneu"));
 
-                // --- PREENCHE OS NOVOS CAMPOS DO PNEU ---
-                Integer idVeiculo = rs.getInt("ID_VEICULO");
-                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculo);
-                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO"));
-                // --- FIM DOS NOVOS CAMPOS ---
+                // Tratamento para ID_VEICULO que pode ser NULL no DB
+                Integer idVeiculoRs = rs.getInt("ID_VEICULO");
+                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculoRs);
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO")); // String já trata NULL automaticamente
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Erro DAO ao buscar Pneu por ID: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
@@ -942,22 +959,30 @@ public class PneuDAO {
     }
 
     public void moverParaPneuExcluido(Pneu pneu) {
-        String sqlInsert = "INSERT INTO pneus_excluidos (id, status, data_retorno) VALUES (?, ?, ?)";
+        // Inclui ID_VEICULO e POSICAO_NO_VEICULO para registrar o estado antes da exclusão, se necessário
+        String sqlInsert = "INSERT INTO pneus_excluidos (id, status, data_retorno, id_veiculo, posicao_no_veiculo) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = ModuloConexao.conector(); PreparedStatement stmt = conn.prepareStatement(sqlInsert)) {
 
             stmt.setInt(1, pneu.getId());
-            stmt.setString(2, pneu.getStatusPneu()); // Usa statusPneu
+            stmt.setString(2, pneu.getStatusPneu());
             if (pneu.getDataRetorno() != null) {
                 stmt.setDate(3, new java.sql.Date(pneu.getDataRetorno().getTime()));
             } else {
                 stmt.setNull(3, Types.DATE);
             }
+            // Novas colunas para pneus_excluidos
+            if (pneu.getIdVeiculo() != null) {
+                stmt.setInt(4, pneu.getIdVeiculo());
+            } else {
+                stmt.setNull(4, Types.INTEGER);
+            }
+            stmt.setString(5, pneu.getPosicaoNoVeiculo()); // Pode ser null
             
-
             stmt.executeUpdate();
 
-            String sqlDelete = "DELETE FROM ordens_servico_pneu WHERE id = ?"; // Ajuste o nome da tabela se necessário
+            // Ajuste o nome da tabela 'ordens_servico_pneu' se necessário
+            String sqlDelete = "DELETE FROM ordens_servico_pneu WHERE id_pneu_fk = ?"; // Assumindo FK 'id_pneu_fk'
             try (PreparedStatement stmtDelete = conn.prepareStatement(sqlDelete)) {
                 stmtDelete.setInt(1, pneu.getId());
                 stmtDelete.executeUpdate();

@@ -22,8 +22,6 @@ public class TelaControleDePneus extends javax.swing.JDialog {
 
     private javax.swing.JLabel[][] slotsDePneus;
     private final Map<Integer, VehicleConfig> vehicleConfigs = new HashMap<>();
-    private final Map<Integer, ImageIcon[][]> pneusPorVeiculo = new HashMap<>();
-    private Integer veiculoAtualId = null;
 
     public TelaControleDePneus(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -135,8 +133,14 @@ public class TelaControleDePneus extends javax.swing.JDialog {
         // Oculta a espinha dorsal
         lbespinha_dorsal.setVisible(false);
 
-        // Não ocultamos mais os slots de pneus aqui para evitar perda de referência
-        // Apenas os eixos serão ocultados
+        // Oculta todos os slots de pneus
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (slotsDePneus[i][j] != null) {
+                    slotsDePneus[i][j].setVisible(false);
+                }
+            }
+        }
 
         // Oculta os triângulos e engates
         Triangulo1.setVisible(false);
@@ -1064,27 +1068,15 @@ public class TelaControleDePneus extends javax.swing.JDialog {
     }//GEN-LAST:event_Tabela_ExibicaoPneuUsadoMouseClicked
 
     private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {                                                      
+                                                    
+
         int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
         if (selectedRow == -1) {
             return;
         }
-        
-        // Salva os pneus do veículo atual antes de trocar
-        if (veiculoAtualId != null) {
-            ImageIcon[][] pneusAtuais = new ImageIcon[9][4];
-            for (int i = 0; i < slotsDePneus.length && i < pneusAtuais.length; i++) {
-                for (int j = 0; j < 4 && j < pneusAtuais[i].length; j++) {
-                    if (slotsDePneus[i][j] != null) {
-                        pneusAtuais[i][j] = (ImageIcon) slotsDePneus[i][j].getIcon();
-                    }
-                }
-            }
-            pneusPorVeiculo.put(veiculoAtualId, pneusAtuais);
-        }
 
         // Pega o objeto Veiculo completo da linha selecionada
         Veiculo veiculoSelecionado = this.listaDeVeiculos.get(selectedRow);
-        veiculoAtualId = veiculoSelecionado.getID();
 
         // Pega o ID do tipo de veículo, que servirá como chave para a configuração
         int idConfig = veiculoSelecionado.getID_CONFIG_FK();
@@ -1323,41 +1315,8 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                 return;
         }
 
-        // Salva os pneus atuais antes de desenhar o chassi
-        ImageIcon[][] pneusAntes = new ImageIcon[9][4];
-        for (int i = 0; i < slotsDePneus.length && i < pneusAntes.length; i++) {
-            for (int j = 0; j < 4 && j < pneusAntes[i].length; j++) {
-                if (slotsDePneus[i][j] != null) {
-                    pneusAntes[i][j] = (ImageIcon) slotsDePneus[i][j].getIcon();
-                }
-            }
-        }
-        
-        // Desenha o chassi
+        // Após definir as instruções, manda o desenhista trabalhar com elas
         desenharChassi(tipos, visibilidade, espacamento, alinhamento, deslocamentos, ajustesVerticais, largurasEixos, posicoesEixos, extensaoEspinha);
-        
-        // Restaura os pneus que estavam visíveis
-        for (int i = 0; i < pneusAntes.length && i < slotsDePneus.length; i++) {
-            for (int j = 0; j < pneusAntes[i].length && j < 4; j++) {
-                if (pneusAntes[i][j] != null && slotsDePneus[i][j] != null) {
-                    slotsDePneus[i][j].setIcon(pneusAntes[i][j]);
-                    slotsDePneus[i][j].setVisible(true);
-                }
-            }
-        }
-        
-        // Se houver pneus salvos para este veículo, restaura-os
-        if (veiculoAtualId != null && pneusPorVeiculo.containsKey(veiculoAtualId)) {
-            ImageIcon[][] pneusSalvos = pneusPorVeiculo.get(veiculoAtualId);
-            for (int i = 0; i < pneusSalvos.length && i < slotsDePneus.length; i++) {
-                for (int j = 0; j < pneusSalvos[i].length && j < 4; j++) {
-                    if (pneusSalvos[i][j] != null && slotsDePneus[i][j] != null) {
-                        slotsDePneus[i][j].setIcon(pneusSalvos[i][j]);
-                        slotsDePneus[i][j].setVisible(true);
-                    }
-                }
-            }
-        }
 
         // --- ATUALIZA AS OUTRAS TABELAS DA TELA ---
         String medidaNecessaria = veiculoSelecionado.getMEDIDA_PNEU();
