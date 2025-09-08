@@ -540,60 +540,155 @@ public class PneuDAO {
         return pneus;
     }
 
-    // --- NOVO MÉTODO: 5. Atualizar a localização de um pneu (alocar a um veículo/posição) ---
-    public boolean atualizarLocalizacaoPneu(int pneuId, int veiculoId, String posicaoNoVeiculo) {
-        String sql = "UPDATE cad_pneus SET ID_VEICULO = ?, POSICAO_NO_VEICULO = ?, status_pneu = 'NO_VEICULO' WHERE ID = ?";
+    // --- MÉTODO ATUALIZADO: 5. Atualizar a localização de um pneu (alocar a um veículo/posição) ---
+    // Agora aceita um parâmetro para o status e usa a conexão fornecida (pode ser nula para criar uma nova)
+    public boolean atualizarLocalizacaoPneu(int pneuId, int veiculoId, String posicaoNoVeiculo, String status) {
+        String sql = "UPDATE cad_pneus SET ID_VEICULO = ?, POSICAO_NO_VEICULO = ?, status_pneu = ? WHERE ID = ?";
         
         Connection conn = null;
         PreparedStatement pstmt = null;
+        boolean closeConnection = false;
+        
         try {
-            conn = ModuloConexao.conector();
+            // Se a conexão for fornecida, usa a existente, senão cria uma nova
             if (conn == null) {
-                JOptionPane.showMessageDialog(null, "Erro de Conexão com o Banco.", "Erro DAO", JOptionPane.ERROR_MESSAGE);
-                return false;
+                conn = ModuloConexao.conector();
+                closeConnection = true;
+                if (conn == null) {
+                    JOptionPane.showMessageDialog(null, "Erro de Conexão com o Banco.", "Erro DAO", JOptionPane.ERROR_MESSAGE);
+                    return false;
+                }
             }
 
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, veiculoId);
             pstmt.setString(2, posicaoNoVeiculo);
-            pstmt.setInt(3, pneuId);
+            pstmt.setString(3, status);
+            pstmt.setInt(4, pneuId);
+            
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
+            
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Erro DAO ao alocar pneu: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
             return false;
         } finally {
             try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { /* Ignora */ }
-            try { if (conn != null) conn.close(); } catch (SQLException e) { /* Ignora */ }
+            // Só fecha a conexão se ela foi criada neste método
+            try { 
+                if (conn != null && closeConnection) { 
+                    conn.close(); 
+                } 
+            } catch (SQLException e) { /* Ignora */ }
         }
     }
 
-    // --- NOVO MÉTODO: 6. Remover um pneu de um veículo ---
-    public boolean removerPneuDoVeiculo(int pneuId) {
-        String sql = "UPDATE cad_pneus SET ID_VEICULO = ?, POSICAO_NO_VEICULO = ? WHERE ID = ?"; 
+    // --- MÉTODO ATUALIZADO: 6. Remover um pneu de um veículo ---
+    // Agora aceita um parâmetro para o status e usa a conexão fornecida (pode ser nula para criar uma nova)
+    public boolean removerPneuDoVeiculo(int pneuId, String novoStatus) {
+        String sql = "UPDATE cad_pneus SET ID_VEICULO = NULL, POSICAO_NO_VEICULO = NULL, status_pneu = ? WHERE ID = ?"; 
         
         Connection conn = null;
         PreparedStatement pstmt = null;
+        boolean closeConnection = false;
+        
         try {
-            conn = ModuloConexao.conector();
+            // Se a conexão for fornecida, usa a existente, senão cria uma nova
             if (conn == null) {
-                JOptionPane.showMessageDialog(null, "Erro de Conexão com o Banco.", "Erro DAO", JOptionPane.ERROR_MESSAGE);
-                return false;
+                conn = ModuloConexao.conector();
+                closeConnection = true;
+                if (conn == null) {
+                    JOptionPane.showMessageDialog(null, "Erro de Conexão com o Banco.", "Erro DAO", JOptionPane.ERROR_MESSAGE);
+                    return false;
+                }
             }
 
             pstmt = conn.prepareStatement(sql);
-            pstmt.setNull(1, Types.INTEGER); // Define ID_VEICULO como NULL
-            pstmt.setNull(2, Types.VARCHAR); // Define POSICAO_NO_VEICULO como NULL
-            pstmt.setInt(3, pneuId);
+            pstmt.setString(1, novoStatus);
+            pstmt.setInt(2, pneuId);
+            
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
+            
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Erro DAO ao remover pneu do veículo: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
             return false;
         } finally {
             try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { /* Ignora */ }
+            // Só fecha a conexão se ela foi criada neste método
+            try { 
+                if (conn != null && closeConnection) { 
+                    conn.close(); 
+                } 
+            } catch (SQLException e) { /* Ignora */ }
+        }
+    }
+    
+    // --- NOVO MÉTODO: Buscar pneu por posição no veículo ---
+    public Pneu buscarPneuPorPosicaoNoVeiculo(int veiculoId, String posicao) {
+        String sql = "SELECT ID, ID_EMPRESA_PROPRIETARIA, FOGO, FORNECEDOR, VALOR, FABRICANTE, TIPO_PNEU, "
+                + "MODELO, DOT, MEDIDA, PROFUNDIDADE, DATA_CADASTRO, N_RECAPAGENS, "
+                + "PROJETADO_KM, OBSERVACOES, DATA_RETORNO, status_pneu, ID_VEICULO, POSICAO_NO_VEICULO "
+                + "FROM cad_pneus WHERE ID_VEICULO = ? AND POSICAO_NO_VEICULO = ?";
+
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        Pneu pneu = null;
+
+        try {
+            conn = ModuloConexao.conector();
+            if (conn == null) {
+                JOptionPane.showMessageDialog(null, "Erro de Conexão com o Banco.", "Erro DAO", JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
+
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, veiculoId);
+            pstmt.setString(2, posicao);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                pneu = new Pneu();
+                pneu.setId(rs.getInt("ID"));
+                pneu.setIdEmpresaProprietaria(rs.getInt("ID_EMPRESA_PROPRIETARIA"));
+                pneu.setFogo(rs.getString("FOGO"));
+                pneu.setFornecedor(rs.getString("FORNECEDOR"));
+                pneu.setValor(rs.getObject("VALOR") != null ? rs.getDouble("VALOR") : null);
+                pneu.setFabricante(rs.getString("FABRICANTE"));
+                pneu.setTipoPneu(rs.getString("TIPO_PNEU"));
+                pneu.setModelo(rs.getString("MODELO"));
+                pneu.setDot(rs.getString("DOT"));
+                pneu.setMedida(rs.getString("MEDIDA"));
+                pneu.setProfundidade(rs.getObject("PROFUNDIDADE") != null ? rs.getDouble("PROFUNDIDADE") : null);
+                
+                java.sql.Date sqlDateCadastro = rs.getDate("DATA_CADASTRO");
+                if (sqlDateCadastro != null) {
+                    pneu.setDataCadastro(sqlDateCadastro.toLocalDate());
+                }
+                
+                pneu.setnRecapagens(rs.getInt("N_RECAPAGENS"));
+                Integer projetadoKmRs = rs.getInt("PROJETADO_KM");
+                pneu.setProjetadoKm(rs.wasNull() ? null : projetadoKmRs);
+                
+                pneu.setObservacoes(rs.getString("OBSERVACOES"));
+                pneu.setDataRetorno(rs.getDate("DATA_RETORNO"));
+                pneu.setStatusPneu(rs.getString("status_pneu"));
+                
+                Integer idVeiculoRs = rs.getInt("ID_VEICULO");
+                pneu.setIdVeiculo(rs.wasNull() ? null : idVeiculoRs);
+                pneu.setPosicaoNoVeiculo(rs.getString("POSICAO_NO_VEICULO"));
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Erro ao buscar pneu por posição: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            try { if (rs != null) rs.close(); } catch (SQLException e) { /* Ignora */ }
+            try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { /* Ignora */ }
             try { if (conn != null) conn.close(); } catch (SQLException e) { /* Ignora */ }
         }
+        
+        return pneu;
     }
 
 
