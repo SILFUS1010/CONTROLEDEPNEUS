@@ -1560,9 +1560,29 @@ public class TelaControleDePneus extends javax.swing.JDialog {
                     pneuMovido.setStatusPneu("EM USO");
                     slotDestinoFinal.putClientProperty("pneuData", pneuMovido);
                     
+                    // Se o pneu veio da lista de estoque (arrastado do Pneu_Escolhido)
                     if (labelOriginal == Pneu_Escolhido) {
+                        // Encontra o índice do pneu movido na lista de dados do estoque
+                        int indexNaLista = pneusEmEstoqueLista.indexOf(pneuMovido);
+
+                        if (indexNaLista != -1) {
+                            // Remove o pneu da lista de dados
+                            pneusEmEstoqueLista.remove(indexNaLista);
+
+                            // Remove a linha correspondente da JTable.
+                            // Isso assume que a JTable não foi reordenada pelo usuário.
+                            DefaultTableModel model = (DefaultTableModel) Tabela_Exibicao_pneus_em_estoque.getModel();
+                            
+                            // Validação extra para evitar erros de índice
+                            if (indexNaLista < model.getRowCount()) {
+                                model.removeRow(indexNaLista);
+                            }
+                        }
+
+                        // Limpa o slot de pneu escolhido, pois o pneu foi usado
                         Pneu_Escolhido.setIcon(null);
                         Pneu_Escolhido.putClientProperty("pneuData", null);
+                        Pneu_Escolhido.setEnabled(false);
                     }
                 } else {
                     JOptionPane.showMessageDialog(TelaControleDePneus.this, "Falha ao salvar a posição do pneu.", "Erro de Banco de Dados", JOptionPane.ERROR_MESSAGE);
@@ -1581,12 +1601,25 @@ public class TelaControleDePneus extends javax.swing.JDialog {
             }
 
             if (sucesso) {
+                // Mostra a mensagem de sucesso para qualquer destino.
                 JOptionPane.showMessageDialog(TelaControleDePneus.this, "Pneu movido para: " + dropTargetType);
-                if (labelOriginal == Pneu_Escolhido) {
-                    Pneu_Escolhido.setIcon(null);
-                    Pneu_Escolhido.putClientProperty("pneuData", null);
+
+                // Se o pneu foi movido de volta para o estoque, atualiza a tabela.
+                if ("ESTOQUE".equals(dropTargetType)) {
+                    // Adiciona o pneu de volta à lista de dados
+                    pneusEmEstoqueLista.add(pneuMovido);
+
+                    // Adiciona uma nova linha na JTable de estoque
+                    DefaultTableModel model = (DefaultTableModel) Tabela_Exibicao_pneus_em_estoque.getModel();
+                    model.addRow(new Object[]{
+                        pneuMovido.getIdEmpresaProprietaria(),
+                        pneuMovido.getFogo(),
+                        pneuMovido.getTipoPneu(),
+                        pneuMovido.getModelo(),
+                        pneuMovido.getMedida()
+                    });
                 }
-                // A remoção visual do slot de origem já foi feita no mousePressed
+                // A remoção visual do slot de origem já foi feita no mousePressed.
             } else {
                 JOptionPane.showMessageDialog(TelaControleDePneus.this, "Falha ao mover o pneu para " + dropTargetType, "Erro de Banco de Dados", JOptionPane.ERROR_MESSAGE);
                 dropValido = false; // Falhou, então reverte
