@@ -44,13 +44,23 @@ import br.com.martins_borges.utilitarios.PosicaoFormulario;
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("CONTROLE DE PNEUS");
         setExtendedState(6);
-        setPreferredSize(new java.awt.Dimension(1900, 549));
 
         Desktop.setBackground(new java.awt.Color(13, 37, 67));
         Desktop.setBorder(new javax.swing.border.MatteBorder(null));
         Desktop.setName("Desktop"); // NOI18N
         Desktop.setPreferredSize(new java.awt.Dimension(1000, 800));
-        Desktop.setLayout(new java.awt.GridBagLayout());
+
+        javax.swing.GroupLayout DesktopLayout = new javax.swing.GroupLayout(Desktop);
+        Desktop.setLayout(DesktopLayout);
+        DesktopLayout.setHorizontalGroup(
+            DesktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1898, Short.MAX_VALUE)
+        );
+        DesktopLayout.setVerticalGroup(
+            DesktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 724, Short.MAX_VALUE)
+        );
+
         getContentPane().add(Desktop, java.awt.BorderLayout.CENTER);
 
         jMenu1.setText("Cadastros");

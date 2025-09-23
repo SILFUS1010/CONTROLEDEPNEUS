@@ -20,6 +20,7 @@ import java.awt.event.KeyEvent;
 import javax.swing.JComponent;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
+import javax.swing.ButtonGroup;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -33,13 +34,12 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     private final VeiculoDAO veiculoDAO;
     private final TipoConfiguracaoDAO tipoConfiguracaoDAO;
     private final MedidaPneuDAO medidaPneuDAO; // Adicionado para gerenciar medidas de pneu
-
+    private ButtonGroup companyButtonGroup; 
     // ESTE É O CONSTRUTOR CORRIGIDO PARA A SUA CLASSE TelaCadastroVeiculos
     public TelaCadastroVeiculos(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         setUndecorated(true);
 
-        // Inicializa os DAOs ANTES do bloco try
         this.veiculoDAO = new VeiculoDAO();
         this.tipoConfiguracaoDAO = new TipoConfiguracaoDAO();
         this.medidaPneuDAO = new MedidaPneuDAO();
@@ -64,6 +64,30 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
         try {
             initComponents();
+            
+            // --- NOVO: Inicializa o ButtonGroup para as empresas ---
+            companyButtonGroup = new ButtonGroup();
+            companyButtonGroup.add(MARTINS_BORGES);
+            companyButtonGroup.add(ALB);
+            companyButtonGroup.add(ENGEUDI);
+
+            // Adiciona Listeners aos checkboxes para gerenciar a habilitação dos campos
+            java.awt.event.ActionListener companyCheckboxListener = new java.awt.event.ActionListener() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    // Se uma empresa foi selecionada, habilita os campos
+                    if (getSelectedCompanyId() != 0) {
+                        setFormFieldsEnabled(true);
+                    } else {
+                        // Se nenhuma empresa está selecionada (nunca deveria acontecer se o ButtonGroup estiver bem configurado para radio buttons, mas como são checkboxes, é uma precaução)
+                        setFormFieldsEnabled(false);
+                    }
+                }
+            };
+            MARTINS_BORGES.addActionListener(companyCheckboxListener);
+            ALB.addActionListener(companyCheckboxListener);
+            ENGEUDI.addActionListener(companyCheckboxListener);
+            // --------------------------------------------------------
 
             Tabela_Exibicao_veiculos.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
                 public void valueChanged(javax.swing.event.ListSelectionEvent event) {
@@ -100,7 +124,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
                             int idParaExcluir = (int) Tabela_Exibicao_veiculos.getModel().getValueAt(modelRow, 0);
                             String frotaParaConfirmar = Tabela_Exibicao_veiculos.getModel().getValueAt(modelRow, 1).toString();
                             int resposta = JOptionPane.showConfirmDialog(TelaCadastroVeiculos.this,
-                                "Tem certeza que deseja excluir o Veículo Frota " + frotaParaConfirmar + "?\nEsta ação não pode ser desfeita.",
+                                "Tem certeza que deseja excluir o Veículo Frota \"" + frotaParaConfirmar + "\"?\nEsta ação não pode ser desfeita.",
                                 "Confirmar Exclusão", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                             if (resposta == JOptionPane.YES_OPTION) {
                                 boolean sucesso = veiculoDAO.excluir(idParaExcluir);
@@ -212,6 +236,10 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             definirTamanhoEPosicao();
 
             gerenciarVisibilidadePosicao(); // Define o estado inicial
+
+            // --- NOVO: Desabilita todos os campos no início ---
+            setFormFieldsEnabled(false);
+            // -------------------------------------------------
 
         } catch (Exception e) {
             System.err.println("ERRO CRÍTICO no construtor: " + e.getMessage());
@@ -332,6 +360,10 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         Veiculos_Cadastrados = new javax.swing.JLabel();
         Pneus_necessarios = new javax.swing.JLabel();
         fechar = new javax.swing.JButton();
+        Empresas = new javax.swing.JPanel();
+        MARTINS_BORGES = new javax.swing.JCheckBox();
+        ALB = new javax.swing.JCheckBox();
+        ENGEUDI = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(1000, 670));
@@ -912,144 +944,172 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
             }
         });
 
+        Empresas.setPreferredSize(new java.awt.Dimension(145, 145));
+
+        MARTINS_BORGES.setText("MARTINS E BORGES");
+        MARTINS_BORGES.setMaximumSize(new java.awt.Dimension(150, 20));
+        MARTINS_BORGES.setMinimumSize(new java.awt.Dimension(150, 20));
+        MARTINS_BORGES.setPreferredSize(new java.awt.Dimension(150, 20));
+
+        ALB.setText("ALB");
+
+        ENGEUDI.setText("ENGEUDI");
+
+        org.jdesktop.layout.GroupLayout EmpresasLayout = new org.jdesktop.layout.GroupLayout(Empresas);
+        Empresas.setLayout(EmpresasLayout);
+        EmpresasLayout.setHorizontalGroup(
+            EmpresasLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(EmpresasLayout.createSequentialGroup()
+                .addContainerGap()
+                .add(EmpresasLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(MARTINS_BORGES, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 147, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(ALB, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 68, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(ENGEUDI, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 80, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(6, 6, 6))
+        );
+        EmpresasLayout.setVerticalGroup(
+            EmpresasLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(EmpresasLayout.createSequentialGroup()
+                .add(35, 35, 35)
+                .add(MARTINS_BORGES, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(6, 6, 6)
+                .add(ALB)
+                .add(6, 6, 6)
+                .add(ENGEUDI, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 29, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+        );
+
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(layout.createSequentialGroup()
-                        .addContainerGap()
+                        .add(40, 40, 40)
+                        .add(Tabela_Caminhoes, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 489, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(layout.createSequentialGroup()
+                        .add(219, 219, 219)
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                                .add(lbPosicao, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 57, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                .add(104, 104, 104))
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                                .add(lb_carreta)
-                                .add(44, 44, 44)))
+                            .add(lb_carreta)
+                            .add(layout.createSequentialGroup()
+                                .add(94, 94, 94)
+                                .add(lbPosicao, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 57, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                        .add(44, 44, 44)
                         .add(cbposicao_carreta, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 55, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                        .add(layout.createSequentialGroup()
-                            .add(54, 54, 54)
-                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                .add(Frota)
-                                .add(txtFrota, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 90, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                .add(layout.createSequentialGroup()
-                                    .add(5, 5, 5)
-                                    .add(tipo_equipamento)))
-                            .add(18, 18, 18)
-                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                .add(placa, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                .add(txtPlaca, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 90, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                            .add(176, 176, 176)
-                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                .add(numero_pneus, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                .add(Qtd_numeroPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                        .add(layout.createSequentialGroup()
-                            .add(53, 53, 53)
-                            .add(cmbTipoVeiculo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 300, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                        .add(layout.createSequentialGroup()
-                            .add(69, 69, 69)
-                            .add(Cadastrar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 121, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                            .add(76, 76, 76)
-                            .add(cmbMedidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                        .add(layout.createSequentialGroup()
-                            .add(266, 266, 266)
-                            .add(lbMedidaPneu))
-                        .add(layout.createSequentialGroup()
-                            .add(40, 40, 40)
-                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                                .add(layout.createSequentialGroup()
-                                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                        .add(layout.createSequentialGroup()
-                                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
-                                                .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-                                                    .add(qtd_veiculos)
-                                                    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                    .add(Veiculos_Cadastrados, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 49, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                                                .add(qtd_pneus))
-                                            .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                            .add(Pneus_necessarios, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                                        .add(Exclui_veiculos))
-                                    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 87, Short.MAX_VALUE)
-                                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
-                                        .add(btAdd_Pneu, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .add(medidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                                    .add(60, 60, 60))
-                                .add(Tabela_Caminhoes, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))))
+                    .add(layout.createSequentialGroup()
+                        .add(40, 40, 40)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(layout.createSequentialGroup()
+                                .add(qtd_veiculos)
+                                .add(6, 6, 6)
+                                .add(Veiculos_Cadastrados, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 49, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                            .add(layout.createSequentialGroup()
+                                .add(qtd_pneus)
+                                .add(6, 6, 6)
+                                .add(Pneus_necessarios, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                            .add(Exclui_veiculos))
+                        .add(87, 87, 87)
+                        .add(medidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 123, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(layout.createSequentialGroup()
+                        .add(346, 346, 346)
+                        .add(btAdd_Pneu))
+                    .add(layout.createSequentialGroup()
+                        .add(369, 369, 369)
+                        .add(cmbMedidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(layout.createSequentialGroup()
+                        .add(369, 369, 369)
+                        .add(lbMedidaPneu))
+                    .add(layout.createSequentialGroup()
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(Empresas, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                            .add(layout.createSequentialGroup()
+                                .add(40, 40, 40)
+                                .add(Cadastrar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 121, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                        .add(29, 29, 29)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(layout.createSequentialGroup()
+                                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                                    .add(layout.createSequentialGroup()
+                                        .add(Frota, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 40, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                        .add(68, 68, 68)
+                                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                                            .add(placa, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                            .add(txtPlaca, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 90, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                                    .add(tipo_equipamento))
+                                .add(31, 31, 31)
+                                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                                    .add(numero_pneus, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                    .add(Qtd_numeroPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                            .add(txtFrota, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 90, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                            .add(cmbTipoVeiculo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 300, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
                 .add(18, 18, 18)
                 .add(BUTTON_BOX, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 59, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .add(4, 4, 4)
                 .add(EscolhaModelo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 370, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 81, Short.MAX_VALUE)
-                .add(fechar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 27, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .add(81, 81, 81)
+                .add(fechar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 27, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(EscolhaModelo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 668, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(Empresas, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(5, 5, 5)
+                        .add(Cadastrar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 35, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(layout.createSequentialGroup()
+                        .add(38, 38, 38)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                            .add(layout.createSequentialGroup()
+                                .add(numero_pneus)
+                                .add(6, 6, 6)
+                                .add(Qtd_numeroPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 32, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                             .add(layout.createSequentialGroup()
                                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                    .add(layout.createSequentialGroup()
-                                        .add(4, 4, 4)
-                                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                            .add(layout.createSequentialGroup()
-                                                .add(Frota)
-                                                .add(4, 4, 4)
-                                                .add(txtFrota, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                                .add(8, 8, 8)
-                                                .add(tipo_equipamento))
-                                            .add(layout.createSequentialGroup()
-                                                .add(placa)
-                                                .add(6, 6, 6)
-                                                .add(txtPlaca, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                                            .add(layout.createSequentialGroup()
-                                                .add(6, 6, 6)
-                                                .add(numero_pneus)
-                                                .add(6, 6, 6)
-                                                .add(Qtd_numeroPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 32, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                                        .add(6, 6, 6)
-                                        .add(cmbTipoVeiculo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                        .add(6, 6, 6)
-                                        .add(lbMedidaPneu)
-                                        .add(7, 7, 7)
-                                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                            .add(Cadastrar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 35, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                            .add(layout.createSequentialGroup()
-                                                .add(3, 3, 3)
-                                                .add(cmbMedidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                                        .add(16, 16, 16)
-                                        .add(Tabela_Caminhoes, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 170, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                            .add(cbposicao_carreta, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                                            .add(layout.createSequentialGroup()
-                                                .add(lb_carreta)
-                                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                                .add(lbPosicao, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                                        .add(37, 37, 37)
-                                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                            .add(layout.createSequentialGroup()
-                                                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                                                    .add(qtd_veiculos)
-                                                    .add(Veiculos_Cadastrados, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 16, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                                                .add(14, 14, 14)
-                                                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                                                    .add(qtd_pneus)
-                                                    .add(Pneus_necessarios, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                                                .add(44, 44, 44)
-                                                .add(Exclui_veiculos))
-                                            .add(medidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 146, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                                    .add(BUTTON_BOX, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 560, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                    .add(org.jdesktop.layout.GroupLayout.TRAILING, Frota)
+                                    .add(org.jdesktop.layout.GroupLayout.TRAILING, placa))
                                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                .add(btAdd_Pneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 35, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
-                    .add(fechar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 24, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.CENTER)
+                                    .add(txtFrota, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                    .add(txtPlaca, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .add(tipo_equipamento)))
+                        .add(7, 7, 7)
+                        .add(cmbTipoVeiculo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(lbMedidaPneu)
+                        .add(6, 6, 6)
+                        .add(cmbMedidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                .add(10, 10, 10)
+                .add(Tabela_Caminhoes, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 170, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(6, 6, 6)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .add(lb_carreta)
+                        .add(6, 6, 6)
+                        .add(lbPosicao, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(cbposicao_carreta, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(37, 37, 37)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(qtd_veiculos)
+                            .add(Veiculos_Cadastrados, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 16, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                        .add(14, 14, 14)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(qtd_pneus)
+                            .add(Pneus_necessarios, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                        .add(44, 44, 44)
+                        .add(Exclui_veiculos))
+                    .add(medidaPneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 146, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(6, 6, 6)
+                .add(btAdd_Pneu, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 35, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+            .add(fechar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 24, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+            .add(layout.createSequentialGroup()
+                .add(6, 6, 6)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(BUTTON_BOX, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 560, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(EscolhaModelo, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 668, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
         );
 
         getAccessibleContext().setAccessibleName("TelaCadastroVeiculos");
@@ -1708,6 +1768,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         } else if (evt.getClickCount() == 2) {
             int modelRow = Tabela_Exibicao_veiculos.convertRowIndexToModel(selectedRow);
             Veiculo veiculoClicado = this.listaDeVeiculos.get(modelRow);
+            selectCompanyCheckbox(veiculoSelecionado.getIdEmpresaFk());
             // Se clicar duas vezes no mesmo veículo que está sendo editado, sai do modo de edição.
             if (veiculoSelecionado != null && veiculoClicado.getID() == veiculoSelecionado.getID()) {
                 limparCampos();
@@ -1797,6 +1858,16 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
     private void CadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CadastrarActionPerformed
      
+                                               
+     
+    // --- NOVA VALIDAÇÃO: EMPRESA OBRIGATÓRIA ---
+    int idEmpresaSelecionada = getSelectedCompanyId(); // Este método você precisará adicionar (veja abaixo)
+    if (idEmpresaSelecionada == 0) {
+        JOptionPane.showMessageDialog(this, "Selecione uma empresa proprietária para o veículo.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+        return; // Impede o cadastro/atualização se nenhuma empresa for selecionada
+    }
+    // ------------------------------------------
+
     if (this.veiculoSelecionado == null && txtFrota.getText().trim().isEmpty()) {
         JOptionPane.showMessageDialog(this, "O campo 'Frota' é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
         txtFrota.requestFocusInWindow();
@@ -1855,6 +1926,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         novoVeiculo.setMEDIDA_PNEU(medidaPneu);
         novoVeiculo.setSTATUS_VEICULO("ATIVO");
         novoVeiculo.setPosicaoCarreta(posicaoCarreta);
+        novoVeiculo.setIdEmpresaFk(idEmpresaSelecionada); // <--- ALTERADO: Salva o ID da empresa
 
         if (veiculoDAO.salvarVeiculoCompleto(novoVeiculo)) {
             JOptionPane.showMessageDialog(this, "Veículo cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
@@ -1870,6 +1942,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         // A quantidade de pneus de um veículo não muda, então não precisa de setQTD_PNEUS aqui.
         // A posição pode mudar:
         this.veiculoSelecionado.setPosicaoCarreta(posicaoCarreta);
+        this.veiculoSelecionado.setIdEmpresaFk(idEmpresaSelecionada); // <--- ALTERADO: Salva o ID da empresa
        
         if (veiculoDAO.atualizarVeiculo(this.veiculoSelecionado)) {
             JOptionPane.showMessageDialog(this, "Veículo atualizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
@@ -1888,6 +1961,8 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     CardLayout layout = (CardLayout) EscolhaModelo.getLayout();
     layout.show(EscolhaModelo, "TELA_ZERO_ZERO");
    
+
+    
 
     }//GEN-LAST:event_CadastrarActionPerformed
 
@@ -1940,7 +2015,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         cmbTipoVeiculo.setSelectedIndex(0);
         cmbMedidaPneu.setSelectedIndex(-1); // Limpa a seleção
         Qtd_numeroPneu.setText("0");
-
+        clearCompanySelection();
         // Reseta o modo de edição
         this.veiculoSelecionado = null;
         Cadastrar.setText("CADASTRAR");
@@ -2360,7 +2435,25 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     Tabela_Exibicao_veiculos.getColumnModel().getColumn(4).setPreferredWidth(80);  // Qtd Pneus
     Tabela_Exibicao_veiculos.getColumnModel().getColumn(5).setPreferredWidth(80);  // Status
 }
-
+         // NOVO MÉTODO: Gerencia o estado de habilitação dos campos do formulário
+    
+    private void setFormFieldsEnabled(boolean enabled) {
+        txtFrota.setEnabled(enabled);
+        txtPlaca.setEnabled(enabled);
+        cmbTipoVeiculo.setEnabled(enabled);
+        cmbMedidaPneu.setEnabled(enabled);
+        Cadastrar.setEnabled(enabled);
+        btAdd_Pneu.setEnabled(enabled); // Se este botão for para adicionar pneus, ele também deve ser controlado
+        cbposicao_carreta.setEnabled(enabled); // Habilita/desabilita o combobox da posição da carreta
+        
+        // Habilita/desabilita os botões de tipo de veículo (cod_zero, etc.)
+        for (java.awt.Component comp : BUTTON_BOX.getComponents()) {
+            if (comp instanceof javax.swing.JButton) {
+                comp.setEnabled(enabled);
+            }
+        }
+    }
+    
     // Enumeração para tipo de eixo
     public enum TipoEixo {
         SIMPLES,
@@ -2371,6 +2464,34 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
         TOPO,
         CENTRO,
         BASE
+    }
+    
+        // NOVO MÉTODO: Retorna o ID da empresa selecionada ou 0 se nenhuma for selecionada
+    private int getSelectedCompanyId() {
+    if (MARTINS_BORGES.isSelected()) {
+        return 1; // ID para Martins e Borges (assumindo 1)
+    } else if (ALB.isSelected()) {
+        return 2; // ID para ALB (assumindo 2)
+    } else if (ENGEUDI.isSelected()) {
+        return 3; // ID para ENGEUDI (assumindo 3)
+    }
+    return 0; // Nenhuma empresa selecionada
+}
+
+    // NOVO MÉTODO: Seleciona o checkbox da empresa com base no ID
+    private void selectCompanyCheckbox(int companyId) {
+        MARTINS_BORGES.setSelected(companyId == 1);
+        ALB.setSelected(companyId == 2);
+        ENGEUDI.setSelected(companyId == 3);
+    }
+
+    // NOVO MÉTODO: Limpa a seleção dos checkboxes de empresa
+    private void clearCompanySelection() {
+        companyButtonGroup.clearSelection(); // Limpa a seleção do grupo
+        MARTINS_BORGES.setSelected(false); // Garante que visualmente também desmarque
+        ALB.setSelected(false);
+        ENGEUDI.setSelected(false);
+        setFormFieldsEnabled(false); // NOVO: Desabilita os campos quando nenhuma empresa é selecionada
     }
 
     // Classe para armazenar a configuração de cada modelo de veículo
@@ -2625,8 +2746,11 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">   
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox ALB;
     private javax.swing.JPanel BUTTON_BOX;
     private javax.swing.JButton Cadastrar;
+    private javax.swing.JCheckBox ENGEUDI;
+    private javax.swing.JPanel Empresas;
     private javax.swing.JPanel EscolhaModelo;
     private javax.swing.JLabel Escolha_0;
     private javax.swing.JLabel Exclui_veiculos;
@@ -2655,6 +2779,7 @@ public class TelaCadastroVeiculos extends javax.swing.JDialog {
     private javax.swing.JLabel Label121;
     private javax.swing.JLabel Label122;
     private javax.swing.JLabel Label123;
+    private javax.swing.JCheckBox MARTINS_BORGES;
     private javax.swing.JLabel Pneus_necessarios;
     private javax.swing.JLabel Qtd_numeroPneu;
     private javax.swing.JPanel TELA_ZERO;

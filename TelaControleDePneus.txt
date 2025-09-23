@@ -5,7 +5,8 @@ import br.com.martins_borges.dal.VeiculoDAO;
 import br.com.martins_borges.interfaces.PneuDataChangeListener;
 import br.com.martins_borges.model.Pneu;
 import br.com.martins_borges.model.Veiculo;
-import java.util.function.Function;
+import br.com.martins_borges.telas.TelaCadastroPneus;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -17,6 +18,7 @@ import java.awt.color.ColorSpace;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function; // Added for local helper function
 
 public class TelaControleDePneus extends javax.swing.JDialog implements PneuDataChangeListener {
 
@@ -34,9 +36,10 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         super(parent, modal);
         this.veiculoDAO = new VeiculoDAO();
         this.pneuDAO = new PneuDAO();
+        
         initComponents();
         inicializarIconesPneus(45, 70); 
-        ArrastadorDePneus arrastador = new ArrastadorDePneus(this.iconPneuCinza);
+        ArrastadorDePneus arrastador = new ArrastadorDePneus();
         Pneu_Escolhido.addMouseListener(arrastador);
         Pneu_Escolhido.addMouseMotionListener(arrastador);
         lb_estepe1.addMouseListener(arrastador);
@@ -45,7 +48,6 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         lb_estepe2.addMouseMotionListener(arrastador);
 
         Tabela_Exibicao_veiculos.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            @Override
             public void valueChanged(javax.swing.event.ListSelectionEvent event) {
                 // Garante que o código só rode uma vez por evento de seleção
                 if (!event.getValueIsAdjusting()) {
@@ -84,9 +86,105 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
             }
         }
         
-        definirTamanhoEPosicao();
         atualizarTabelaVeiculos();
+        atualizarDados(); // Adicionado para carregar os pneus em estoque na inicialização
 
+            // Setup Glass Pane for global mouse event interception
+            JPanel glassPane = new JPanel();
+            glassPane.setOpaque(false); // Make it transparent
+            setGlassPane(glassPane);
+            glassPane.setVisible(true); // Make it visible to receive events
+
+glassPane.addMouseListener(new MouseAdapter() {
+                private void dispatchMouseEvent(MouseEvent e) {
+                    Point glassPanePoint = e.getPoint();
+                    Container container = getContentPane();
+                    Point containerPoint = SwingUtilities.convertPoint(glassPane, glassPanePoint, container);
+
+                    // Pega o componente mais profundo no ponto do clique no container principal
+                    Component component = SwingUtilities.getDeepestComponentAt(container, containerPoint.x, containerPoint.y);
+
+                    if (component != null) {
+                        // Converte o ponto do clique para as coordenadas do componente encontrado
+                        Point componentPoint = SwingUtilities.convertPoint(glassPane, glassPanePoint, component);
+                        MouseEvent newEvent = new MouseEvent(component, e.getID(), e.getWhen(),
+                                                             e.getModifiersEx(), componentPoint.x, componentPoint.y,
+                                                             e.getXOnScreen(), e.getYOnScreen(),
+                                                             e.getClickCount(), e.isPopupTrigger(), e.getButton());
+                        component.dispatchEvent(newEvent); // Envia o evento para o componente real
+                    }
+                }
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    Point clickLocationOnScreen = e.getLocationOnScreen(); // Ponto do clique em coordenadas de tela
+
+                    boolean clickedOutsideImportantAreas = true; // Flag que indica se o clique foi "fora"
+
+                    // Helper function para obter os limites de um componente em coordenadas de tela
+                    Function<Component, Rectangle> getComponentScreenBounds = (component) -> {
+                        Point componentLocationOnScreen = component.getLocationOnScreen();
+                        return new Rectangle(componentLocationOnScreen.x, componentLocationOnScreen.y,
+                                             component.getWidth(), component.getHeight());
+                    };
+
+                    // --- VERIFICA SE O CLIQUE FOI DENTRO DE ALGUMA ÁREA INTERATIVA IMPORTANTE ---
+                    // Verificamos os JScrollPanes que contêm as tabelas
+                    if (getComponentScreenBounds.apply(PNEUS_ESTOQUE).contains(clickLocationOnScreen)) { // JScrollPane da Tabela_Exibicao_pneus_em_estoque
+                        clickedOutsideImportantAreas = false;
+                    } else if (getComponentScreenBounds.apply(jScrollPane2).contains(clickLocationOnScreen)) { // JScrollPane da Tabela_Exibicao_veiculos
+                        clickedOutsideImportantAreas = false;
+                    } else if (getComponentScreenBounds.apply(jScrollPane1).contains(clickLocationOnScreen)) { // JScrollPane da Tabela_ExibicaoPneuUsado
+                        clickedOutsideImportantAreas = false;
+                    }
+                    // Também verificamos outras áreas interativas que não devem disparar um refresh global
+                    else if (getComponentScreenBounds.apply(Pneu_Escolhido).contains(clickLocationOnScreen)) {
+                        clickedOutsideImportantAreas = false;
+                    }
+                    else if (getComponentScreenBounds.apply(PainelManutencao).contains(clickLocationOnScreen)) {
+                        clickedOutsideImportantAreas = false;
+                    }
+                    else if (getComponentScreenBounds.apply(ESTEPE).contains(clickLocationOnScreen)) {
+                        clickedOutsideImportantAreas = false;
+                    }
+                    // Adicione aqui outros componentes que você *não* quer que causem um refresh ao serem clicados.
+                    // Por exemplo, o painel TELA_ZERO que desenha o chassi:
+                    else if (getComponentScreenBounds.apply(TELA_ZERO).contains(clickLocationOnScreen)) {
+                        clickedOutsideImportantAreas = false;
+                    }
+
+
+                    if (clickedOutsideImportantAreas) {
+                        // Se o clique foi realmente fora de todas as áreas importantes,
+                        // desmarca as seleções das tabelas e recarrega os dados.
+                        Tabela_Exibicao_veiculos.clearSelection();
+                        Tabela_Exibicao_pneus_em_estoque.clearSelection();
+                        Tabela_ExibicaoPneuUsado.clearSelection();
+                        
+                        // O método atualizarDados() já está configurado para,
+                        // quando não há seleção de veículo, carregar todos os pneus em estoque.
+                        atualizarDados(); 
+                        e.consume(); // Consome o evento para que ele não se propague para outros listeners
+                    } else {
+                        // Se o clique foi em uma das áreas importantes,
+                        // re-envia o evento para que o componente real o processe (ex: seleção de linha na tabela).
+                        dispatchMouseEvent(e);
+                    }
+                }
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    // Para clicks normais, basta re-enviar para o componente de destino.
+                    // A lógica de refresh já foi tratada no mousePressed.
+                    dispatchMouseEvent(e);
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    // Sempre re-enviar para garantir a sequência correta de eventos para componentes subjacentes.
+                    dispatchMouseEvent(e);
+                }
+            });
         TELA_ZERO.setComponentZOrder(Triangulo1, 0);
         TELA_ZERO.setComponentZOrder(Triangulo2, 0);
         TELA_ZERO.setComponentZOrder(Triangulo3, 0);
@@ -98,33 +196,61 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         // A chamada a inicializarIconesPneus() foi removida pois já é feita no início do construtor.
     }
 
-    private void configurarEstepes() {
-        ESTEPE.setLayout(null);
-
-        if (this.iconPneuNormal == null || this.iconPneuNormal.getIconWidth() == 0) {
-            System.err.println("Erro: iconPneuNormal não foi inicializado corretamente para os estepes. Não é possível configurar.");
-            return;
-        }
-
-        int larguraPneu = this.iconPneuNormal.getIconWidth();
-        int alturaPneu = this.iconPneuNormal.getIconHeight();
-
-        // Configura o primeiro estepe
-        lb_estepe1.setIcon(this.iconPneuCinza); // Começa vazio
-        lb_estepe1.setEnabled(false); // Começa desabilitado
-        lb_estepe1.setBounds(10, 40, larguraPneu, alturaPneu);
-        lb_estepe1.setHorizontalAlignment(SwingConstants.CENTER);
-        lb_estepe1.putClientProperty("tipo", "estepe");
-        lb_estepe1.putClientProperty("posicaoChassi", "ESTEPE1"); // Posição para o DB
-
-        // Configura o segundo estepe
-        lb_estepe2.setIcon(this.iconPneuCinza); // Começa vazio
-        lb_estepe2.setEnabled(false); // Começa desabilitado
-        lb_estepe2.setBounds(10 + larguraPneu + 5, 40, larguraPneu, alturaPneu);
-        lb_estepe2.setHorizontalAlignment(SwingConstants.CENTER);
-        lb_estepe2.putClientProperty("tipo", "estepe");
-        lb_estepe2.putClientProperty("posicaoChassi", "ESTEPE2"); // Posição para o DB
+    @Override
+    public void onPneuDataChanged() {
+        // Atualiza a tabela de pneus em estoque quando os dados são alterados
+        atualizarDados(); // Volta a chamar atualizarDados para uma atualização completa
+        JOptionPane.showMessageDialog(this, "Tabela de Pneus em Estoque atualizada!", "Atualização de Dados", JOptionPane.INFORMATION_MESSAGE);
     }
+    
+    public void atualizarDados() {
+        int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
+        atualizarTabelaVeiculos(); // Atualiza a tabela de veículos
+
+        if (selectedRow != -1 && selectedRow < Tabela_Exibicao_veiculos.getRowCount()) {
+            // Se um veículo está selecionado, simula o clique para filtrar os pneus por medida
+            Tabela_Exibicao_veiculos.setRowSelectionInterval(selectedRow, selectedRow);
+            Tabela_Exibicao_veiculosMouseClicked(null);
+        } else {
+            // Se nenhum veículo estiver selecionado, carrega todos os pneus com status "ESTOQUE"
+            limparChassi(); // Limpa o chassi visual
+            this.pneusEmEstoqueLista = pneuDAO.listarPneusPorStatus("ESTOQUE");
+            popularTabelaPneusEstoque(this.pneusEmEstoqueLista);
+            atualizarPneuEscolhido(); // Atualiza o pneu escolhido (se houver)
+            Tabela_ExibicaoPneuUsado.setModel(new javax.swing.table.DefaultTableModel(
+                    new Object[][]{},
+                    new String[]{"N° FOGO", "FABRICANTE", "PROFUNDIDADE"}
+            ));
+        }
+    }
+
+    private void configurarEstepes() {
+    ESTEPE.setLayout(null);
+
+    if (this.iconPneuNormal == null || this.iconPneuNormal.getIconWidth() == 0) {
+        System.err.println("Erro: iconPneuNormal não foi inicializado corretamente para os estepes. Não é possível configurar.");
+        return;
+    }
+
+    int larguraPneu = this.iconPneuNormal.getIconWidth();
+    int alturaPneu = this.iconPneuNormal.getIconHeight();
+
+    // Configura o primeiro estepe
+    lb_estepe1.setIcon(this.iconPneuCinza); // Começa vazio
+    lb_estepe1.setEnabled(false); // Começa desabilitado
+    lb_estepe1.setBounds(10, 40, larguraPneu, alturaPneu);
+    lb_estepe1.setHorizontalAlignment(SwingConstants.CENTER);
+    lb_estepe1.putClientProperty("tipo", "estepe");
+    lb_estepe1.putClientProperty("posicaoChassi", "ESTEPE1"); // Posição para o DB
+
+    // Configura o segundo estepe
+    lb_estepe2.setIcon(this.iconPneuCinza); // Começa vazio
+    lb_estepe2.setEnabled(false); // Começa desabilitado
+    lb_estepe2.setBounds(10 + larguraPneu + 5, 40, larguraPneu, alturaPneu);
+    lb_estepe2.setHorizontalAlignment(SwingConstants.CENTER);
+    lb_estepe2.putClientProperty("tipo", "estepe");
+    lb_estepe2.putClientProperty("posicaoChassi", "ESTEPE2"); // Posição para o DB
+}
 
     private ImageIcon criarIconePneu(int largura, int altura) {
         try {
@@ -281,7 +407,7 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         slotsDePneus[8][3] = Label133;
     }
 
-    private void desenharChassi(TipoEixo[] tipos, boolean[] visibilidade, int espacamento, AlinhamentoVertical alinhamento, int[] deslocamentos, int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos, int extensaoEspinha) {
+        private void desenharChassi(TipoEixo[] tipos, boolean[] visibilidade, int espacamento, AlinhamentoVertical alinhamento, int[] deslocamentos, int[] ajustesVerticais, int[] largurasEixos, int[] posicoesEixos, int extensaoEspinha) {
 
         // Garante que os números dos eixos estejam visíveis
         jLabel1.setVisible(true);
@@ -312,8 +438,8 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         JLabel[] todosOsEixos = {lbeixo1, lbeixo2, lbeixo3, lbeixo4, lbeixo5, lbeixo6, lbeixo7, lbeixo8, lbeixo9};
 
         // AGORA, USE OS CAMPOS DA CLASSE: this.iconPneuNormal e this.iconPneuCinza
-        if (this.iconPneuNormal == null || this.iconPneuNormal.getIconWidth() == 0
-                || this.iconPneuCinza == null || this.iconPneuCinza.getIconWidth() == 0) {
+        if (this.iconPneuNormal == null || this.iconPneuNormal.getIconWidth() == 0 ||
+            this.iconPneuCinza == null || this.iconPneuCinza.getIconWidth() == 0) {
             System.err.println("Erro: Ícones de pneu não carregados corretamente. Verifique 'inicializarIconesPneus(int, int)'.");
             return; // Sai do método para evitar NullPointerException.
         }
@@ -327,21 +453,21 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
                 eixo.setVisible(false);
             }
         }
-
+        
         // Limpa e oculta todos os slots antes de desenhar os visíveis
-        for (JLabel[] slotsDePneu : slotsDePneus) {
+        for (int i = 0; i < slotsDePneus.length; i++) {
             for (int j = 0; j < 4; j++) {
-                if (slotsDePneu[j] != null) {
-                    slotsDePneu[j].setVisible(false);
-                    slotsDePneu[j].setIcon(null);
-                    slotsDePneu[j].setEnabled(false); // Garante que estejam desabilitados por padrão
-                    slotsDePneu[j].putClientProperty("pneuData", null);
-                    slotsDePneu[j].putClientProperty("tipo", null); // Limpa o tipo
-                    slotsDePneu[j].putClientProperty("posicaoChassi", null); // Limpa a posição
+                if (slotsDePneus[i][j] != null) {
+                    slotsDePneus[i][j].setVisible(false);
+                    slotsDePneus[i][j].setIcon(null);
+                    slotsDePneus[i][j].setEnabled(false); // Garante que estejam desabilitados por padrão
+                    slotsDePneus[i][j].putClientProperty("pneuData", null);
+                    slotsDePneus[i][j].putClientProperty("tipo", null); // Limpa o tipo
+                    slotsDePneus[i][j].putClientProperty("posicaoChassi", null); // Limpa a posição
                 }
             }
         }
-
+        
         lbespinha_dorsal.setVisible(false);
         int alturaTotalChassi = (numEixosVisiveis > 0 ? (numEixosVisiveis - 1) * espacamento + alturaPneu : 0);
         int yInicial;
@@ -369,10 +495,10 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
                 int deslocamento = (deslocamentos != null && contadorDeReceita < deslocamentos.length) ? deslocamentos[contadorDeReceita] : 0;
                 int larguraDoEixoAtual = (largurasEixos != null && contadorDeReceita < largurasEixos.length) ? largurasEixos[contadorDeReceita] : (tipoDoEixo == TipoEixo.SIMPLES ? 190 : 280);
                 int ajusteFino = (posicoesEixos != null && i < posicoesEixos.length) ? posicoesEixos[i] : 0;
-
+                
                 eixoAtual.setVisible(true);
                 int alturaEixo = eixoAtual.getHeight();
-
+                
                 JLabel pneuEsqExterno = slotsDePneus[i][0], pneuEsqInterno = slotsDePneus[i][1];
                 JLabel pneuDirInterno = slotsDePneus[i][2], pneuDirExterno = slotsDePneus[i][3];
 
@@ -480,27 +606,6 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         }
 
         Tabela_Exibicao_pneus_em_estoque.setModel(model);
-    // --- ADICIONAR ESTAS LINHAS DE DEBUG E REFRESH ---
-        System.out.println("DEBUG (popularTabelaPneusEstoque): Modelo definido para Tabela_Exibicao_pneus_em_estoque.");
-        System.out.println("DEBUG: Número de colunas no modelo da tabela: " + Tabela_Exibicao_pneus_em_estoque.getModel().getColumnCount());
-        System.out.println("DEBUG: Número de linhas no modelo da tabela: " + Tabela_Exibicao_pneus_em_estoque.getModel().getRowCount());
-        
-        System.out.print("DEBUG: Nomes das Colunas: [");
-        for (int i = 0; i < Tabela_Exibicao_pneus_em_estoque.getModel().getColumnCount(); i++) {
-            System.out.print("'" + Tabela_Exibicao_pneus_em_estoque.getModel().getColumnName(i) + "'");
-            if (i < Tabela_Exibicao_pneus_em_estoque.getModel().getColumnCount() - 1) {
-                System.out.print(", ");
-            }
-        }
-        System.out.println("]");
-
-        // Força a atualização da interface para garantir que as mudanças sejam visíveis
-        Tabela_Exibicao_pneus_em_estoque.revalidate();
-        Tabela_Exibicao_pneus_em_estoque.repaint();
-        // Também revalida e repinta o JScrollPane que contém a tabela, para garantir o layout correto.
-        PNEUS_ESTOQUE.revalidate(); 
-        PNEUS_ESTOQUE.repaint();   
-        // --- FIM DAS LINHAS ADICIONADAS ---
     }
 
     private void atualizarTabelaVeiculos() {
@@ -524,67 +629,49 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         Tabela_Exibicao_veiculos.setModel(model);
     }
 
-    private void definirTamanhoEPosicao() {
-        // O código é executado no Event Dispatch Thread para garantir que o Frame pai já tenha um tamanho.
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            java.awt.Window parent = javax.swing.SwingUtilities.getWindowAncestor(this);
-            if (parent != null) {
-                // Define um tamanho fixo, porém razoável, para a janela.
-                int frameWidth = 1110;
-                int frameHeight = 710;
-                setSize(frameWidth, frameHeight);
 
-                // Calcula a posição para centralizar em relação ao pai.
-                int x = parent.getLocation().x + (parent.getWidth() - frameWidth) / 2;
-                int y = parent.getLocation().y + (parent.getHeight() - frameHeight) / 2;
-
-                // Adiciona um deslocamento vertical de 30 pixels para não cobrir o menu.
-                y += 30;
-
-                // Garante que a janela não fique com coordenadas negativas.
-                x = Math.max(0, x);
-                y = Math.max(0, y);
-
-                setLocation(x, y);
-            }
-        });
-    }
 
     private void atualizarPneuEscolhido() {
-        int selectedRow = Tabela_Exibicao_pneus_em_estoque.getSelectedRow();
+    int selectedRow = Tabela_Exibicao_pneus_em_estoque.getSelectedRow();
 
-        // Limpa o slot se nenhuma linha for selecionada ou a lista estiver vazia
-        if (selectedRow == -1 || this.pneusEmEstoqueLista == null || selectedRow >= this.pneusEmEstoqueLista.size()) {
-            Pneu_Escolhido.setIcon(null);
-            Pneu_Escolhido.putClientProperty("pneuData", null);
-            Pneu_Escolhido.putClientProperty("tipo", null);
-            Pneu_Escolhido.setEnabled(false);
-            return;
-        }
-
-        // Pega o pneu selecionado da lista que alimenta a tabela
-        Pneu pneuSelecionado = this.pneusEmEstoqueLista.get(selectedRow);
-
-        if (this.iconPneuNormal == null || this.iconPneuNormal.getIconWidth() == 0) {
-            System.err.println("Erro: iconPneuNormal não foi inicializado corretamente para Pneu_Escolhido.");
-            return;
-        }
-
-        // Configura o JLabel Pneu_Escolhido com os dados e a aparência do pneu
-        Pneu_Escolhido.setIcon(this.iconPneuNormal);
-        Pneu_Escolhido.setHorizontalAlignment(SwingConstants.CENTER);
-
-        Point p = Pneu_Escolhido.getLocation();
-        Pneu_Escolhido.setBounds(p.x, p.y, this.iconPneuNormal.getIconWidth(), this.iconPneuNormal.getIconHeight());
-
-        // Associa o objeto Pneu real e o tipo ao JLabel para uso no drag-and-drop
-        Pneu_Escolhido.putClientProperty("pneuData", pneuSelecionado);
-        Pneu_Escolhido.putClientProperty("tipo", "estoque");
-        Pneu_Escolhido.setEnabled(true); // Habilita para o arraste
-
-        Pneu_Escolhido.revalidate();
-        Pneu_Escolhido.repaint();
+    // Limpa o slot se nenhuma linha for selecionada ou a lista estiver vazia
+    if (selectedRow == -1 || this.pneusEmEstoqueLista == null || selectedRow >= this.pneusEmEstoqueLista.size()) {
+        Pneu_Escolhido.setIcon(null);
+        Pneu_Escolhido.putClientProperty("pneuData", null);
+        Pneu_Escolhido.putClientProperty("tipo", null);
+        Pneu_Escolhido.setEnabled(false);
+        return;
     }
+
+    // Pega o pneu selecionado da lista que alimenta a tabela
+    Pneu pneuSelecionado = this.pneusEmEstoqueLista.get(selectedRow);
+
+    if (this.iconPneuNormal == null || this.iconPneuNormal.getIconWidth() == 0) {
+        System.err.println("Erro: iconPneuNormal não foi inicializado corretamente para Pneu_Escolhido.");
+        return;
+    }
+
+    // Configura o JLabel Pneu_Escolhido com os dados e a aparência do pneu
+    Pneu_Escolhido.setIcon(this.iconPneuNormal);
+    Pneu_Escolhido.setHorizontalAlignment(SwingConstants.CENTER);
+    
+    Point p = Pneu_Escolhido.getLocation();
+    Pneu_Escolhido.setBounds(p.x, p.y, this.iconPneuNormal.getIconWidth(), this.iconPneuNormal.getIconHeight());
+    
+    // Associa o objeto Pneu real e o tipo ao JLabel para uso no drag-and-drop
+    Pneu_Escolhido.putClientProperty("pneuData", pneuSelecionado);
+    Pneu_Escolhido.putClientProperty("tipo", "estoque");
+    Pneu_Escolhido.setEnabled(true); // Habilita para o arraste
+
+    Pneu_Escolhido.revalidate();
+    Pneu_Escolhido.repaint();
+}
+
+    /*private void atualizarTabelaPneusEstoqueComFiltro() {
+        String numeroFogo = txtNumeroFogoFiltro.getText();
+        this.pneusEmEstoqueLista = pneuDAO.listarPneusPorNumeroFogo(numeroFogo); // New method in PneuDAO
+        popularTabelaPneusEstoque(this.pneusEmEstoqueLista);
+    }*/
 
     @SuppressWarnings("unused") // Pode ser usado em desenvolvimento futuro
     private ImageIcon criarIconeColorido(java.awt.Color cor, int largura, int altura) {
@@ -697,11 +784,12 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         jScrollPane1 = new javax.swing.JScrollPane();
         Tabela_ExibicaoPneuUsado = new javax.swing.JTable();
         Pneu_Escolhido = new javax.swing.JLabel();
-        lbQtdPneus = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setMinimumSize(new java.awt.Dimension(1600, 890));
         setName("TelaControleDePneus"); // NOI18N
         setPreferredSize(new java.awt.Dimension(1000, 690));
+        getContentPane().setLayout(null);
 
         PainelManutencao.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         PainelManutencao.setLayout(null);
@@ -755,6 +843,9 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         lbtitulo.setOpaque(true);
         PainelManutencao.add(lbtitulo);
         lbtitulo.setBounds(0, 0, 130, 20);
+
+        getContentPane().add(PainelManutencao);
+        PainelManutencao.setBounds(1450, 40, 128, 500);
 
         TELA_ZERO.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         TELA_ZERO.setAutoscrolls(true);
@@ -976,6 +1067,9 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         TELA_ZERO.add(jLabel9);
         jLabel9.setBounds(10, 570, 10, 25);
 
+        getContentPane().add(TELA_ZERO);
+        TELA_ZERO.setBounds(20, 40, 360, 630);
+
         ESTEPE.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         ESTEPE.setLayout(null);
 
@@ -998,8 +1092,12 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         ESTEPE.add(lb_estepe);
         lb_estepe.setBounds(0, 0, 100, 20);
 
+        getContentPane().add(ESTEPE);
+        ESTEPE.setBounds(390, 40, 120, 140);
+
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel1.setPreferredSize(new java.awt.Dimension(450, 450));
+        jPanel1.setLayout(null);
 
         PNEUS_ESTOQUE.setPreferredSize(new java.awt.Dimension(900, 402));
 
@@ -1032,6 +1130,9 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         });
         PNEUS_ESTOQUE.setViewportView(Tabela_Exibicao_pneus_em_estoque);
 
+        jPanel1.add(PNEUS_ESTOQUE);
+        PNEUS_ESTOQUE.setBounds(58, 14, 570, 260);
+
         jScrollPane2.setPreferredSize(new java.awt.Dimension(900, 402));
 
         Tabela_Exibicao_veiculos.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -1061,6 +1162,9 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
             }
         });
         jScrollPane2.setViewportView(Tabela_Exibicao_veiculos);
+
+        jPanel1.add(jScrollPane2);
+        jScrollPane2.setBounds(50, 290, 570, 260);
 
         jScrollPane1.setPreferredSize(new java.awt.Dimension(900, 402));
 
@@ -1092,76 +1196,21 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         });
         jScrollPane1.setViewportView(Tabela_ExibicaoPneuUsado);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(PNEUS_ESTOQUE, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addComponent(PNEUS_ESTOQUE, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+        jPanel1.add(jScrollPane1);
+        jScrollPane1.setBounds(60, 590, 560, 134);
+
+        getContentPane().add(jPanel1);
+        jPanel1.setBounds(730, 40, 650, 750);
 
         Pneu_Escolhido.setMaximumSize(null);
         Pneu_Escolhido.setMinimumSize(null);
         Pneu_Escolhido.setName(""); // NOI18N
-
-        lbQtdPneus.setText("jLabel10");
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(TELA_ZERO, javax.swing.GroupLayout.PREFERRED_SIZE, 360, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(10, 10, 10)
-                .addComponent(ESTEPE, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(62, 62, 62)
-                        .addComponent(Pneu_Escolhido, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(PainelManutencao, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(22, 22, 22)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 440, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(133, 133, 133))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(lbQtdPneus)
-                .addGap(476, 476, 476))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addComponent(lbQtdPneus)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(TELA_ZERO, javax.swing.GroupLayout.PREFERRED_SIZE, 630, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ESTEPE, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(Pneu_Escolhido, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(20, 20, 20)
-                        .addComponent(PainelManutencao, javax.swing.GroupLayout.PREFERRED_SIZE, 500, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 630, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        );
+        getContentPane().add(Pneu_Escolhido);
+        Pneu_Escolhido.setBounds(602, 40, 50, 100);
 
         getAccessibleContext().setAccessibleName("TelaControleDePneus");
 
-        setSize(new java.awt.Dimension(1279, 711));
+        setSize(new java.awt.Dimension(1610, 832));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -1173,30 +1222,28 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         // TODO add your handling code here:
     }//GEN-LAST:event_Tabela_ExibicaoPneuUsadoMouseClicked
 
-    private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {
+    /*private void txtNumeroFogoFiltroKeyReleased(java.awt.event.KeyEvent evt) {                                                
+        // This method will call the filtering logic
+        // Since there is no explicit pesquisar_pneus_filtros() method,
+        // I will call the method that updates the stock table.
+        // The filtering logic will be implemented in PneuDAO.
+        atualizarTabelaPneusEstoqueComFiltro();
+    }*/
+
+    private void Tabela_Exibicao_veiculosMouseClicked(java.awt.event.MouseEvent evt) {                                                      
+                                                    
 
         int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
         if (selectedRow == -1) {
             return;
         }
 
-        // Pega a placa da tabela e busca o veículo mais recente do banco
-        String frota = (String) Tabela_Exibicao_veiculos.getValueAt(selectedRow, 0);
-        Veiculo veiculoSelecionado = veiculoDAO.buscarPorFrota(frota);
-        
-        if (veiculoSelecionado == null) {
-            JOptionPane.showMessageDialog(this, "Veículo não encontrado no banco de dados.", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        System.out.println("Veículo Selecionado: FROTA=" + veiculoSelecionado.getFROTA() + ", ID=" + veiculoSelecionado.getID()); // DEBUG DELETAR
-        
+        // Pega o objeto Veiculo completo da linha selecionada
+        Veiculo veiculoSelecionado = this.listaDeVeiculos.get(selectedRow);
+
         // Pega o ID do tipo de veículo, que servirá como chave para a configuração
         int idConfig = veiculoSelecionado.getID_CONFIG_FK();
-            System.out.println("ID Configuração do Veículo: " + idConfig); // DEBUG DELETAR
-            
-            int idEmpresaDoVeiculo = veiculoSelecionado.getIdEmpresaFk();
-        System.out.println("DEBUG: ID da Empresa do Veículo Selecionado: " + idEmpresaDoVeiculo);
-            
+
         // Declara as variáveis que irão guardar as "instruções de desenho"
         TipoEixo[] tipos;
         boolean[] visibilidade;
@@ -1247,30 +1294,34 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
                 largurasEixos = new int[]{150, 220};
                 break; //PRONTO
             case 4: //RECEITA PARA O "CASE 4" QUE É O BOTAO 4 NA POSIÇÃO 2
+    
+    Integer posicao = veiculoSelecionado.getPosicaoCarreta();
 
-                Integer posicao = veiculoSelecionado.getPosicaoCarreta();
-
-                if (posicao != null && posicao == 2) {
-
-                    tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO};
-                    visibilidade = new boolean[]{true, true, true, true, false, false, false, false, false};
-                    espacamento = 90;
-                    alinhamento = AlinhamentoVertical.BASE;
-                    deslocamentos = new int[]{-30, -30, -30, -30};
-                    ajustesVerticais = new int[]{0, 0, -15};
-                    largurasEixos = new int[]{230, 230, 230, 230};
-                } //RECEITA PARA O "CASE 4.1" QUE É O BOTAO 4 NA POSIÇÃO 1
-                else { //PRONTO
-
-                    tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO};
-                    visibilidade = new boolean[]{true, true, true, true, false, false, false, false, false};
-                    espacamento = 70;
-                    alinhamento = AlinhamentoVertical.BASE;
-                    deslocamentos = new int[]{-30, -30, -30, -30};
-                    ajustesVerticais = new int[]{0, 0, -20};
-                    largurasEixos = new int[]{230, 230, 230, 230};
-                }
-                break;
+    
+    if (posicao != null && posicao == 2) {
+       
+        tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO};
+        visibilidade = new boolean[]{true, true, true, true, false, false, false, false, false}; 
+        espacamento = 90;
+        alinhamento = AlinhamentoVertical.BASE;
+        deslocamentos = new int[]{-30, -30, -30,-30};    
+        ajustesVerticais = new int[]{0, 0, -15};     
+        largurasEixos = new int[]{230, 230, 230, 230};  
+    } 
+   
+        //RECEITA PARA O "CASE 4.1" QUE É O BOTAO 4 NA POSIÇÃO 1
+    else { //PRONTO
+        
+        
+        tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO, TipoEixo.DUPLO};
+        visibilidade = new boolean[]{true, true, true, true, false, false, false, false, false};
+        espacamento = 70;
+        alinhamento = AlinhamentoVertical.BASE;
+        deslocamentos = new int[]{-30, -30, -30, -30}; 
+        ajustesVerticais = new int[]{0, 0, -20};     
+        largurasEixos = new int[]{230, 230, 230, 230}; 
+    }
+    break; 
 
             case 5:
                 tipos = new TipoEixo[]{TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES, TipoEixo.SIMPLES};
@@ -1326,7 +1377,7 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
                     ajustesVerticais = new int[]{0, 0, -20};
                 }
                 extensaoEspinha = 50;
-                break;
+                break;                
             case 9: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.DUPLO};
                 visibilidade = new boolean[]{true, false, false, false, false, false, false, false, false};
@@ -1335,7 +1386,7 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
                 deslocamentos = new int[]{-30, -30, -30};
                 ajustesVerticais = new int[]{160, 0, 0};
                 largurasEixos = new int[]{220};
-                break;
+                break;             
             case 10: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.SIMPLES};
                 visibilidade = new boolean[]{true, false, false, false, false, false, false, false, false};
@@ -1344,7 +1395,7 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
                 deslocamentos = new int[]{-30, -30, -30};
                 ajustesVerticais = new int[]{160, 0, 0};
                 largurasEixos = new int[]{150};
-                break;
+                break;      
             case 11: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.SIMPLES};
                 visibilidade = new boolean[]{true, true, false, false, false, false, false, false, false};
@@ -1406,7 +1457,7 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
             case 17: //PRONTO
                 tipos = new TipoEixo[]{TipoEixo.DUPLO, TipoEixo.DUPLO};
                 visibilidade = new boolean[]{true, false, false, false, false, true, false, false, false};
-                espacamento = 270;
+                espacamento = 270; 
                 alinhamento = AlinhamentoVertical.TOPO;
                 deslocamentos = new int[]{-30, -30, -30};
                 ajustesVerticais = new int[]{30, 0, 0};
@@ -1430,52 +1481,16 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         // Após definir as instruções, manda o desenhista trabalhar com elas
         desenharChassi(tipos, visibilidade, espacamento, alinhamento, deslocamentos, ajustesVerticais, largurasEixos, posicoesEixos, extensaoEspinha);
 
-    
+        // --- CARREGA OS PNEUS JÁ EXISTENTES NO VEÍCULO ---
         carregarPneusNoChassi(veiculoSelecionado.getID());
 
-       
+        // --- ATUALIZA AS OUTRAS TABELAS DA TELA ---
         String medidaNecessaria = veiculoSelecionado.getMEDIDA_PNEU();
-        
-        System.out.println("\n--- DEBUG DETALHADO DA MEDIDA ---");
-        System.out.println("1. Medida original (getMEDIDA_PNEU()): '" + medidaNecessaria + "'");
-        System.out.println("2. Medida é NULA? " + (medidaNecessaria == null));
-
-        if (medidaNecessaria != null) {
-            System.out.println("3. Comprimento da medida original: " + medidaNecessaria.length());
-            System.out.println("4. Medida é VAZIA (isEmpty())? " + medidaNecessaria.isEmpty());
-            
-            String medidaTrimmed = medidaNecessaria.trim();
-            System.out.println("5. Medida após .trim(): '" + medidaTrimmed + "'");
-            System.out.println("6. Medida após .trim() é VAZIA (isEmpty())? " + medidaTrimmed.isEmpty());
-            System.out.println("7. Comprimento da medida após .trim(): " + medidaTrimmed.length());
-
-            // Loop para verificar cada caractere (se a string não for muito longa)
-            if (medidaNecessaria.length() < 100) { // Evita imprimir strings gigantes
-                System.out.print("8. Caracteres da medida original (ASCII/Unicode): ");
-                for (char c : medidaNecessaria.toCharArray()) {
-                    System.out.print((int) c + " ");
-                }
-                System.out.println();
-            } else {
-                 System.out.println("8. Medida muito longa para inspecionar caracteres individualmente.");
-            }
-        }
-        System.out.println("--- FIM DEBUG DETALHADO DA MEDIDA ---\n");
-
-
-        // AGORA A LÓGICA DE FILTRO REAL
         if (medidaNecessaria == null || medidaNecessaria.trim().isEmpty()) {
-            System.out.println("LOGICA: Medida de pneu considerada nula ou vazia. Carregando lista de pneus em estoque vazia.");
             this.pneusEmEstoqueLista = new java.util.ArrayList<>();
             popularTabelaPneusEstoque(this.pneusEmEstoqueLista);
         } else {
-            System.out.println("--- DEBUG DAO CALL ---");
-            System.out.println("Status: ESTOQUE");
-            System.out.println("Medida: " + medidaNecessaria);
-            System.out.println("ID Empresa: " + idEmpresaDoVeiculo);
-            this.pneusEmEstoqueLista = pneuDAO.listarPneusPorStatusMedidaEEmpresa("ESTOQUE", medidaNecessaria, idEmpresaDoVeiculo);
-            System.out.println("Resultado da DAO: " + this.pneusEmEstoqueLista.size() + " pneus encontrados.");
-            System.out.println("----------------------");
+            this.pneusEmEstoqueLista = pneuDAO.listarPneusPorStatusEMedida("ESTOQUE", medidaNecessaria);
             popularTabelaPneusEstoque(this.pneusEmEstoqueLista);
         }
 
@@ -1483,6 +1498,10 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
                 new Object[][]{},
                 new String[]{"N° FOGO", "FABRICANTE", "PROFUNDIDADE"}
         ));
+
+
+
+
     }
 
     public static void main(String args[]) {
@@ -1510,120 +1529,71 @@ public class TelaControleDePneus extends javax.swing.JDialog implements PneuData
         });
     }
 
-   private class ArrastadorDePneus extends MouseAdapter {
+        private class ArrastadorDePneus extends MouseAdapter {
 
-    private JLabel pneuFantasma;
-    private JLabel labelOriginal;
-    private JLabel numeroFogoFantasma;
+    private JLabel pneuFantasma; // O "fantasma" que é realmente arrastado
+    private JLabel labelOriginal; // O slot de onde o pneu saiu
     private Point offset;
     private JLayeredPane layeredPane;
-    private Object pneuDataOriginal;
-    private final ImageIcon iconPneuCinza; // Adicionado final
+    private Object pneuDataOriginal; // Guarda os dados do pneu original em caso de cancelamento
 
-    // Construtor para receber o ícone cinza
-    public ArrastadorDePneus(ImageIcon iconPneuCinza) {
-        this.iconPneuCinza = iconPneuCinza;
-    }
-    
     @Override
     public void mousePressed(MouseEvent e) {
-    labelOriginal = (JLabel) e.getSource();
+        labelOriginal = (JLabel) e.getSource();
 
-    // A verificação agora usa o iconPneuCinza da instância de ArrastadorDePneus
-    if (!labelOriginal.isEnabled() || labelOriginal.getIcon() == null || labelOriginal.getIcon().equals(this.iconPneuCinza)) {
-        labelOriginal = null;
-        return;
+        // Só inicia o arraste se for um pneu real (habilitado)
+        if (!labelOriginal.isEnabled() || labelOriginal.getIcon() == null || labelOriginal.getIcon() == iconPneuCinza) {
+            labelOriginal = null;
+            return;
+        }
+
+        // Guarda os dados do pneu para o caso de a operação ser cancelada
+        pneuDataOriginal = labelOriginal.getClientProperty("pneuData");
+
+        // Cria o pneu fantasma
+        pneuFantasma = new JLabel();
+        pneuFantasma.setIcon(labelOriginal.getIcon());
+        pneuFantasma.setSize(labelOriginal.getSize());
+        pneuFantasma.putClientProperty("pneuData", pneuDataOriginal);
+        pneuFantasma.putClientProperty("tipo", labelOriginal.getClientProperty("tipo"));
+
+        // Posiciona o fantasma exatamente sobre o pneu original
+        layeredPane = getRootPane().getLayeredPane();
+        Point location = SwingUtilities.convertPoint(labelOriginal.getParent(), labelOriginal.getLocation(), layeredPane);
+        pneuFantasma.setLocation(location);
+        offset = e.getPoint();
+
+        // Adiciona o fantasma à camada de arrasto
+        layeredPane.add(pneuFantasma, JLayeredPane.DRAG_LAYER);
+        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+
+        // Se o pneu original veio do chassi ou estepe, "esvazia" o slot original imediatamente
+        String tipoOrigem = (String) labelOriginal.getClientProperty("tipo");
+        if ("chassi".equals(tipoOrigem) || "estepe".equals(tipoOrigem)) {
+            labelOriginal.setIcon(iconPneuCinza);
+            labelOriginal.setEnabled(false);
+            labelOriginal.putClientProperty("pneuData", null);
+        }
     }
-
-    pneuDataOriginal = labelOriginal.getClientProperty("pneuData");
-
-    pneuFantasma = new JLabel();
-    pneuFantasma.setIcon(labelOriginal.getIcon());
-    pneuFantasma.setSize(labelOriginal.getSize());
-    pneuFantasma.putClientProperty("pneuData", pneuDataOriginal);
-    pneuFantasma.putClientProperty("tipo", labelOriginal.getClientProperty("tipo"));
-
-    String numeroFogoText = null;
-    if (pneuDataOriginal instanceof Pneu) {
-        Pneu pneu = (Pneu) pneuDataOriginal;
-        numeroFogoText = pneu.getIdEmpresaProprietaria() + "-" + pneu.getFogo();
-    }
-
-    if (numeroFogoText != null && !numeroFogoText.isEmpty()) {
-        numeroFogoFantasma = new JLabel(numeroFogoText);
-        numeroFogoFantasma.setForeground(Color.WHITE);
-        numeroFogoFantasma.setFont(new Font("Arial", Font.BOLD, 14));
-        numeroFogoFantasma.setHorizontalAlignment(SwingConstants.CENTER);
-        numeroFogoFantasma.setVerticalAlignment(SwingConstants.CENTER);
-        numeroFogoFantasma.setSize(pneuFantasma.getWidth(), 20); // Altura ajustável
-    }
-
-    layeredPane = getRootPane().getLayeredPane();
-    Point location = SwingUtilities.convertPoint(labelOriginal.getParent(), labelOriginal.getLocation(), layeredPane);
-    pneuFantasma.setLocation(location);
-
-    if (numeroFogoFantasma != null) {
-        int espacamento = 5; // Espaçamento entre o pneu fantasma e o número
-        int yOffset = -numeroFogoFantasma.getHeight() - espacamento; // Para aparecer acima
-        numeroFogoFantasma.setLocation(location.x, location.y + yOffset);
-    }
-
-    offset = e.getPoint();
-
-    layeredPane.add(pneuFantasma, JLayeredPane.DRAG_LAYER);
-    if (numeroFogoFantasma != null) {
-        layeredPane.add(numeroFogoFantasma, JLayeredPane.DRAG_LAYER);
-    }
-    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-
-    // Se o pneu original veio do chassi ou estepe, "esvazia" o slot original imediatamente
-    String tipoOrigem = (String) labelOriginal.getClientProperty("tipo");
-    if ("chassi".equals(tipoOrigem) || "estepe".equals(tipoOrigem)) {
-        labelOriginal.setIcon(iconPneuCinza); // APLICA O PNEU CINZA
-        labelOriginal.setEnabled(false);
-        labelOriginal.putClientProperty("pneuData", null);
-        labelOriginal.putClientProperty("numeroFogo", null);
-        
-        // --- ADIÇÃO: Força a repintura do slot original ---
-        labelOriginal.repaint();
-        labelOriginal.getParent().repaint(); // Repinta o pai para garantir
-        // --- FIM DA ADIÇÃO ---
-        
-        // Se você tem um JLabel VISÍVEL específico para o texto do número de fogo no slot original, limpe-o aqui.
-        // Exemplo: labelOriginalNumeroFogoVisual.setText("");
-    }
-}
 
     @Override
-  
-public void mouseDragged(MouseEvent e) {
-    if (pneuFantasma != null) {
-        Point currentMousePoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), layeredPane);
-
-        int newX = currentMousePoint.x - offset.x;
-        int newY = currentMousePoint.y - offset.y;
-
+    public void mouseDragged(MouseEvent e) {
+        if (pneuFantasma == null) {
+            return;
+        }
+        // Converte a posição do mouse para as coordenadas do layeredPane
+        Point mousePosOnScreen = e.getLocationOnScreen();
+        SwingUtilities.convertPointFromScreen(mousePosOnScreen, layeredPane);
+        
+        // Calcula a nova posição do fantasma
+        int newX = mousePosOnScreen.x - offset.x;
+        int newY = mousePosOnScreen.y - offset.y;
         pneuFantasma.setLocation(newX, newY);
-
-        if (numeroFogoFantasma != null) {
-            int espacamento = 5; // Use o mesmo espaçamento de mousePressed
-            int yOffset = -numeroFogoFantasma.getHeight() - espacamento;
-            numeroFogoFantasma.setLocation(newX, newY + yOffset);
-        }
-
-        layeredPane.repaint();
     }
-}
 
     @Override
-   public void mouseReleased(MouseEvent e) {
+    public void mouseReleased(MouseEvent e) {
     if (pneuFantasma == null) {
-        setCursor(Cursor.getDefaultCursor());
-        if (numeroFogoFantasma != null) {
-            layeredPane.remove(numeroFogoFantasma);
-            numeroFogoFantasma = null;
-            layeredPane.repaint();
-        }
         return;
     }
 
@@ -1635,7 +1605,9 @@ public void mouseDragged(MouseEvent e) {
 
     Point mousePosOnScreen = e.getLocationOnScreen();
 
-    // --- VERIFICAÇÃO DE ALVOS DE DROP (Seu código original) ---
+    // --- VERIFICAÇÃO DE ALVOS DE DROP ---
+
+    // Alvo 1: Um slot de pneu VAZIO no chassi ou estepe
     Point dropPointChassi = new Point(mousePosOnScreen);
     SwingUtilities.convertPointFromScreen(dropPointChassi, TELA_ZERO);
     for (JLabel[] eixo : slotsDePneus) {
@@ -1650,20 +1622,22 @@ public void mouseDragged(MouseEvent e) {
         if (dropValido) break;
     }
     
+    // Checa estepes se não achou no chassi
     if (!dropValido) {
         Point dropPointEstepe = new Point(mousePosOnScreen);
         SwingUtilities.convertPointFromScreen(dropPointEstepe, ESTEPE);
         if (lb_estepe1.getBounds().contains(dropPointEstepe) && !lb_estepe1.isEnabled()) {
             slotDestinoFinal = lb_estepe1;
             dropValido = true;
-            dropTargetType = "chassi"; 
+            dropTargetType = "chassi"; // Trata estepe como parte do chassi
         } else if (lb_estepe2.getBounds().contains(dropPointEstepe) && !lb_estepe2.isEnabled()) {
             slotDestinoFinal = lb_estepe2;
             dropValido = true;
-            dropTargetType = "chassi"; 
+            dropTargetType = "chassi"; // Trata estepe como parte do chassi
         }
     }
 
+    // Alvo 2: Ações (Estoque, Conserto, Sucata)
     if (!dropValido) {
         Point dropPointAcao = new Point(mousePosOnScreen);
         SwingUtilities.convertPointFromScreen(dropPointAcao, PainelManutencao);
@@ -1679,77 +1653,92 @@ public void mouseDragged(MouseEvent e) {
         }
     }
 
-    // --- PROCESSAMENTO DO RESULTADO DO DROP (Seu código original com atualizações) ---
+    // --- PROCESSAMENTO DO RESULTADO DO DROP ---
     final Pneu pneuMovido = (Pneu) pneuFantasma.getClientProperty("pneuData");
 
     if (dropValido && pneuMovido != null) {
         if ("chassi".equals(dropTargetType)) {
+            // Lógica para ALOCAR pneu no veículo
             int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
             if (selectedRow != -1) {
                 Veiculo veiculoAtual = listaDeVeiculos.get(selectedRow);
                 String posicaoNova = (String) slotDestinoFinal.getClientProperty("posicaoChassi");
-                 if (posicaoNova == null) {
+                 if (posicaoNova == null) { // Fallback para estepes
                     if (slotDestinoFinal == lb_estepe1) posicaoNova = "ESTEPE1";
                     else if (slotDestinoFinal == lb_estepe2) posicaoNova = "ESTEPE2";
                 }
 
                 boolean sucesso = pneuDAO.atualizarLocalizacaoPneu(pneuMovido.getId(), veiculoAtual.getID(), posicaoNova, "EM USO");
                 if (sucesso) {
+                    // Atualiza UI
                     slotDestinoFinal.setIcon(pneuFantasma.getIcon());
                     slotDestinoFinal.setEnabled(true);
+                    // Atualiza o objeto pneu localmente e o armazena no slot
                     pneuMovido.setIdVeiculo(veiculoAtual.getID());
                     pneuMovido.setPosicaoNoVeiculo(posicaoNova);
                     pneuMovido.setStatusPneu("EM USO");
                     slotDestinoFinal.putClientProperty("pneuData", pneuMovido);
-
-                    String numeroFogoParaDestino = pneuMovido.getIdEmpresaProprietaria() + "-" + pneuMovido.getFogo();
-                    slotDestinoFinal.putClientProperty("numeroFogo", numeroFogoParaDestino);
-                    // Se o slotDestinoFinal tem um JLabel DEDICADO para o texto do número de fogo, atualize-o aqui:
-                    // Exemplo: slotDestinoFinalNumeroFogoLabel.setText(numeroFogoParaDestino);
                     
+                    // Se o pneu veio da lista de estoque (arrastado do Pneu_Escolhido)
                     if (labelOriginal == Pneu_Escolhido) {
+                        // Encontra o índice do pneu movido na lista de dados do estoque
                         int indexNaLista = pneusEmEstoqueLista.indexOf(pneuMovido);
+
                         if (indexNaLista != -1) {
+                            // Remove o pneu da lista de dados
                             pneusEmEstoqueLista.remove(indexNaLista);
+
+                            // Remove a linha correspondente da JTable.
+                            // Isso assume que a JTable não foi reordenada pelo usuário.
                             DefaultTableModel model = (DefaultTableModel) Tabela_Exibicao_pneus_em_estoque.getModel();
+                            
+                            // Validação extra para evitar erros de índice
                             if (indexNaLista < model.getRowCount()) {
                                 model.removeRow(indexNaLista);
                             }
                         }
+
+                        // Limpa o slot de pneu escolhido, pois o pneu foi usado
                         Pneu_Escolhido.setIcon(null);
                         Pneu_Escolhido.putClientProperty("pneuData", null);
                         Pneu_Escolhido.setEnabled(false);
-                        Pneu_Escolhido.putClientProperty("numeroFogo", null);
-                        // Limpe também o JLabel VISÍVEL associado a Pneu_Escolhido, se houver:
-                        // Exemplo: Pneu_EscolhidoNumeroFogoVisual.setText("");
                     }
                 } else {
                     JOptionPane.showMessageDialog(TelaControleDePneus.this, "Falha ao salvar a posição do pneu.", "Erro de Banco de Dados", JOptionPane.ERROR_MESSAGE);
-                    dropValido = false; 
+                    dropValido = false; // Falhou, então reverte
                 }
             }
         } else { // Mover para Estoque, Conserto ou Sucata
+            // Lógica para REMOVER pneu do veículo
             String tipoOrigem = (String) labelOriginal.getClientProperty("tipo");
             boolean sucesso;
+            // Só remove do veículo se a origem for 'chassi' ou 'estepe'
             if ("chassi".equals(tipoOrigem) || "estepe".equals(tipoOrigem)) {
                  sucesso = pneuDAO.removerPneuDoVeiculo(pneuMovido.getId(), dropTargetType);
-            } else {
+            } else { // Se veio do estoque, só atualiza o status
                  sucesso = pneuDAO.atualizarStatusPneu(pneuMovido.getId(), dropTargetType);
             }
 
             if (sucesso) {
                 if ("AG. CONSERTO".equals(dropTargetType)) {
+                    // Ação para abrir a tela de serviços é agendada para depois que o evento atual (o drop) for concluído.
+                    // Isso garante que a UI (o pneu sumindo) seja atualizada ANTES da nova tela aparecer.
                     SwingUtilities.invokeLater(() -> {
                         TelaCadastroServicos telaServicos = new TelaCadastroServicos((java.awt.Frame) SwingUtilities.getWindowAncestor(TelaControleDePneus.this), true);
                         telaServicos.setPneuIdParaServico(pneuMovido.getId());
                         telaServicos.setVisible(true);
                     });
                 } else {
+                    // Mostra a mensagem de sucesso para outros destinos (Estoque, Sucata).
                     JOptionPane.showMessageDialog(TelaControleDePneus.this, "Pneu movido para: " + dropTargetType);
                 }
 
+                // Se o pneu foi movido de volta para o estoque, atualiza a tabela.
                 if ("ESTOQUE".equals(dropTargetType)) {
+                    // Adiciona o pneu de volta à lista de dados
                     pneusEmEstoqueLista.add(pneuMovido);
+
+                    // Adiciona uma nova linha na JTable de estoque
                     DefaultTableModel model = (DefaultTableModel) Tabela_Exibicao_pneus_em_estoque.getModel();
                     model.addRow(new Object[]{
                         pneuMovido.getIdEmpresaProprietaria(),
@@ -1759,55 +1748,37 @@ public void mouseDragged(MouseEvent e) {
                         pneuMovido.getMedida()
                     });
                 }
+                // A remoção visual do slot de origem já foi feita no mousePressed.
             } else {
                 JOptionPane.showMessageDialog(TelaControleDePneus.this, "Falha ao mover o pneu para " + dropTargetType, "Erro de Banco de Dados", JOptionPane.ERROR_MESSAGE);
-                dropValido = false; 
+                dropValido = false; // Falhou, então reverte
             }
         }
     } else {
-        dropValido = false; 
+        dropValido = false; // Se pneu for nulo ou drop inválido
     }
 
-    // --- CORREÇÃO DA LÓGICA DE REVERSÃO: Se o drop NÃO foi válido ou a operação de DB falhou ---
+    // Se o drop NÃO foi válido ou a operação de DB falhou, reverte a UI
     if (!dropValido) {
         String tipoOrigem = (String) labelOriginal.getClientProperty("tipo");
         if ("chassi".equals(tipoOrigem) || "estepe".equals(tipoOrigem)) {
-            // Restaura o ícone, habilitação e dados do pneu original
-            // O pneuFantasma.getIcon() aqui é o ícone do pneu que estava lá originalmente
-            labelOriginal.setIcon(pneuFantasma.getIcon()); 
+            labelOriginal.setIcon(pneuFantasma.getIcon());
             labelOriginal.setEnabled(true);
             labelOriginal.putClientProperty("pneuData", pneuDataOriginal);
-            
-            // Restaura o número de fogo original no labelOriginal
-            if (pneuDataOriginal instanceof Pneu) {
-                Pneu pneuOriginal = (Pneu) pneuDataOriginal;
-                String numeroFogoOriginal = pneuOriginal.getIdEmpresaProprietaria() + "-" + pneuOriginal.getFogo();
-                labelOriginal.putClientProperty("numeroFogo", numeroFogoOriginal);
-                // Se o slot original tem um JLabel DEDICADO para o texto, restaure-o:
-                // Exemplo: labelOriginalNumeroFogoVisual.setText(numeroFogoOriginal);
-            }
         }
-        // Se a origem foi Pneu_Escolhido e o drop foi inválido, o Pneu_Escolhido permanece limpo,
-        // pois a intenção era movê-lo para um slot de chassi/estepe ou manutenção.
-        // Se ele deveria voltar para Pneu_Escolhido, precisaria de uma lógica específica para isso.
     }
 
-    // --- LIMPEZA FINAL: Remova os fantasmas e limpe referências ---
-    // Isso deve ser sempre a última coisa, independentemente do sucesso do drop.
+    // Limpeza final
     layeredPane.remove(pneuFantasma);
     pneuFantasma = null;
-    if (numeroFogoFantasma != null) {
-        layeredPane.remove(numeroFogoFantasma);
-        numeroFogoFantasma = null;
-    }
     labelOriginal = null;
     pneuDataOriginal = null;
     
+    // Força a repintura geral
     layeredPane.repaint();
-    TELA_ZERO.repaint(); 
-    ESTEPE.repaint(); 
+    TELA_ZERO.repaint();
     PainelManutencao.repaint();
-}
+    }
 
     @Override
     public void mouseEntered(MouseEvent e) {
@@ -1824,12 +1795,6 @@ public void mouseDragged(MouseEvent e) {
         label.setBorder(null);
     }
 }
-    
-    @Override
-    public void onPneuDataChanged() {
-        atualizarDados(); 
-        JOptionPane.showMessageDialog(this, "Tabela de Pneus em Estoque atualizada!", "Atualização de Dados", JOptionPane.INFORMATION_MESSAGE);
-    }
 
 // <editor-fold defaultstate="collapsed" desc="Generated Code"> 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1899,7 +1864,6 @@ public void mouseDragged(MouseEvent e) {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JLabel lbQtdPneus;
     private javax.swing.JLabel lb_estepe;
     private javax.swing.JLabel lb_estepe1;
     private javax.swing.JLabel lb_estepe2;
@@ -1921,130 +1885,111 @@ public void mouseDragged(MouseEvent e) {
     // End of variables declaration//GEN-END:variables
 // </editor-fold> 
 
+    // --- INÍCIO: NOVOS MÉTODOS ADICIONADOS ---
 
-   public void atualizarDados() {
-    int selectedRow = Tabela_Exibicao_veiculos.getSelectedRow();
-    atualizarTabelaVeiculos();
+    
+    private void carregarPneusNoChassi(int idVeiculo) {
+    java.util.List<Pneu> pneusNoVeiculo = pneuDAO.listarPneusNoVeiculo(idVeiculo);
+    
+    // Limpa TODOS os slots do chassi para o estado "cinza" (vazio) antes de preencher com pneus reais
+    for (JLabel[] eixo : slotsDePneus) {
+        for (JLabel slot : eixo) {
+            if (slot != null) {
+                slot.setIcon(this.iconPneuCinza); // Usa o ícone cinza (slot vazio)
+                slot.putClientProperty("pneuData", null);
+                slot.setEnabled(false); // Por padrão, slot vazio é desabilitado
+                slot.putClientProperty("tipo", "chassi"); // Define o tipo para drag-drop
+                // TODO: Adicionar putClientProperty("posicaoChassi", "...") aqui também para consistência
+            }
+        }
+    }
 
-    if (selectedRow != -1 && selectedRow < Tabela_Exibicao_veiculos.getRowCount()) {
-        Tabela_Exibicao_veiculos.setRowSelectionInterval(selectedRow, selectedRow);
-        Tabela_Exibicao_veiculosMouseClicked(null);
-    } else {
-        limparChassi();
-        this.pneusEmEstoqueLista = pneuDAO.listarPneusPorStatus("ESTOQUE");
-        popularTabelaPneusEstoque(this.pneusEmEstoqueLista);
-        atualizarPneuEscolhido();
-        Tabela_ExibicaoPneuUsado.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{},
-                new String[]{"N° FOGO", "FABRICANTE", "PROFUNDIDADE"}
-        ));
+    // Reseta os estepes para o estado cinza (vazio) também
+    lb_estepe1.setIcon(this.iconPneuCinza); 
+    lb_estepe1.putClientProperty("pneuData", null); 
+    lb_estepe1.setEnabled(false); // Estepe vazio é desabilitado
+    lb_estepe1.putClientProperty("tipo", "estepe");
+
+    lb_estepe2.setIcon(this.iconPneuCinza); 
+    lb_estepe2.putClientProperty("pneuData", null); 
+    lb_estepe2.setEnabled(false); // Estepe vazio é desabilitado
+    lb_estepe2.putClientProperty("tipo", "estepe");
+
+    // Coloca os pneus reais (coloridos) que vieram do banco de dados nos slots correspondentes
+    for (Pneu pneu : pneusNoVeiculo) {
+        String posicao = pneu.getPosicaoNoVeiculo(); 
+        if (posicao != null) {
+            JLabel targetLabel = getLabelForPosicaoChassi(posicao);
+            if (targetLabel != null) {
+                targetLabel.setIcon(this.iconPneuNormal); // Define o ícone do pneu real (colorido)
+                targetLabel.putClientProperty("pneuData", pneu); 
+                targetLabel.setEnabled(true); // Habilita o slot para arrasto (pois agora tem um pneu real)
+                
+                // Garante que o tipo esteja correto para estepes
+                if (targetLabel == lb_estepe1 || targetLabel == lb_estepe2) {
+                    targetLabel.putClientProperty("tipo", "estepe");
+                } else {
+                    targetLabel.putClientProperty("tipo", "chassi");
+                }
+            }
+        }
     }
 }
-   
-   
-    private void carregarPneusNoChassi(int idVeiculo) {
-        java.util.List<Pneu> pneusNoVeiculo = pneuDAO.listarPneusNoVeiculo(idVeiculo);
-
-        // Limpa TODOS os slots do chassi para o estado "cinza" (vazio) antes de preencher com pneus reais
-        for (JLabel[] eixo : slotsDePneus) {
-            for (JLabel slot : eixo) {
-                if (slot != null) {
-                    slot.setIcon(this.iconPneuCinza); // Usa o ícone cinza (slot vazio)
-                    slot.putClientProperty("pneuData", null);
-                    slot.setEnabled(false); // Por padrão, slot vazio é desabilitado
-                    slot.putClientProperty("tipo", "chassi"); // Define o tipo para drag-drop
-                    // TODO: Adicionar putClientProperty("posicaoChassi", "...") aqui também para consistência
-                }
-            }
-        }
-
-        // Reseta os estepes para o estado cinza (vazio) também
-        lb_estepe1.setIcon(this.iconPneuCinza);
-        lb_estepe1.putClientProperty("pneuData", null);
-        lb_estepe1.setEnabled(false); // Estepe vazio é desabilitado
-        lb_estepe1.putClientProperty("tipo", "estepe");
-
-        lb_estepe2.setIcon(this.iconPneuCinza);
-        lb_estepe2.putClientProperty("pneuData", null);
-        lb_estepe2.setEnabled(false); // Estepe vazio é desabilitado
-        lb_estepe2.putClientProperty("tipo", "estepe");
-
-        // Coloca os pneus reais (coloridos) que vieram do banco de dados nos slots correspondentes
-        for (Pneu pneu : pneusNoVeiculo) {
-            String posicao = pneu.getPosicaoNoVeiculo();
-            if (posicao != null) {
-                JLabel targetLabel = getLabelForPosicaoChassi(posicao);
-                if (targetLabel != null) {
-                    targetLabel.setIcon(this.iconPneuNormal); // Define o ícone do pneu real (colorido)
-                    targetLabel.putClientProperty("pneuData", pneu);
-                    targetLabel.setEnabled(true); // Habilita o slot para arrasto (pois agora tem um pneu real)
-
-                    // Garante que o tipo esteja correto para estepes
-                    if (targetLabel == lb_estepe1 || targetLabel == lb_estepe2) {
-                        targetLabel.putClientProperty("tipo", "estepe");
-                    } else {
-                        targetLabel.putClientProperty("tipo", "chassi");
-                    }
-                }
-            }
-        }
-    }
 
     private JLabel getLabelForPosicaoChassi(String posicao) {
-        for (JLabel[] slotsDePneu : slotsDePneus) {
-            for (JLabel slotsDePneu1 : slotsDePneu) {
-                if (slotsDePneu1 != null) {
-                    String slotPosicao = (String) slotsDePneu1.getClientProperty("posicaoChassi");
+        for (int i = 0; i < slotsDePneus.length; i++) {
+            for (int j = 0; j < slotsDePneus[i].length; j++) {
+                if (slotsDePneus[i][j] != null) {
+                    String slotPosicao = (String) slotsDePneus[i][j].getClientProperty("posicaoChassi");
                     if (posicao.equals(slotPosicao)) {
-                        return slotsDePneu1;
+                        return slotsDePneus[i][j];
                     }
                 }
             }
         }
         // Verifica também os estepes
-        if ("ESTEPE1".equals(posicao)) {
-            return lb_estepe1;
-        }
-        if ("ESTEPE2".equals(posicao)) {
-            return lb_estepe2;
-        }
+        if ("ESTEPE1".equals(posicao)) return lb_estepe1;
+        if ("ESTEPE2".equals(posicao)) return lb_estepe2;
         return null;
     }
 
-    private void inicializarIconesPneus(int largura, int altura) {
-        try {
-            java.net.URL imgUrl = getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png");
-            if (imgUrl == null) {
-                System.err.println("ERRO: O arquivo de imagem 'pneu.png' não foi encontrado em /br/com/martins_borges/telas/Imagens/pneu.png!");
-                // Garante que os ícones não sejam nulos, mesmo que vazios
-                this.iconPneuNormal = new ImageIcon();
-                this.iconPneuCinza = new ImageIcon();
-                return;
-            }
-            ImageIcon iconeOriginal = new ImageIcon(imgUrl);
-
-            // Redimensiona o ícone original para o tamanho padrão
-            java.awt.Image imagemRedimensionada = iconeOriginal.getImage().getScaledInstance(largura, altura, java.awt.Image.SCALE_SMOOTH);
-            this.iconPneuNormal = new ImageIcon(imagemRedimensionada);
-
-            // Cria uma versão em tons de cinza do ícone normal redimensionado
-            BufferedImage img = new BufferedImage(largura, altura, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2d = img.createGraphics();
-            g2d.drawImage(imagemRedimensionada, 0, 0, null); // Desenha a imagem colorida
-            g2d.dispose();
-
-            // Converte para tons de cinza
-            ColorConvertOp op = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
-            this.iconPneuCinza = new ImageIcon(op.filter(img, null));
-
-            System.out.println("Ícones de pneu inicializados com sucesso (Normal e Cinza) - Tamanho: " + largura + "x" + altura);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Erro ao inicializar ícones de pneu: " + e.getMessage());
+    
+   private void inicializarIconesPneus(int largura, int altura) {
+    try {
+        java.net.URL imgUrl = getClass().getResource("/br/com/martins_borges/telas/Imagens/pneu.png");
+        if (imgUrl == null) {
+            System.err.println("ERRO: O arquivo de imagem 'pneu.png' não foi encontrado em /br/com/martins_borges/telas/Imagens/pneu.png!");
+            // Garante que os ícones não sejam nulos, mesmo que vazios
             this.iconPneuNormal = new ImageIcon();
             this.iconPneuCinza = new ImageIcon();
+            return;
         }
-    }
+        ImageIcon iconeOriginal = new ImageIcon(imgUrl);
+        
+        // Redimensiona o ícone original para o tamanho padrão
+        java.awt.Image imagemRedimensionada = iconeOriginal.getImage().getScaledInstance(largura, altura, java.awt.Image.SCALE_SMOOTH);
+        this.iconPneuNormal = new ImageIcon(imagemRedimensionada);
 
+        // Cria uma versão em tons de cinza do ícone normal redimensionado
+        BufferedImage img = new BufferedImage(largura, altura, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = img.createGraphics();
+        g2d.drawImage(imagemRedimensionada, 0, 0, null); // Desenha a imagem colorida
+        g2d.dispose();
+        
+        // Converte para tons de cinza
+        ColorConvertOp op = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
+        this.iconPneuCinza = new ImageIcon(op.filter(img, null));
+        
+        System.out.println("Ícones de pneu inicializados com sucesso (Normal e Cinza) - Tamanho: " + largura + "x" + altura);
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println("Erro ao inicializar ícones de pneu: " + e.getMessage());
+        this.iconPneuNormal = new ImageIcon();
+        this.iconPneuCinza = new ImageIcon();
+    }
 }
+    
+    
+}                                         
+

@@ -36,13 +36,24 @@ public class VeiculoDAO {
             System.err.println("DAO SQL Error: Erro ao salvar placa - " + e.getMessage());
             return false;
         } finally {
-            try { if (pstmt != null) pstmt.close(); } catch (SQLException ex) {}
-            try { if (conn != null) conn.close(); } catch (SQLException ex) {}
+            try {
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+            }
         }
     }
 
     public boolean salvarVeiculoCompleto(Veiculo veiculo) {
-        String sql = "INSERT INTO CAD_VEICULOS (FROTA, PLACA, ID_CONFIG_FK, QTD_PNEUS, DATA_CADASTRO, MEDIDA_PNEU, STATUS_VEICULO, posicao_carreta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO CAD_VEICULOS (FROTA, PLACA, ID_CONFIG_FK, QTD_PNEUS, DATA_CADASTRO,"
+                + " MEDIDA_PNEU, STATUS_VEICULO, posicao_carreta, ID_EMPRESA_FK) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         PreparedStatement pstmt = null;
         try {
@@ -60,14 +71,25 @@ public class VeiculoDAO {
             pstmt.setString(6, veiculo.getMEDIDA_PNEU());
             pstmt.setString(7, veiculo.getSTATUS_VEICULO());
             pstmt.setObject(8, veiculo.getPosicaoCarreta());
+            pstmt.setObject(9, veiculo.getIdEmpresaFk());
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
             System.err.println("DAO SQL Error: Erro ao salvar veículo completo - " + e.getMessage());
             return false;
         } finally {
-            try { if (pstmt != null) pstmt.close(); } catch (SQLException ex) {}
-            try { if (conn != null) conn.close(); } catch (SQLException ex) {}
+            try {
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+            }
         }
     }
 
@@ -96,20 +118,98 @@ public class VeiculoDAO {
                 veiculo.setDATA_CADASTRO(rs.getDate("DATA_CADASTRO").toLocalDate());
                 veiculo.setMEDIDA_PNEU(rs.getString("MEDIDA_PNEU"));
                 veiculo.setSTATUS_VEICULO(rs.getString("STATUS_VEICULO"));
-                veiculo.setPosicaoCarreta((Integer) rs.getObject("posicao_carreta"));
+
+                int posicaoCarretaValue = rs.getInt("posicao_carreta");
+                if (rs.wasNull()) {
+                    veiculo.setPosicaoCarreta(null);
+                } else {
+                    veiculo.setPosicaoCarreta(posicaoCarretaValue);
+                }
+
+                // --- ADICIONE ESTA LINHA PARA PEGAR O ID DA EMPRESA ---
+                veiculo.setIdEmpresaFk(rs.getInt("ID_EMPRESA_FK"));
             }
         } catch (SQLException e) {
             System.err.println("DAO SQL Error: Erro ao buscar veículo por placa - " + e.getMessage());
         } finally {
-            try { if (rs != null) rs.close(); } catch (SQLException ex) {}
-            try { if (pstmt != null) pstmt.close(); } catch (SQLException ex) {}
-            try { if (conn != null) conn.close(); } catch (SQLException ex) {}
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+            }
+        }
+        return veiculo;
+    }
+
+    public Veiculo buscarPorFrota(String frota) {
+        String sql = "SELECT * FROM CAD_VEICULOS WHERE FROTA = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        Veiculo veiculo = null;
+        try {
+            conn = ModuloConexao.conector();
+            if (conn == null) {
+                System.err.println("DAO: Falha conexão buscarPorFrota.");
+                return null;
+            }
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, frota);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                veiculo = new Veiculo();
+                veiculo.setID(rs.getInt("ID"));
+                veiculo.setFROTA(rs.getString("FROTA"));
+                veiculo.setPLACA(rs.getString("PLACA"));
+                veiculo.setID_CONFIG_FK(rs.getInt("ID_CONFIG_FK"));
+                veiculo.setQTD_PNEUS(rs.getInt("QTD_PNEUS"));
+                veiculo.setDATA_CADASTRO(rs.getDate("DATA_CADASTRO").toLocalDate());
+                veiculo.setMEDIDA_PNEU(rs.getString("MEDIDA_PNEU"));
+                veiculo.setSTATUS_VEICULO(rs.getString("STATUS_VEICULO"));
+                veiculo.setPosicaoCarreta((Integer) rs.getObject("posicao_carreta"));
+                veiculo.setIdEmpresaFk(rs.getInt("ID_EMPRESA_FK"));
+            }
+        } catch (SQLException e) {
+            System.err.println("DAO SQL Error: Erro ao buscar veículo por frota - " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+            }
         }
         return veiculo;
     }
 
     public List<Veiculo> listarTodos() {
-        String sql = "SELECT * FROM CAD_VEICULOS";
+        String sql = "SELECT ID, FROTA, PLACA, ID_CONFIG_FK, QTD_PNEUS, DATA_CADASTRO, MEDIDA_PNEU, "
+        + "STATUS_VEICULO, posicao_carreta, ID_EMPRESA_FK FROM CAD_VEICULOS";
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -133,20 +233,38 @@ public class VeiculoDAO {
                 veiculo.setMEDIDA_PNEU(rs.getString("MEDIDA_PNEU"));
                 veiculo.setSTATUS_VEICULO(rs.getString("STATUS_VEICULO"));
                 veiculo.setPosicaoCarreta((Integer) rs.getObject("posicao_carreta"));
+                veiculo.setIdEmpresaFk(rs.getInt("ID_EMPRESA_FK"));
                 veiculos.add(veiculo);
             }
         } catch (SQLException e) {
             System.err.println("DAO SQL Error: Erro ao listar veículos - " + e.getMessage());
         } finally {
-            try { if (rs != null) rs.close(); } catch (SQLException ex) {}
-            try { if (pstmt != null) pstmt.close(); } catch (SQLException ex) {}
-            try { if (conn != null) conn.close(); } catch (SQLException ex) {}
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+            }
         }
         return veiculos;
     }
 
     public boolean atualizarVeiculo(Veiculo veiculo) {
-        String sql = "UPDATE CAD_VEICULOS SET FROTA = ?, PLACA = ?, ID_CONFIG_FK = ?, QTD_PNEUS = ?, DATA_CADASTRO = ?, MEDIDA_PNEU = ?, STATUS_VEICULO = ?, posicao_carreta = ? WHERE ID = ?";
+        // --- ALTERE A QUERY SQL PARA INCLUIR 'ID_EMPRESA_FK' NO UPDATE ---
+        // (Serão 9 colunas para SET e 1 coluna para WHERE, totalizando 10 parâmetros)
+        String sql = "UPDATE CAD_VEICULOS SET FROTA = ?, PLACA = ?, ID_CONFIG_FK = ?, QTD_PNEUS = ?, DATA_CADASTRO = ?, MEDIDA_PNEU = ?, STATUS_VEICULO = ?, posicao_carreta = ?, ID_EMPRESA_FK = ? WHERE ID = ?";
         Connection conn = null;
         PreparedStatement pstmt = null;
         try {
@@ -158,21 +276,35 @@ public class VeiculoDAO {
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, veiculo.getFROTA());
             pstmt.setString(2, veiculo.getPLACA());
-            pstmt.setObject(3, veiculo.getID_CONFIG_FK()); // Corrigido para setObject
-            pstmt.setObject(4, veiculo.getQTD_PNEUS());   // Corrigido para setObject
+            pstmt.setObject(3, veiculo.getID_CONFIG_FK());
+            pstmt.setObject(4, veiculo.getQTD_PNEUS());
             pstmt.setDate(5, java.sql.Date.valueOf(veiculo.getDATA_CADASTRO()));
             pstmt.setString(6, veiculo.getMEDIDA_PNEU());
             pstmt.setString(7, veiculo.getSTATUS_VEICULO());
             pstmt.setObject(8, veiculo.getPosicaoCarreta());
-            pstmt.setInt(9, veiculo.getID());
+            // --- ADICIONE ESTA LINHA PARA ATUALIZAR O ID DA EMPRESA (9º parâmetro) ---
+            pstmt.setInt(9, veiculo.getIdEmpresaFk());
+            // --- E ESTA LINHA PARA O ID DO VEÍCULO NA CLÁUSULA WHERE (10º parâmetro) ---
+            pstmt.setInt(10, veiculo.getID());
+            // ---------------------------------------------------------------------------
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
             System.err.println("DAO SQL Error: Erro ao atualizar veículo - " + e.getMessage());
             return false;
         } finally {
-            try { if (pstmt != null) pstmt.close(); } catch (SQLException ex) {}
-            try { if (conn != null) conn.close(); } catch (SQLException ex) {}
+            try {
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+            }
         }
     }
 
@@ -194,11 +326,21 @@ public class VeiculoDAO {
             System.err.println("DAO SQL Error: Erro ao excluir veículo por placa - " + e.getMessage());
             return false;
         } finally {
-            try { if (pstmt != null) pstmt.close(); } catch (SQLException ex) {}
-            try { if (conn != null) conn.close(); } catch (SQLException ex) {}
+            try {
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+            }
         }
     }
-    
+
     public boolean frotaExiste(String frota) {
         String sql = "SELECT COUNT(*) FROM CAD_VEICULOS WHERE frota = ?";
         Connection conn = null;
@@ -219,9 +361,24 @@ public class VeiculoDAO {
         } catch (SQLException e) {
             System.err.println("DAO SQL Error: Erro ao verificar se a frota existe - " + e.getMessage());
         } finally {
-            try { if (rs != null) rs.close(); } catch (SQLException ex) {}
-            try { if (pstmt != null) pstmt.close(); } catch (SQLException ex) {}
-            try { if (conn != null) conn.close(); } catch (SQLException ex) {}
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+            } catch (SQLException ex) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+            }
         }
         return false;
     }
@@ -247,14 +404,23 @@ public class VeiculoDAO {
             System.err.println("DAO SQL Error: Erro ao verificar se a placa existe - " + e.getMessage());
         } finally {
             try {
-                if (rs != null) rs.close();
-            } catch (SQLException ex) {}
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (SQLException ex) {
+            }
             try {
-                if (pstmt != null) pstmt.close();
-            } catch (SQLException ex) {}
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+            } catch (SQLException ex) {
+            }
             try {
-                if (conn != null) conn.close();
-            } catch (SQLException ex) {}
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+            }
         }
         return false;
     }
@@ -291,4 +457,3 @@ public class VeiculoDAO {
         }
     }
 }
-

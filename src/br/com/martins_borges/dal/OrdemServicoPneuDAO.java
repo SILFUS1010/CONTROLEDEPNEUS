@@ -370,7 +370,7 @@ public class OrdemServicoPneuDAO {
 
     public OrdemServicoPneu buscarUltimaOSAbertaPorPneu(int idPneu) {
         OrdemServicoPneu ultimaOS = null;
-        String sql = "SELECT os.* FROM ordens_servico_pneu os WHERE os.id_pneu_fk = ? AND os.Status = 'EM_SERVICO' ORDER BY os.data_envio DESC LIMIT 1";
+        String sql = "SELECT os.* FROM ordens_servico_pneu os WHERE os.id_pneu_fk = ? AND os.data_retorno IS NULL ORDER BY os.data_envio DESC LIMIT 1";
 
         try (Connection conn = ModuloConexao.conector(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -582,30 +582,29 @@ public class OrdemServicoPneuDAO {
     PreparedStatement pstmt = null;
     ResultSet rs = null;
 
-   
-    String sqlCheckStatus = "SELECT DISTINCT status_pneu FROM cad_pneus";
     try {
         conn = ModuloConexao.conector();
         if (conn == null) {
+            JOptionPane.showMessageDialog(null, "Erro no banco ao listar OSs: Falha na conexão.", "Erro Conexão", JOptionPane.ERROR_MESSAGE);
             return listaOS;
         }
-        
-        pstmt = conn.prepareStatement(sqlCheckStatus);
-        rs = pstmt.executeQuery();
-        while (rs.next()) {
-        }
-        rs.close();
-        pstmt.close();
+
         String sql = "SELECT os.*, cp.status_pneu "
                    + "FROM ordens_servico_pneu os "
                    + "INNER JOIN cad_pneus cp ON os.id_pneu_fk = cp.id "
-                   + "WHERE cp.status_pneu IN ('ESTOQUE', 'DESCARTADO') "
+                   + "WHERE os.id_servico IN ( "
+                   + "    SELECT MAX(os_inner.id_servico) "
+                   + "    FROM ordens_servico_pneu os_inner "
+                   + "    JOIN cad_pneus cp_inner ON os_inner.id_pneu_fk = cp_inner.id "
+                   + "    WHERE cp_inner.status_pneu IN ('EM_SERVICO', 'DESCARTADO') "
+                   + "    GROUP BY os_inner.id_pneu_fk "
+                   + ") "
                    + "ORDER BY os.data_envio ASC, os.id_servico ASC";
+
         pstmt = conn.prepareStatement(sql);
         rs = pstmt.executeQuery();
-        int count = 0;
+
         while (rs.next()) {
-            count++;
             OrdemServicoPneu os = new OrdemServicoPneu();
             os.setIdServico(rs.getInt("id_servico"));
             os.setIdPneuFk(rs.getInt("id_pneu_fk"));
@@ -623,7 +622,6 @@ public class OrdemServicoPneuDAO {
             listaOS.add(os);
         }
     } catch (SQLException e) {
-        
         JOptionPane.showMessageDialog(null, "Erro no banco ao listar OSs.", "Erro SQL", JOptionPane.ERROR_MESSAGE);
     } finally {
         try { if (rs != null) rs.close(); } catch (SQLException e) {}
@@ -631,4 +629,48 @@ public class OrdemServicoPneuDAO {
         try { if (conn != null) conn.close(); } catch (SQLException e) {}
     }
     return listaOS;
-}}
+}
+
+    public OrdemServicoPneu buscarOrdemServicoPorId(Integer id) {
+        String sql = "SELECT * FROM ordens_servico_pneu WHERE id_servico = ?";
+        OrdemServicoPneu os = null;
+        try (Connection con = ModuloConexao.conector();
+             PreparedStatement pst = con.prepareStatement(sql)) {
+
+            pst.setInt(1, id);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    os = new OrdemServicoPneu();
+                    os.setIdServico(rs.getInt("id_servico"));
+                    os.setIdPneuFk(rs.getInt("id_pneu_fk"));
+                    os.setNumOrcamento(rs.getString("num_orcamento"));
+
+                    Timestamp dataEnvioTs = rs.getTimestamp("data_envio");
+                    if (dataEnvioTs != null) {
+                        os.setDataEnvio(dataEnvioTs.toLocalDateTime());
+                    }
+
+                    Timestamp dataRetornoTs = rs.getTimestamp("data_retorno");
+                    if (dataRetornoTs != null) {
+                        os.setDataRetorno(dataRetornoTs.toLocalDateTime());
+                    }
+
+                    os.setIdParceiroFk(rs.getInt("id_parceiro_fk"));
+                    os.setIdTipoServicoFk(rs.getInt("id_tipo_servico_fk"));
+                    os.setValorServico(rs.getDouble("valor_servico"));
+                    
+                    int idMotivoFk = rs.getInt("id_motivo_fk");
+                    if (!rs.wasNull()) {
+                        os.setIdMotivoFk(idMotivoFk);
+                    }
+                    os.setObservacoesServico(rs.getString("observacoes_servico"));
+                    os.setUsuarioRegistroServico(rs.getString("usuario_registro_servico"));
+                }
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Erro ao buscar Ordem de Serviço por ID: " + e.getMessage(), "Erro no DAO", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro ao buscar Ordem de Serviço por ID: " + e.getMessage());
+        }
+        return os;
+    }
+}

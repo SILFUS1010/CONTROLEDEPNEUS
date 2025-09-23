@@ -13,7 +13,7 @@ public class Veiculo {
     private String MEDIDA_PNEU;
     private String STATUS_VEICULO;
     private Integer posicaoCarreta;
-
+    private int idEmpresaFk;
     // Getters and Setters
 
     public int getID() {
@@ -50,6 +50,14 @@ public class Veiculo {
 
     public int getQTD_PNEUS() {
         return QTD_PNEUS;
+    }
+
+    public int getIdEmpresaFk() {
+        return idEmpresaFk;
+    }
+
+    public void setIdEmpresaFk(int idEmpresaFk) {
+        this.idEmpresaFk = idEmpresaFk;
     }
 
     public void setQTD_PNEUS(int QTD_PNEUS) {

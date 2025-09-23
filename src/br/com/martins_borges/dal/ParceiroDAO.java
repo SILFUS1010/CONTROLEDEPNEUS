@@ -8,6 +8,30 @@ import javax.swing.JOptionPane;
 
 public class ParceiroDAO {
 
+    public List<Parceiro> listarTodos() {
+        String sql = "SELECT id_parceiro, nome_parceiro FROM cad_parceiros ORDER BY nome_parceiro";
+        List<Parceiro> parceiros = new ArrayList<>();
+        Connection conn = null; PreparedStatement pstmt = null; ResultSet rs = null;
+        try {
+            conn = ModuloConexao.conector();
+            if (conn == null) { System.err.println("DAO: Falha de conexão ao listar todos os parceiros."); return parceiros; }
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Parceiro p = new Parceiro(rs.getString("nome_parceiro"));
+                p.setIdParceiro(rs.getInt("id_parceiro"));
+                parceiros.add(p);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Erro DAO ao listar todos os parceiros: " + e.getMessage(), "Erro SQL", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            try { if (rs != null) rs.close(); } catch (SQLException e) {}
+            try { if (pstmt != null) pstmt.close(); } catch (SQLException e) {}
+            try { if (conn != null) conn.close(); } catch (SQLException e) {}
+        }
+        return parceiros;
+    }
+    
     public List<String> listarNomes() {
         String sql = "SELECT nome_parceiro FROM cad_parceiros ORDER BY nome_parceiro";
         List<String> nomes = new ArrayList<>();

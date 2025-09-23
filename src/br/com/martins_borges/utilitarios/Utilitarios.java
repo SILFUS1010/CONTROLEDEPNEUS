@@ -154,4 +154,13 @@ public class Utilitarios {
         }
         return null;
     }
+
+    public static String removerAcentos(String str) {
+        if (str == null) {
+            return "";
+        }
+        String s = java.text.Normalizer.normalize(str, java.text.Normalizer.Form.NFD);
+        s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return s.toLowerCase();
+    }
 }
